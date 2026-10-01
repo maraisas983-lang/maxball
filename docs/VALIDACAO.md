@@ -2,7 +2,7 @@
 
 Windows, Node.js v24.19.0. Comandos: `npm.cmd run check` e `npm.cmd test`.
 
-Resultado: 48 arquivos com sintaxe aprovada; 52 testes aprovados, zero falhas. `git diff --check` sem erros. Artefato original preservado com SHA-256 conferido.
+Resultado: 50 arquivos com sintaxe aprovada; 53 testes aprovados, zero falhas. `git diff --check` sem erros. Artefato original preservado com SHA-256 conferido. Inicialização com o provedor Supabase aprovada; `.env` retorna HTTP 404 e nenhuma chave secreta aparece nos arquivos rastreados pelo Git.
 
 ## Cobertura
 
@@ -27,6 +27,6 @@ Resultado: 48 arquivos com sintaxe aprovada; 52 testes aprovados, zero falhas. `
 
 A ferramenta de navegador não encontrou uma instância disponível. Canvas/áudio são simulados nos testes de interface. Não houve inspeção de pixels, reprodução de áudio, medição de FPS ou teste em celular físico. Estabilidade numérica não substitui avaliação humana da dificuldade.
 
-Sem credenciais Supabase disponibilizadas: SQL e adaptador foram testados localmente; Auth hospedado, confirmação de e-mail e sincronização real precisam ser verificados no projeto externo.
+Conexão real verificada em 01/10/2026: Auth e JWKS retornaram HTTP 200; a API de dados aceitou a chave do servidor. O projeto ainda não possui as três tabelas e a função de resultado; a migração precisa ser executada no SQL Editor. Cadastro, confirmação de e-mail e sincronização de uma partida real dependem dessa etapa. As credenciais ficam apenas no `.env` ignorado pelo Git.
 
 Checklist manual: desktop e celular horizontal, joystick, pedidos da carreira, nomes, torcida, rede, duas contas em redes diferentes, reconexão e restauração de backup.

@@ -2,10 +2,12 @@ const {fail}=require('../lib/validation.cjs');
 const {id}=require('../database/index.cjs');
 const {hash}=require('./auth.cjs');
 function createSupabase({url,anonKey,serviceKey,fetchImpl=fetch}){
- if(!url||!anonKey||!serviceKey)throw new Error('Configure SUPABASE_URL, SUPABASE_ANON_KEY e SUPABASE_SERVICE_ROLE_KEY no servidor.');
+ if(!url||!anonKey||!serviceKey)throw new Error('Configure SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY e SUPABASE_SECRET_KEY no servidor (nomes legados também são aceitos).');
  if(!/^https:\/\/[a-z0-9.-]+$/i.test(url))throw new Error('SUPABASE_URL deve usar HTTPS.');
  async function request(path,{body,token,key=anonKey,method=body?'POST':'GET'}={}){
-  let response;try{response=await fetchImpl(url+path,{method,headers:{apikey:key,Authorization:'Bearer '+(token||key),'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined,signal:AbortSignal.timeout(10000)});}catch{fail('CLOUD','Serviço de contas indisponível. Tente novamente.',503);}
+  // Publishable/secret keys belong in apikey; only JWTs go in Authorization.
+  const bearer=token||(!key.startsWith('sb_')?key:null);
+  let response;try{response=await fetchImpl(url+path,{method,headers:{apikey:key,...(bearer?{Authorization:'Bearer '+bearer}:{}),'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined,signal:AbortSignal.timeout(10000)});}catch{fail('CLOUD','Serviço de contas indisponível. Tente novamente.',503);}
   const data=await response.json().catch(()=>({}));if(!response.ok)fail('CLOUD',response.status===400||response.status===401?'Confira seus dados e a confirmação do e-mail.':'Serviço de contas indisponível.',response.status>=500?503:400);return data;
  }
  return {

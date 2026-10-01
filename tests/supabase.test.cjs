@@ -1,6 +1,17 @@
 const test=require('node:test'),assert=require('node:assert/strict');
 const {PGlite}=require('@electric-sql/pglite');
 const {read}=require('./helpers.cjs');
+test('new API keys use apikey while user JWTs use Authorization; legacy keys remain supported',async()=>{
+ const {createSupabase}=require('../server/services/supabase.cjs'),{supabaseConfig}=require('../server/lib/supabaseConfig.cjs'),requests=[];
+ const config=supabaseConfig({AUTH_PROVIDER:'supabase',SUPABASE_URL:'https://example.supabase.co/',SUPABASE_PUBLISHABLE_KEY:'sb_publishable_test',SUPABASE_SECRET_KEY:'sb_secret_test'});
+ const cloud=createSupabase({...config,fetchImpl:async(url,options)=>{requests.push(options);return {ok:true,json:async()=>[]};}});
+ await cloud.login('test@example.com','test-password');await cloud.profile('test');await cloud.user('user-jwt');
+ assert.equal(requests[0].headers.apikey,'sb_publishable_test');assert.equal(requests[0].headers.Authorization,undefined);
+ assert.equal(requests[1].headers.apikey,'sb_secret_test');assert.equal(requests[1].headers.Authorization,undefined);
+ assert.equal(requests[2].headers.Authorization,'Bearer user-jwt');
+ const legacy=supabaseConfig({AUTH_PROVIDER:'supabase',SUPABASE_URL:config.url,SUPABASE_ANON_KEY:'legacy-anon',SUPABASE_SERVICE_ROLE_KEY:'legacy-service'});
+ const old=createSupabase({...legacy,fetchImpl:async(url,options)=>{assert.equal(options.headers.Authorization,'Bearer legacy-service');return {ok:true,json:async()=>[]};}});await old.profile('test');
+});
 test('Supabase SQL executes; RLS blocks rating edits and RPC settles once',async()=>{
  const pg=new PGlite();
  const a='00000000-0000-4000-8000-000000000001',b='00000000-0000-4000-8000-000000000002',c='00000000-0000-4000-8000-000000000003',mid='00000000-0000-4000-8000-000000000004';
