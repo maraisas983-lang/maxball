@@ -27,6 +27,6 @@ Resultado: 50 arquivos com sintaxe aprovada; 53 testes aprovados, zero falhas. `
 
 A ferramenta de navegador não encontrou uma instância disponível. Canvas/áudio são simulados nos testes de interface. Não houve inspeção de pixels, reprodução de áudio, medição de FPS ou teste em celular físico. Estabilidade numérica não substitui avaliação humana da dificuldade.
 
-Conexão real verificada em 01/10/2026: Auth e JWKS retornaram HTTP 200; a API de dados aceitou a chave do servidor. O projeto ainda não possui as três tabelas e a função de resultado; a migração precisa ser executada no SQL Editor. Cadastro, confirmação de e-mail e sincronização de uma partida real dependem dessa etapa. As credenciais ficam apenas no `.env` ignorado pelo Git.
+Conexão real verificada em 01/10/2026 após a execução da migração no SQL Editor: Auth, JWKS, perfis, partidas e eventos retornaram HTTP 200; a função `record_ranked_match` está disponível na API. `npm.cmd run check:supabase` passou em todas as verificações. Cadastro, confirmação de e-mail e sincronização de uma partida real ainda precisam ser exercitados com contas de jogo. As credenciais ficam apenas no `.env` ignorado pelo Git.
 
 Checklist manual: desktop e celular horizontal, joystick, pedidos da carreira, nomes, torcida, rede, duas contas em redes diferentes, reconexão e restauração de backup.
