@@ -11,7 +11,7 @@
  <div class="logo"><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" fill="#fff" stroke="#0a0f2c" stroke-width="6"/><path d="M50 30l18 13-7 21H39l-7-21z" fill="#0a0f2c"/><path d="M50 30V10M68 43l20-8M61 64l12 18M39 64L27 82M32 43l-20-8" stroke="#0a0f2c" stroke-width="5"/><path d="M62 4L40 52h14l-8 44 30-56H62z" fill="#c8ff2e" stroke="#0a0f2c" stroke-width="4"/></svg><span>MAX<b>BALL</b></span></div>
  <p class="sub">Futebol arcade rápido e competitivo.</p>
  <div class="menu">
-  <button class="btn b1" data-go="bot">Jogar</button>
+  <button class="btn b1" data-account-page="ranked">Jogar</button>
   <button class="btn b2" data-go="train">Treinar</button>
   <button class="btn b3" data-go="room">Sala</button>
   <button class="btn b4" data-go="custom">Inventário</button>
@@ -19,7 +19,7 @@
   <button class="btn b6" data-go="ctl">Controles</button>
  </div>
  <div class="account-links"><button class="btn b1" data-account-page="career">Carreira</button><button class="btn b2" data-account-page="online">Online</button><button class="btn b4" data-account-page="shop">Gemas</button><button class="btn b5" data-account-page="profile">Conta</button></div>
- <div class="row"><button class="link" data-go="local">2 jogadores no mesmo teclado</button><button class="link" data-go="friends">Amigos</button></div>
+ <div class="row"><button class="link" data-go="bot">Jogar contra bots</button><button class="link" data-go="local">2 jogadores no mesmo teclado</button><button class="link" data-go="friends">Amigos</button></div>
  <div class="foot"><button class="link" data-legal="priv">Política de Privacidade</button>·<button class="link" data-legal="terms">Termos de Uso</button></div>
 </section>
 
@@ -87,6 +87,7 @@
  <div class="act" id="bP">PASSE</div><div class="act" id="bS">CHUTE</div>
  <div id="keys">Mover: WASD/setas · Chute: F/Espaço · Passe: G</div>
  <div id="rot">Gire o celular para o modo horizontal</div>
+ <div id="career-commands" hidden><button id="request-pass">Pedir passe (Q)</button><button id="request-shot">Pedir chute (R)</button></div>
  <div id="res"><h2 id="rt"></h2><div id="rs" class="sub"></div><button class="btn b1" id="again">Jogar de novo</button><button class="btn b2" id="menu">Menu</button></div>
 </section>
 <section class="scr" id="portal"><header class="portal-header"><div class="portal-brand">MAXBALL<small>ESCREVA SUA HISTORIA</small></div><span id="account-label"></span><button class="action secondary" id="portal-home">Menu principal</button></header><nav id="portal-nav" aria-label="Conta e modos"></nav><div id="portal-status" role="status" aria-live="polite"></div><main id="portal-content"></main></section>
@@ -96,9 +97,14 @@
 <script src="src/input/inputLifecycle.js"></script>
 <script src="src/core/runtime.js"></script>
 <script src="src/physics/ballPhysics.js"></script>
+<script src="src/core/config.js"></script>
+<script src="src/ai/tactics.js"></script>
+<script src="src/physics/contacts.js"></script>
+<script src="src/game/kickoff.js"></script>
 <script src="src/physics/playerPhysics.js"></script>
 <script src="src/physics/netPhysics.js"></script>
 <script src="src/online/snapshotBuffer.js"></script>
+<script src="src/audio/crowd.js"></script>
 <script src="src/legacy/game.js"></script>
 <script src="src/services/apiClient.js"></script>
 <script src="src/online/connection.js"></script>
@@ -106,6 +112,7 @@
 <script src="src/ui/careerView.js"></script>
 <script src="src/ui/economyView.js"></script>
 <script src="src/ui/onlineView.js"></script>
+<script src="src/ui/rankedView.js"></script>
 <script src="src/ui/adminView.js"></script>
 <script src="src/ui/portal.js"></script>
 </body></html>

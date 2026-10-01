@@ -52,6 +52,20 @@ test('account UI creates career, purchases/equips, renders admin and plays a ser
  window.document.querySelector('#menu').click();await until(()=>window.document.querySelector('#portal').classList.contains('on'),'return to career');
  await until(()=>/Rodada 2/.test(window.document.querySelector('#portal-content').textContent),'next fixture');
  assert.equal(app.career.view(portal.account.user.id).career.stats.matches,1);
+ await portal.open('ranked');assert.equal(app.rooms.rankedStatus(portal.account.user).queued,true);
+ button('Cancelar busca').click();await until(()=>!app.rooms.rankedStatus(portal.account.user).queued,'cancel ranked queue');
+ button('Buscar partida').click();await until(()=>app.rooms.rankedStatus(portal.account.user).queued,'join ranked queue again');
+ const opponent=await app.auth.register({username:'ranked_opponent',password:'opponent-password-123'});
+ const ws=new WebSocket(base.replace('http','ws')+'/ws',{origin,headers:{Cookie:'maxball_session='+opponent.token}});t.after(()=>ws.terminate());await once(ws,'open');
+ let opponentSnapshot=null;ws.on('message',data=>{const message=JSON.parse(data);if(message.type==='snapshot')opponentSnapshot=message.state;});
+ app.rooms.rankedJoin(opponent.user);app.rooms.pairRanked();
+ await until(()=>window.document.querySelector('#game').classList.contains('on')&&opponentSnapshot?.cfg.ranked,'two ranked clients playing');
+ const rankedRoom=[...app.rooms.rooms.values()].find(r=>r.ranked);assert.equal(opponentSnapshot.matchId,rankedRoom.match.id);
+ ws.terminate();await until(()=>rankedRoom.absent?.[opponent.user.id],'disconnect grace');
+ assert.notEqual(rankedRoom.match.G.phase,'end');
+ rankedRoom.absent[opponent.user.id]=Date.now()-21000;
+ await until(()=>rankedRoom.saved,'ranked disconnect result');assert.equal(rankedRoom.match.G.reason,'FORFEIT');
+ assert.equal(app.auth.profile(portal.account.user.id).rating,1016);assert.equal(app.auth.profile(opponent.user.id).rating,984);
  assert.deepEqual(errors,[]);
 });
 test('snapshot interpolation uses buffered positions and resets for a new match',()=>{

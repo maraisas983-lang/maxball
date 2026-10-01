@@ -5,7 +5,7 @@ const username=process.argv[2];
 if(!username){console.error('Uso: npm run admin -- nome_da_conta_existente');process.exit(1);}
 const db=openDatabase(process.env.DATABASE_PATH||'var/maxball.sqlite');
 try{
- const user=db.one('SELECT * FROM users WHERE username=?',username);
+ const user=db.one('SELECT * FROM users WHERE username=? OR id=?',username,username);
  if(!user)throw new Error('Crie a conta pelo jogo antes de promover.');
  if(db.one("SELECT id FROM users WHERE role='SUPER_ADMIN'"))throw new Error('Já existe SUPER_ADMIN. Use o painel para gerenciar os demais administradores.');
  db.transaction(()=>{

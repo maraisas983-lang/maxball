@@ -1,3 +1,4 @@
+const {createSupabase,useSupabaseAuth,createCloudSync}=require('./services/supabase.cjs');
 const http=require('node:http');
 const fs=require('node:fs/promises');
 const path=require('node:path');
@@ -10,11 +11,13 @@ const {createRooms}=require('./online/rooms.cjs');
 const {AppError,fail,object}=require('./lib/validation.cjs');
 const ROOT=path.resolve(__dirname,'..');
 
-function createApp({databasePath='var/maxball.sqlite',origin='http://127.0.0.1:5173',production=false,logger=console,sessionMs}={}){
+function createApp({databasePath='var/maxball.sqlite',origin='http://127.0.0.1:5173',production=false,logger=console,sessionMs,supabase}={}){
  if(production&&!origin.startsWith('https://'))throw new Error('Production requires an HTTPS PUBLIC_ORIGIN');
- const db=openDatabase(databasePath),economy=createEconomy(db),auth=createAuth(db,economy,{sessionMs}),career=createCareer(db,economy),admin=createAdmin(db,economy);
+ const db=openDatabase(databasePath),economy=createEconomy(db),localAuth=createAuth(db,economy,{sessionMs}),career=createCareer(db,economy),admin=createAdmin(db,economy);
+ const cloud=supabase?createSupabase(supabase):null,auth=cloud?useSupabaseAuth(localAuth,db,economy,cloud):localAuth,cloudSync=cloud?createCloudSync(db,cloud,logger):null;
  db.run("UPDATE matches SET status='ABANDONED',finished_at=? WHERE status='RUNNING'",Date.now());
- const rooms=createRooms({db,auth,economy,career,origin,logger}),limits=new Map();
+ db.run("UPDATE ranked_matches SET reason='SERVER_RESTART',home_after=home_before,away_after=away_before,finished_at=? WHERE finished_at IS NULL",Date.now());
+ const rooms=createRooms({db,auth,economy,career,origin,logger,syncResults:!!cloud}),limits=new Map();
  const token=req=>(req.headers.cookie||'').split(';').map(x=>x.trim()).find(x=>x.startsWith('maxball_session='))?.slice(16);
  const json=(res,status,data)=>{res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'});res.end(JSON.stringify(data));};
  function cookie(res,value,maxAge=7*86400){res.setHeader('Set-Cookie',`maxball_session=${value}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${maxAge}${production?'; Secure':''}`);}
@@ -39,11 +42,13 @@ function createApp({databasePath='var/maxball.sqlite',origin='http://127.0.0.1:5
   limit('api:'+req.socket.remoteAddress,600,60000);
   const write=!['GET','HEAD'].includes(method);
   if(write&&req.headers.origin!==origin)fail('ORIGIN','Origem não permitida.',403);
+  if(pathname==='/api/config'&&method==='GET')return json(res,200,{authProvider:auth.provider});
   if(pathname==='/api/health'&&method==='GET')return json(res,200,{ok:true});
   if(['/api/auth/register','/api/auth/login'].includes(pathname)&&method==='POST'){
    limit('auth:'+req.socket.remoteAddress,12,15*60000);
    const data=await body(req);limit('username:'+String(data.username).toLowerCase().slice(0,24),8,15*60000);
    const result=pathname.endsWith('register')?await auth.register(data):await auth.login(data);
+   if(result.confirmationRequired)return json(res,200,{confirmationRequired:true});
    cookie(res,result.token);return json(res,200,{user:result.user,csrf:result.csrf});
   }
   const sessionToken=token(req),{user,session}=auth.authenticate(sessionToken);
@@ -51,6 +56,7 @@ function createApp({databasePath='var/maxball.sqlite',origin='http://127.0.0.1:5
   const uid=user.id;
   if(method==='GET'){
    if(pathname==='/api/auth/me')return json(res,200,{user:auth.publicUser(user),csrf:session.csrf,profile:auth.profile(uid),wallet:economy.wallet(uid),room:rooms.current(uid)});
+   if(pathname==='/api/ranked')return json(res,200,rooms.rankedStatus(user));
    if(pathname==='/api/profile')return json(res,200,{profile:auth.profile(uid),achievements:db.all('SELECT * FROM accolades WHERE user_id=? ORDER BY created_at DESC',uid)});
    if(pathname==='/api/shop')return json(res,200,economy.catalog());
    if(pathname==='/api/inventory')return json(res,200,economy.inventory(uid));
@@ -64,9 +70,9 @@ function createApp({databasePath='var/maxball.sqlite',origin='http://127.0.0.1:5
   }
   if(method==='POST'||method==='PATCH'){
    const data=await body(req);
-   if(pathname==='/api/auth/logout'){auth.logout(sessionToken);rooms.leave(uid);cookie(res,'',0);return json(res,200,{ok:true});}
-   if(pathname==='/api/auth/refresh'){const next=auth.refresh(sessionToken);cookie(res,next.token);return json(res,200,{user:next.user,csrf:next.csrf});}
-   if(pathname==='/api/profile'&&method==='PATCH')return json(res,200,auth.updateProfile(uid,data));
+   if(pathname==='/api/auth/logout'){await auth.logout(sessionToken);rooms.leave(uid);cookie(res,'',0);return json(res,200,{ok:true});}
+   if(pathname==='/api/auth/refresh'){const next=await auth.refresh(sessionToken);cookie(res,next.token);return json(res,200,{user:next.user,csrf:next.csrf});}
+   if(pathname==='/api/profile'&&method==='PATCH')return json(res,200,await auth.updateProfile(uid,data));
    if(pathname==='/api/shop/purchase')return json(res,200,economy.purchase(uid,data));
    if(pathname==='/api/inventory/equip')return json(res,200,economy.equip(uid,data));
    if(pathname==='/api/career')return json(res,201,career.create(uid,data));
@@ -75,6 +81,8 @@ function createApp({databasePath='var/maxball.sqlite',origin='http://127.0.0.1:5
    const offer=pathname.match(/^\/api\/career\/offers\/([\w-]+)$/);if(offer)return json(res,200,career.transfer(uid,offer[1],data));
    if(pathname==='/api/rooms')return json(res,201,rooms.create(user,data));
    if(pathname==='/api/rooms/leave'){rooms.leave(uid);return json(res,200,{ok:true});}
+   if(pathname==='/api/ranked/join'){cloudSync?.assertReady();return json(res,200,rooms.rankedJoin(user));}
+   if(pathname==='/api/ranked/cancel')return json(res,200,rooms.rankedCancel(user));
    if(pathname==='/api/matchmaking')return json(res,200,rooms.matchmaking(user));
    const room=pathname.match(/^\/api\/rooms\/([\w-]+)\/(join|start)$/);if(room)return json(res,200,room[2]==='join'?rooms.join(user,room[1]):rooms.start(user,room[1]));
    const action=pathname.match(/^\/api\/admin\/users\/([\w-]+)$/);if(action)return json(res,200,admin.action(user,action[1],data));
@@ -88,8 +96,8 @@ function createApp({databasePath='var/maxball.sqlite',origin='http://127.0.0.1:5
  }));
  server.requestTimeout=15000;server.headersTimeout=10000;
  server.on('upgrade',(req,socket,head)=>rooms.upgrade(req,socket,head));
- async function close(){rooms.close();await new Promise(resolve=>{server.close(resolve);server.closeAllConnections();});db.close();}
- return {server,db,auth,economy,career,admin,rooms,close};
+ async function close(){rooms.close();await cloudSync?.close();await new Promise(resolve=>{server.close(resolve);server.closeAllConnections();});db.close();}
+ return {server,db,auth,economy,career,admin,rooms,cloudSync,close};
 }
 async function staticFile(req,res,pathname){
  if(!['GET','HEAD'].includes(req.method)){res.writeHead(405,{Allow:'GET, HEAD'}).end();return;}

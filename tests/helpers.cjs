@@ -57,7 +57,7 @@ function gameHarness({ original = false, saved } = {}) {
   for (const id of ['ljoy', 'ej']) elements.get(id).append(new Element());
   elements.get('home').classList.add('on');
   document.querySelector = selector => {
-    if (!/^#[\w]+$/.test(selector) || !elements.has(selector.slice(1))) throw new Error('Unknown selector: ' + selector);
+    if (!/^#[\w-]+$/.test(selector) || !elements.has(selector.slice(1))) throw new Error('Unknown selector: ' + selector);
     return elements.get(selector.slice(1));
   };
   document.querySelectorAll = selector => {

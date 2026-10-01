@@ -1,3 +1,4 @@
+const {kickoff}=require('../../src/game/kickoff.js');
 const {createPhysics}=require('../../src/physics/playerPhysics.js');
 const {moveBall}=require('../../src/physics/ballPhysics.js');
 const {createEvents}=require('../../src/core/runtime.js');
@@ -12,19 +13,19 @@ class Match {
   this.random=seeded(seed);this.events=createEvents();this.log=[];this.inputs=new Map();this.stats={};this.P=[];
   for(let team=0;team<2;team++)for(let slot=0;slot<this.cfg.n;slot++){
    const human=players.find(p=>p.team===team&&p.slot===slot);
-   const player={id:human?.id||`bot-${team}-${slot}`,name:human?.name||'Bot '+(slot+1),team,num:human?.num||7+slot,ctrl:human?'remote':'ai',slot,x:0,y:0,vx:0,vy:0,fx:team?-1:1,fy:0,st:1,cd:0,hop:0};
+   const player={id:human?.id||`bot-${team}-${slot}`,name:human?.name||['Caio','Breno','Davi','Rui','Leo','Nico','Vini','João'][team*4+slot],displayName:human?.name||['Caio','Breno','Davi','Rui','Leo','Nico','Vini','João'][team*4+slot],team,num:human?.num||7+slot,ctrl:human?'remote':'ai',slot,x:0,y:0,vx:0,vy:0,fx:team?-1:1,fy:0,st:1,cd:0,hop:0};
    this.P.push(player);this.stats[player.id]={goals:0,assists:0,shots:0,passes:0,inputs:0};
   }
   this.physics=createPhysics({state:()=>this,input:p=>this.inputs.get(p.id)||{x:0,y:0},random:this.random,effects:{kick:(p,type)=>this.stats[p.id][type==='s'?'shots':'passes']++}});
   this.kickoff();this.record('MATCH_STARTED',{});
  }
  record(type,payload){const event={type,time:this.G.elapsed,...payload};this.log.push(event);this.events.emit(type,event);}
- kickoff(){
-  this.ball={x:this.W/2,y:this.H/2,vx:0,vy:0,rot:0,last:-1};
-  for(const p of this.P){const x=p.slot?this.W*.2:(p.team===this.G.ko?this.W*.43:this.W*.35);p.x=p.team?this.W-x:x;p.y=p.slot?this.H*p.slot/this.cfg.n:this.H/2;p.vx=p.vy=0;p.cd=0;p.tr=0;p.dbl=0;p.fx=p.team?-1:1;p.fy=0;p.role=p.slot===0?'att':p.slot===this.cfg.n-1?'def':'mid';}
- }
+ kickoff(){kickoff(this);}
  setInput(userId,input){
   const player=this.P.find(p=>p.id===userId);if(!player||player.ctrl==='ai')return;
+  if(this.cfg.career&&(input.requestPass||input.requestShot)&&this.G.elapsed>=(player.requestAt||0)){
+   this.G.teamRequests[player.team]={playerId:userId,type:input.requestShot?'SHOOT':'PASS',until:this.G.elapsed+4};player.requestAt=this.G.elapsed+1;
+  }
   this.inputs.set(userId,input);this.stats[userId].inputs++;
  }
  goal(team){

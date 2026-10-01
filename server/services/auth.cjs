@@ -62,7 +62,7 @@ function createAuth(db,economy,{sessionMs=7*86400000}={}){
   db.run('UPDATE profiles SET display_name=?,shirt_name=?,shirt_number=?,avatar=? WHERE user_id=?',display,shirt,num,avatar,userId);
   return profile(userId);
  }
- return {register,login,authenticate,publicUser,profile,updateProfile,allowed,
+ return {session,provider:"local",register,login,authenticate,publicUser,profile,updateProfile,allowed,
   logout:token=>db.run('DELETE FROM sessions WHERE token_hash=?',hash(token)),
   refresh:token=>db.transaction(()=>{const current=authenticate(token);db.run('DELETE FROM sessions WHERE token_hash=?',hash(token));return {...session(current.user.id,current.session.absolute_expires_at),user:publicUser(current.user)};})};
 }
