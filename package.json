@@ -1,0 +1,23 @@
+{
+  "name": "maxball",
+  "version": "0.1.0",
+  "private": true,
+  "description": "MAXBALL - futebol arcade, carreira e multiplayer",
+  "scripts": {
+    "start": "node server/index.cjs",
+    "check": "node scripts/check.cjs",
+    "test": "node --test --test-timeout=30000 tests/*.test.cjs",
+    "start:offline": "node scripts/serve.cjs",
+    "migrate": "node scripts/migrate.cjs",
+    "admin": "node scripts/admin.cjs"
+  },
+  "engines": {
+    "node": ">=24.14"
+  },
+  "dependencies": {
+    "ws": "^8.22.0"
+  },
+  "devDependencies": {
+    "jsdom": "^30.1.1"
+  }
+}

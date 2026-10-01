@@ -1,0 +1,49 @@
+const {id}=require('../database/index.cjs');
+const {fail,object,text,integer}=require('../lib/validation.cjs');
+const ranks={PLAYER:0,MODERATOR:1,ADMIN:2,SUPER_ADMIN:3};
+function createAdmin(db,economy){
+ function requireRole(user,role='MODERATOR'){if(ranks[user.role]<ranks[role])fail('FORBIDDEN','Acesso não autorizado.',403);}
+ function dashboard(user,online){requireRole(user);return {users:db.one('SELECT count(*) n FROM users').n,online,matches:db.one("SELECT count(*) n FROM matches WHERE status='COMPLETED'").n,gems:db.one('SELECT coalesce(sum(balance),0) n FROM wallets').n,purchases:db.one('SELECT count(*) n FROM purchases').n,bans:db.one('SELECT count(*) n FROM bans WHERE active=1 AND (expires_at IS NULL OR expires_at>?)',Date.now()).n,recent:db.all('SELECT * FROM admin_audit ORDER BY created_at DESC LIMIT 30')};}
+ function users(actor,query=''){requireRole(actor);return db.all('SELECT u.id,u.username,u.role,u.status,u.created_at,p.display_name,p.level,w.balance FROM users u JOIN profiles p ON p.user_id=u.id JOIN wallets w ON w.user_id=u.id WHERE u.username LIKE ? OR u.id=? ORDER BY u.created_at DESC LIMIT 50','%'+query.slice(0,40)+'%',query);}
+ function detail(actor,userId){requireRole(actor);const user=db.one('SELECT id,username,role,status,created_at,last_login_at FROM users WHERE id=?',userId);if(!user)fail('USER','Conta não encontrada.',404);return {user,profile:db.one('SELECT * FROM profiles WHERE user_id=?',userId),wallet:economy.wallet(userId),inventory:economy.inventory(userId),bans:db.all('SELECT * FROM bans WHERE user_id=?',userId),audit:db.all('SELECT * FROM admin_audit WHERE target_user_id=? ORDER BY created_at DESC LIMIT 50',userId)};}
+ function action(actor,userId,body){
+  requireRole(actor);object(body,['action','reason','amount','itemId','expiresAt','role','status']);
+  const action=text(body.action,'Ação',1,30),reason=text(body.reason,'Motivo',5,300);
+  return db.transaction(()=>{
+   const target=db.one('SELECT * FROM users WHERE id=?',userId);
+   if(!target)fail('USER','Conta não encontrada.',404);
+   if(target.id===actor.id||ranks[target.role]>=ranks[actor.role])fail('FORBIDDEN','Esta conta não pode ser alterada por você.',403);
+   const previous=detail(actor,userId);
+   if(['BAN','UNBAN','STATUS'].includes(action)){
+    if(action==='BAN'){
+     const expiry=body.expiresAt==null?null:integer(body.expiresAt,'Validade',Date.now()+60000,Date.now()+365*86400000);
+     db.run('INSERT INTO bans VALUES(?,?,?,?,?,?,1)',id(),userId,reason,actor.id,Date.now(),expiry);
+    }else if(action==='UNBAN')db.run('UPDATE bans SET active=0 WHERE user_id=?',userId);
+    else{if(!['ACTIVE','SUSPENDED'].includes(body.status))fail('STATUS','Status inválido.');db.run('UPDATE users SET status=?,updated_at=? WHERE id=?',body.status,Date.now(),userId);}
+    db.run('DELETE FROM sessions WHERE user_id=?',userId);
+   }else{
+    requireRole(actor,'ADMIN');
+    if(action==='GEMS')economy.change(userId,integer(body.amount,'Quantidade',-1000000,1000000),'ADMIN_GRANT',reason,'admin:'+id());
+    else if(action==='GRANT_ITEM'||action==='REMOVE_ITEM'){
+     const item=db.one('SELECT * FROM shop_items WHERE id=?',text(body.itemId,'Item',1,50));if(!item)fail('ITEM','Item não encontrado.',404);
+     if(action==='GRANT_ITEM')db.run('INSERT OR IGNORE INTO inventory VALUES(?,?,?)',userId,item.id,Date.now());
+     else{
+      if(item.price===0)fail('ITEM','Itens básicos não podem ser removidos.');
+      db.run('DELETE FROM inventory WHERE user_id=? AND item_id=?',userId,item.id);
+      db.run(item.category==='KIT'?'UPDATE profiles SET kit=0 WHERE user_id=? AND kit=?':'UPDATE profiles SET effect=0 WHERE user_id=? AND effect=?',userId,item.asset_index);
+     }
+    }else if(action==='ROLE'){
+     requireRole(actor,'SUPER_ADMIN');if(!['PLAYER','MODERATOR','ADMIN'].includes(body.role))fail('ROLE','Permissão inválida.');
+     db.run('UPDATE users SET role=?,updated_at=? WHERE id=?',body.role,Date.now(),userId);db.run('DELETE FROM sessions WHERE user_id=?',userId);
+    }else fail('ACTION','Ação desconhecida.');
+   }
+   const next=detail(actor,userId);
+   // Exclude audit/ledger recursion from each snapshot.
+   const snapshot=x=>JSON.stringify({user:x.user,profile:x.profile,balance:x.wallet.balance,inventory:x.inventory.map(i=>i.id),bans:x.bans});
+   db.run('INSERT INTO admin_audit VALUES(?,?,?,?,?,?,?,?)',id(),actor.id,action,userId,snapshot(previous),snapshot(next),reason,Date.now());
+   return next;
+  });
+ }
+ return {dashboard,users,detail,action,requireRole};
+}
+module.exports={createAdmin};

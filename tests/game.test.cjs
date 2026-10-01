@@ -1,0 +1,76 @@
+﻿const test = require('node:test');
+const assert = require('node:assert/strict');
+const { read, plain, gameHarness } = require('./helpers.cjs');
+const stableSave=JSON.stringify({v:2,coins:200,k:[0,1,4],f:[0,1],kit:4,fx:1,num:10,name:'POGGI',fid:'MAX-TEST',st:{p:0,w:0,g:0},fr:[]});
+
+test('CSS and screen markup are preserved from the original artifact', () => {
+  const original=read('maxball-codigo-6 (1).txt'),current=read('index.html');
+  assert.equal(read('styles/game.css'),original.match(/<style>\r?\n([\s\S]*?)<\/style>/)[1]);
+  const screens=html=>html.slice(html.indexOf('<body>')+6,html.indexOf('<script')).trim();
+  const preserved=current.replace(/ <div class="account-links">.*?<\/div>\r?\n/,'').replace(/<div id="network-status" role="status"><\/div>\r?\n /,'').replace(/<section class="scr" id="portal">.*?<\/section>\r?\n/,'');
+  assert.equal(screens(preserved),screens(original));
+});
+for(const mode of ['bot','train','local'])test('physics matches original at the same inputs and timestep: '+mode,()=>{
+  const before=gameHarness({original:true,saved:stableSave}),after=gameHarness({saved:stableSave});
+  for(const h of [before,after]) {
+    h.api.start(mode);
+    for(let frame=0;frame<360;frame++) {
+      h.api.state.keys.KeyD=frame<180?1:0;h.api.state.keys.KeyS=frame<90?1:0;
+      h.api.state.keys.KeyF=frame%45<10?1:0;h.api.state.keys.KeyG=frame%65<8?1:0;
+      h.api.update(1/60);if(frame%30===0)h.api.draw();
+    }
+  }
+  const rounded=body=>Object.fromEntries(['x','y','vx','vy'].map(k=>[k,Math.round(body[k]*1e7)/1e7]));
+  const snapshot=h=>plain({players:h.api.state.P.map(rounded),ball:rounded(h.api.state.ball),score:h.api.state.G.score,time:h.api.state.G.time});
+  assert.deepEqual(snapshot(after),snapshot(before));assert.equal(after.errors.length,0);
+});
+test('all team sizes and field sizes start, simulate and render with finite coordinates',()=>{
+  const h=gameHarness({saved:stableSave});
+  for(let n=1;n<=4;n++)for(let fs=0;fs<=2;fs++) {
+    h.api.start('bot',{n,fs,side:2,diff:2});
+    for(let frame=0;frame<120;frame++)h.api.update(1/60);
+    h.api.draw();
+    assert.equal(h.api.state.P.length,n*2);
+    for(const body of [...h.api.state.P,h.api.state.ball])for(const key of ['x','y','vx','vy'])assert.ok(Number.isFinite(body[key]),`${n}v${n} fs=${fs} ${key}`);
+  }
+});
+test('valid central goal rewards once through normal lifecycle and restarts play',()=>{
+  const h=gameHarness({saved:stableSave});h.api.start('bot');
+  const s=h.api.state;s.ball.x=s.W+s.BR-1;s.ball.y=s.H/2;s.ball.vx=100;
+  h.api.moveBall(1/30);assert.deepEqual(plain(s.G.score),[1,0]);assert.equal(s.G.phase,'goal');assert.equal(s.save.coins,210);
+  for(let i=0;i<165;i++)h.api.update(1/60);
+  assert.equal(s.G.phase,'play');assert.deepEqual(plain(s.G.score),[1,0]);assert.equal(s.save.coins,210);
+  h.api.draw();
+});
+test('shirt number, profile, friends and local purchases remain usable',()=>{
+  const h=gameHarness({saved:stableSave});
+  h.api.show('custom');h.elements.get('np').onclick();assert.equal(h.api.state.save.num,11);
+  h.api.show('prof');h.elements.get('pnm').value='Ana 10';h.elements.get('psv').onclick();assert.equal(h.api.state.save.name,'Ana 10');
+  h.api.show('friends');h.elements.get('fin').value='MAX-AAAA';h.elements.get('fadd').onclick();assert.deepEqual(plain(h.api.state.save.fr),['MAX-AAAA']);
+  const {save,inv}=h.api.state;save.coins=90;inv.shop=true;inv.i=2;h.api.show('custom');h.elements.get('peq').onclick();
+  assert.equal(save.coins,0);assert.ok(save.k.includes(2));assert.equal(save.kit,2);
+  const count=save.k.length;h.elements.get('peq').onclick();assert.equal(save.coins,0);assert.equal(save.k.length,count);
+  const persisted=JSON.parse(h.storage.getItem('maxball'));assert.equal(persisted.name,'Ana 10');assert.equal(persisted.num,11);
+});
+test('partial save no longer crashes room, inventory, controls or match startup',()=>{
+  const h=gameHarness({saved:JSON.stringify({v:2,k:null,f:null,kit:400,room:{n:0},ctl:{j:{}},st:null})});
+  for(const screen of ['home','prof','friends','custom','room','ctl'])h.api.show(screen);
+  h.api.lockStart();h.api.lkDraw();h.api.lkStep(1/60);h.api.lkDraw();
+  h.api.start('bot');h.api.update(1/60);h.api.draw();assert.equal(h.errors.length,0);
+});
+test('original corruption failure is reproduced by the test harness',()=>{
+  assert.throws(()=>gameHarness({original:true,saved:JSON.stringify({v:2,ctl:{j:{}}})}));
+});
+test('player name is inserted as literal text in the room',()=>{
+  const h=gameHarness({saved:stableSave}),name='<img src=x onerror=alert(1)>';
+  h.api.state.save.name=name;h.api.show('room');
+  const nodes=[];function visit(node){nodes.push(node);for(const child of node.children||[])visit(child);}visit(h.elements.get('pA'));
+  assert.ok(nodes.some(node=>node.textContent===name+' · #10'));
+  assert.ok(nodes.every(node=>!node.innerHTML?.includes(name)));
+});
+test('match result persists and returning home/restarting works',()=>{
+  const h=gameHarness({saved:stableSave});h.api.start('bot');h.api.state.G.score=[2,1];h.api.endMatch();
+  assert.equal(h.api.state.save.st.p,1);assert.equal(h.api.state.save.st.w,1);assert.equal(h.api.state.save.coins,220);
+  h.elements.get('again').onclick();assert.deepEqual(plain(h.api.state.G.score),[0,0]);
+  h.elements.get('exit').onclick();assert.equal(h.api.state.G,null);assert.ok(h.elements.get('home').classList.contains('on'));
+});

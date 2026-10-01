@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>MAXBALL</title>
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Rubik:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles/game.css">
+<link rel="stylesheet" href="styles/portal.css"></head><body>
+
+<section class="scr on" id="home">
+ <div class="coins" id="c0"></div><button class="pchip" id="pchip" data-go="prof"></button>
+ <div class="logo"><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" fill="#fff" stroke="#0a0f2c" stroke-width="6"/><path d="M50 30l18 13-7 21H39l-7-21z" fill="#0a0f2c"/><path d="M50 30V10M68 43l20-8M61 64l12 18M39 64L27 82M32 43l-20-8" stroke="#0a0f2c" stroke-width="5"/><path d="M62 4L40 52h14l-8 44 30-56H62z" fill="#c8ff2e" stroke="#0a0f2c" stroke-width="4"/></svg><span>MAX<b>BALL</b></span></div>
+ <p class="sub">Futebol arcade rápido e competitivo.</p>
+ <div class="menu">
+  <button class="btn b1" data-go="bot">Jogar</button>
+  <button class="btn b2" data-go="train">Treinar</button>
+  <button class="btn b3" data-go="room">Sala</button>
+  <button class="btn b4" data-go="custom">Inventário</button>
+  <button class="btn b5" data-go="shop">Loja</button>
+  <button class="btn b6" data-go="ctl">Controles</button>
+ </div>
+ <div class="account-links"><button class="btn b1" data-account-page="career">Carreira</button><button class="btn b2" data-account-page="online">Online</button><button class="btn b4" data-account-page="shop">Gemas</button><button class="btn b5" data-account-page="profile">Conta</button></div>
+ <div class="row"><button class="link" data-go="local">2 jogadores no mesmo teclado</button><button class="link" data-go="friends">Amigos</button></div>
+ <div class="foot"><button class="link" data-legal="priv">Política de Privacidade</button>·<button class="link" data-legal="terms">Termos de Uso</button></div>
+</section>
+
+<section class="scr" id="prof"><h2>Perfil</h2><div class="sub">ID: <b id="pid"></b> <button class="chip" id="pcp">Copiar</button></div>
+ <div class="lin" style="width:min(420px,92vw)"><input id="pnm" type="text" maxlength="14" placeholder="Seu nome" autocomplete="off"><button class="btn b1" id="psv" style="font-size:14px;padding:10px 12px">Salvar</button></div>
+ <div id="pst"></div><button class="btn b2" data-go="home" style="padding:10px 30px">Voltar</button></section>
+<section class="scr" id="friends"><h2>Amigos</h2><div class="sub">Seu código: <b id="fid"></b> <button class="chip" id="fcp">Copiar</button></div>
+ <div class="lin" style="width:min(420px,92vw)"><input id="fin" type="text" maxlength="20" placeholder="Nome ou código do amigo" autocomplete="off"><button class="btn b1" id="fadd" style="font-size:14px;padding:10px 12px">Adicionar</button></div>
+ <div id="frl"></div><div class="sub" style="font-size:12px">Status online e convites chegam junto com o modo online.</div><button class="btn b2" data-go="home" style="padding:10px 30px">Voltar</button></section>
+<section class="scr" id="legal"><h2 id="lt"></h2><div id="ltxt"></div><button class="btn b2" data-go="home" style="padding:10px 30px">Voltar</button></section>
+
+<section class="scr" id="custom">
+ <div class="coins" id="c1"></div>
+ <div id="inv">
+  <div id="ipl"><h2 id="ih">Inventário</h2><canvas id="pv" width="220" height="220"></canvas><div id="pn"></div><div id="pd"></div>
+   <div class="num"><button id="nm" aria-label="Diminuir">−</button><span id="nv">10</span><button id="np" aria-label="Aumentar">+</button></div>
+   <button class="btn b1" id="peq">Equipar</button></div>
+  <div id="igr"><div class="tabs"><button class="chip sel" id="tk">Camisas</button><button class="chip" id="tf">Rastros</button></div><div id="gr"></div></div>
+ </div>
+ <button class="btn b2" data-go="home" style="padding:10px 30px">Voltar</button>
+</section>
+
+
+
+<section class="scr" id="room">
+ <div class="rtop"><button class="back" data-go="home" aria-label="Voltar">‹</button><div><b id="rname">MAX x CPU</b><small id="rsub"></small></div><span class="srv">Sala offline</span></div>
+ <div class="rpan"><div class="pnl" id="pA"></div><div class="pnl mid" id="pS"></div><div class="pnl" id="pB"></div></div>
+ <div class="opts" id="ropts"></div>
+ <div class="rbot"><button class="btn b4" id="rinv">Convidar</button><div id="rchat"><div id="rlogc"></div><div class="lin"><input id="rmsg" type="text" maxlength="60" placeholder="Mensagem para a sala..." autocomplete="off"><button class="btn b2" id="rsend">Enviar</button></div></div><button class="btn b1" id="rgo">Iniciar partida</button></div>
+</section>
+
+<section class="scr" id="ctl">
+ <div id="cpan">
+  <label>Analógico <input type="range" id="r0" min="60" max="160"></label>
+  <label>Chute <input type="range" id="r1" min="60" max="160"></label>
+  <label>Passe <input type="range" id="r2" min="60" max="160"></label>
+  <label>Opacidade <input type="range" id="r3" min="30" max="100"></label>
+  <button class="btn b2" id="crst">Restaurar</button><button class="btn b1" data-go="home">Salvar</button>
+ </div>
+ <div id="ej"><div class="kn2" style="border-radius:50%;background:radial-gradient(#6bb8ff,#1667e8)"></div></div>
+ <div class="act" id="es">CHUTE</div><div class="act" id="ep">PASSE</div>
+ <div id="chint">Arraste os controles para posicioná-los</div>
+</section>
+
+<section class="scr" id="lock">
+ <canvas id="lcv"></canvas>
+ <div class="rtop lt"><button class="back" data-go="room" aria-label="Voltar">‹</button><div><b id="lname">Vestiário</b><small id="lsub"></small></div><button class="btn b1" id="lgo" style="margin-left:auto;font-size:14px;padding:10px 14px">Iniciar partida</button></div>
+ <div id="ljoy"><div class="kn2"></div></div>
+ <div id="lnum"><b>Número da camisa</b><div class="num"><button id="lnm" aria-label="Diminuir">−</button><span id="lnv"></span><button id="lnp" aria-label="Aumentar">+</button></div><button class="btn b1" id="lnok">OK</button></div>
+ <div id="lchat"><div class="emo"><button>👏</button><button>🔥</button><button>😂</button><button>👍</button></div><div id="llog"></div><div class="lin"><input id="lmsg" type="text" maxlength="60" placeholder="Digite uma mensagem..." autocomplete="off"><button class="btn b2" id="lsend">Enviar</button></div></div>
+</section>
+
+<section class="scr" id="game">
+ <canvas id="cv"></canvas>
+ <div id="network-status" role="status"></div>
+ <button id="exit">Sair</button><button id="gset" aria-label="Configurações">⚙</button>
+ <div id="gpan"><b>Configurações</b><label>Zoom <input type="range" id="z0" min="60" max="160"></label><label>Tamanho dos botões <input type="range" id="z1" min="60" max="160"></label><label>Opacidade <input type="range" id="z2" min="30" max="100"></label><label class="ck"><input type="checkbox" id="z3"> Tremor de tela</label><button class="btn b1" id="zok">Continuar</button></div>
+ <div id="sb"><div id="sbr"><div class="tb" id="tabA"></div><div class="ab" id="abA">MAX</div>
+   <div class="lm"><span id="s0">0</span><i class="sp"></i><span id="s1">0</span>
+    <svg class="em" viewBox="0 0 38 44"><path d="M19 1l16 7v17c0 9-7 15-16 18C10 40 3 34 3 25V8z" fill="#0b1233" stroke="#d8e52a" stroke-width="3"/><circle cx="19" cy="22" r="10" fill="#fff"/><path d="M19 15l6 4-2 7h-8l-2-7z" fill="#0b1233"/></svg></div>
+   <div class="ab" id="abB">CPU</div><div class="tb" id="tabB"></div></div>
+  <div id="clk"><b id="tm">00:00</b></div></div>
+ <div id="gbar"><div class="ga" id="ga">MAX</div><canvas id="gsk" width="64" height="64"></canvas><div class="gt" id="gtx">GOL!</div></div>
+ <div id="joy"><div id="knob"></div></div>
+ <div class="act" id="bP">PASSE</div><div class="act" id="bS">CHUTE</div>
+ <div id="keys">Mover: WASD/setas · Chute: F/Espaço · Passe: G</div>
+ <div id="rot">Gire o celular para o modo horizontal</div>
+ <div id="res"><h2 id="rt"></h2><div id="rs" class="sub"></div><button class="btn b1" id="again">Jogar de novo</button><button class="btn b2" id="menu">Menu</button></div>
+</section>
+<section class="scr" id="portal"><header class="portal-header"><div class="portal-brand">MAXBALL<small>ESCREVA SUA HISTORIA</small></div><span id="account-label"></span><button class="action secondary" id="portal-home">Menu principal</button></header><nav id="portal-nav" aria-label="Conta e modos"></nav><div id="portal-status" role="status" aria-live="polite"></div><main id="portal-content"></main></section>
+<div id="toast"></div>
+
+<script src="src/services/localSaveRepository.js"></script>
+<script src="src/input/inputLifecycle.js"></script>
+<script src="src/core/runtime.js"></script>
+<script src="src/physics/ballPhysics.js"></script>
+<script src="src/physics/playerPhysics.js"></script>
+<script src="src/physics/netPhysics.js"></script>
+<script src="src/online/snapshotBuffer.js"></script>
+<script src="src/legacy/game.js"></script>
+<script src="src/services/apiClient.js"></script>
+<script src="src/online/connection.js"></script>
+<script src="src/ui/components.js"></script>
+<script src="src/ui/careerView.js"></script>
+<script src="src/ui/economyView.js"></script>
+<script src="src/ui/onlineView.js"></script>
+<script src="src/ui/adminView.js"></script>
+<script src="src/ui/portal.js"></script>
+</body></html>
