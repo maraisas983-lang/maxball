@@ -2,7 +2,6 @@
  'use strict';
  const {el,button,note,field,form,celebrate}=root.MaxballUI;
  const shell=document.querySelector('#portal'),content=document.querySelector('#portal-content'),nav=document.querySelector('#portal-nav'),statusNode=document.querySelector('#portal-status');
- const labels={play:'Jogar',training:'Treino',local:'Local',support:'Suporte',clubs:'Clubes',ranked:'Ranqueado',career:'Carreira',online:'Sala personalizada',shop:'Loja',inventory:'Inventário',profile:'Perfil',gallery:'Galeria',command:'Command Center'};
  let authProvider='local';
  let account=null,page='career',generation=0,returnPage='online',knownAwards=new Set(),pendingAwards=[],cleanup=null,roomListener=null;
  const api=root.MaxballAPI.request;
@@ -17,6 +16,7 @@
   async open(next='career'){
    if(cleanup){const stop=cleanup;cleanup=null;await stop();}
    page=next;const version=++generation;root.MaxballGame.show('portal');content.replaceChildren();portal.status('Carregando…');
+   root.MaxballLobby.mount(shell,content,nav,next,key=>portal.open(key));
    if(!account&&!['training','local','play'].includes(next)){try{await portal.refreshAccount();}catch(error){if(error.status!==401)portal.error(error);}}
    if(version!==generation)return;
    if(!account&&!['training','local','play'].includes(next)){
@@ -27,13 +27,10 @@
     }
     renderLogin();return;
    }
-   shell.classList.toggle('command-mode',next==='command');nav.replaceChildren();
-   for(const [key,label] of Object.entries(labels))if(!['admin','command'].includes(key)||account&&['ADMIN','SUPER_ADMIN','OWNER','MODERATOR','SUPPORT'].includes(account.user.role)){
-    const tab=button(label,()=>portal.open(key),'tab'+(page===key?' active':''));tab.setAttribute('aria-current',page===key?'page':'false');nav.append(tab);
-   }
    portal.status('');
-   const container=el('div',{class:'portal-grid'});content.append(container);
+   const container=el('div',{class:'portal-grid lobby-body'});content.append(container);
    try{await (root.MaxballViews[next]||root.MaxballViews.career)({...portal,account,content:container});}catch(error){portal.error(error);}
+   if(version===generation)shell.scrollTop=0;
    if(pendingAwards.length&&next==='career'){celebrate(pendingAwards);pendingAwards=[];}
   },
   play(room){returnPage=room.kind==='CAREER'?'career':room.cfg.ranked?'ranked':'online';portal.connection.connect();portal.connection.socket?.readyState===WebSocket.OPEN&&portal.connection.socket.send(JSON.stringify({type:'subscribe'}));portal.status('Conectando à partida…');}
@@ -41,7 +38,7 @@
  root.MaxballPortal=portal;
  function cardUnavailable(error,link){return el('article',{class:'login-card'},[el('h2',{text:'Conecte ao MAXBALL'}),note(error.message),link]);}
  function renderLogin(){
-  nav.replaceChildren();document.querySelector('#account-label').textContent='Sua carreira começa aqui';
+  document.querySelector('#account-label').textContent='Sua conta MAXBALL';
   const legal=root.MaxballLegal,check=el('input',{type:'checkbox',name:'acceptTerms',required:''});
   const showLegal=(title,body)=>{const dialog=el('dialog',{class:'legal-dialog'},[el('h2',{text:title}),note('Versão '+legal.termsVersion),el('p',{text:body})]);dialog.append(button('Voltar',()=>{dialog.close();dialog.remove();}));document.body.append(dialog);dialog.addEventListener('cancel',()=>dialog.remove());dialog.showModal();};
   const consent=el('div',{class:'consent'},[el('label',{},[check,el('span',{text:'Li e aceito os Termos de Uso e a Política de Privacidade'})]),button('Termos de Uso',()=>showLegal('Termos de Uso',legal.terms),'secondary'),button('Política de Privacidade',()=>showLegal('Política de Privacidade',legal.privacy),'secondary')]);
@@ -53,7 +50,7 @@
    const result=await api('/auth/register','POST',payload(values));if(result.confirmationRequired){portal.status('Confirme seu e-mail e depois entre na conta.');return;}await loggedIn();
   },'secondary');
   const sync=()=>{login.querySelector('[type=submit]').disabled=register.disabled=!check.checked;};check.onchange=sync;sync();
-  content.replaceChildren(el('article',{class:'login-card'},[el('p',{class:'eyebrow',text:'ENTRE PARA O MAXBALL'}),el('h2',{text:'Entre em campo.'}),note('Sua conta guarda carreira, troféus e cosméticos. Treino e Local estão disponíveis sem login.'),login,register,note('Cadastro: senha com pelo menos 12 caracteres.')]));
+  content.append(el('article',{class:'login-card'},[el('p',{class:'eyebrow',text:'ENTRE PARA O MAXBALL'}),el('h2',{text:page==='support'?'Entre para acessar seus chamados.':'Entre em campo.'}),note('Sua conta guarda carreira, troféus e cosméticos. Treino e Local estão disponíveis sem login.'),login,register,note('Cadastro: senha com pelo menos 12 caracteres.')]));
   if(!statusNode.classList.contains('error'))portal.status('');
  }
  async function loggedIn(){

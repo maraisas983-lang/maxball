@@ -4,7 +4,8 @@
  root.MaxballViews.ranked=async portal=>{
   portal.connection.connect();
   const current=await portal.api('/ranked');
-  const label=note(''),rating=note(''),list=card('Histórico ranqueado');
+  const label=note(''),rating=el('div',{class:'ranked-rating','aria-label':'Seu Elo'}),list=card('Histórico ranqueado');
+  label.setAttribute('role','status');
   const panel=card('Ranqueado MAXBALL',note('4 × 4 · um jogador e três companheiros por equipe · 3 minutos'),rating,label);
   let queued=current.queued;
   const paint=data=>{queued=data.queued;portal.connection.state=queued?'MATCHMAKING':data.room?'IN_MATCH':'CONNECTED';panel.classList.toggle('searching',queued);rating.textContent='Seu Elo: '+data.rating;label.textContent=data.room?'Adversário encontrado. Entrando em campo…':queued?'Buscando adversário · '+data.wait+' s · diferença de até '+data.range+' pontos':'Pronto para a próxima partida.';if(data.room)portal.play(data.room);};

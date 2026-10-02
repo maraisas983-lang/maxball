@@ -29,6 +29,15 @@ test('account UI creates career, purchases/equips, renders admin and plays a ser
  Object.defineProperty(window.document,'fonts',{value:{ready:Promise.resolve()}});
  for(const file of [...read('index.html').matchAll(/<script src="([^"]+)"><\/script>/g)].map(m=>m[1]))window.eval(read(file));
  const portal=window.MaxballPortal;
+ for(const mode of ['play','training','local','support','ranked']){
+  await portal.open(mode);
+  assert.equal(window.document.querySelector('#portal').dataset.lobby,mode);
+  assert.equal(window.document.querySelector('#portal-nav .tab'),null,'modes do not share a tab bar');
+  assert.ok(window.document.querySelector('.lobby-cover'),'destination identity remains visible, including login');
+ }
+ await portal.open('training');assert.ok(window.document.querySelector('[name=fs]'),'guest can configure training');
+ await portal.open('play');window.document.querySelector('[data-mode=local] button').click();
+ await until(()=>window.document.querySelector('#portal').dataset.lobby==='local'&&window.document.querySelector('[name=players]'),'mode selector opens the local lobby');
  await portal.open('career');assert.ok(window.document.querySelector('.login-card'));
  window.document.querySelector('[name=username]').value='ui_player';window.document.querySelector('[name=password]').value='ui-password-1234';
  const button=label=>[...window.document.querySelectorAll('#portal button')].find(b=>b.textContent===label);
@@ -42,6 +51,7 @@ test('account UI creates career, purchases/equips, renders admin and plays a ser
  const buy=button('Comprar');buy.click();await until(()=>portal.account.wallet.balance<200,'purchase');
  await portal.open('inventory');const equip=button('Equipar');if(equip){equip.click();await until(()=>!equip.disabled,'equip');}
  await portal.open('profile');assert.equal(window.document.querySelector('[name=shirtName]').value,'POGGI');
+ await portal.open('support');assert.ok(window.document.querySelector('[name=description]'));assert.equal(window.document.querySelector('#portal').dataset.lobby,'support');
  app.db.run("UPDATE users SET role='SUPER_ADMIN' WHERE id=?",portal.account.user.id);await portal.refreshAccount();await portal.open('admin');assert.match(window.document.querySelector('#portal-content').textContent,/Administração MAXBALL/);
  await portal.open('career');button('Entrar em campo').click();
  await until(()=>window.document.querySelector('#game').classList.contains('on'),'live match');
