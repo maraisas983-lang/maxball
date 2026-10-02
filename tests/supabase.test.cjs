@@ -1,6 +1,21 @@
 const test=require('node:test'),assert=require('node:assert/strict');
 const {PGlite}=require('@electric-sql/pglite');
 const {read}=require('./helpers.cjs');
+test('configured admins require a confirmed Supabase email and cannot be claimed through credentials or metadata',async()=>{
+ const {createApp}=require('../server/app.cjs');
+ let identity;
+ const fetchImpl=async url=>({ok:true,json:async()=>url.endsWith('/user')?identity:url.includes('/profiles')?[{display_name:'Test',rating:1000,wins:0,draws:0,losses:0,goals:0,assists:0}]:{access_token:'verified-by-cloud',refresh_token:'refresh',expires_in:3600}});
+ const app=createApp({databasePath:':memory:',adminEmails:['first@example.com','second@example.com'],supabase:{url:'https://example.supabase.co',anonKey:'public',serviceKey:'secret',fetchImpl},logger:{error(){},warn(){}}});
+ try{
+  const login=()=>app.auth.login({username:'first@example.com',password:'test-password'});
+  identity={id:'unconfirmed',email:'first@example.com'};assert.equal((await login()).user.role,'PLAYER');
+  identity={id:'outsider',email:'outsider@example.com',email_confirmed_at:'2026-01-01',user_metadata:{email:'first@example.com',role:'ADMIN'}};assert.equal((await login()).user.role,'PLAYER');
+  identity={id:'unconfirmed',email:'First@Example.com',email_confirmed_at:'2026-01-01'};const first=await login();assert.equal(first.user.role,'ADMIN');assert.equal(app.auth.authenticate(first.token).user.role,'ADMIN');
+  await login();assert.equal(app.db.one("SELECT count(*) n FROM admin_audit WHERE action='CONFIGURED_ADMIN' AND target_user_id='unconfirmed'").n,1);
+  identity={id:'second',email:'second@example.com',email_confirmed_at:'2026-01-01'};assert.equal((await login()).user.role,'ADMIN');
+  app.db.run("UPDATE users SET role='SUPER_ADMIN',staff_role='OWNER' WHERE id='second'");assert.equal((await login()).user.role,'OWNER');
+ }finally{await app.close();}
+});
 test('new API keys use apikey while user JWTs use Authorization; legacy keys remain supported',async()=>{
  const {createSupabase}=require('../server/services/supabase.cjs'),{supabaseConfig}=require('../server/lib/supabaseConfig.cjs'),requests=[];
  const config=supabaseConfig({AUTH_PROVIDER:'supabase',SUPABASE_URL:'https://example.supabase.co/',SUPABASE_PUBLISHABLE_KEY:'sb_publishable_test',SUPABASE_SECRET_KEY:'sb_secret_test'});

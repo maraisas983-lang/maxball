@@ -27,10 +27,17 @@ AUTH_PROVIDER=supabase
 SUPABASE_URL=https://SEU-PROJETO.supabase.co
 SUPABASE_PUBLISHABLE_KEY=SUA_CHAVE_PUBLICA
 SUPABASE_SECRET_KEY=SUA_CHAVE_SECRETA
+ADMIN_EMAILS=admin1@exemplo.com,admin2@exemplo.com
 ```
 
 4. Configure Site URL e URLs de confirmação em Authentication. Confirme o e-mail antes de entrar se o projeto exigir.
 5. Reinicie Node e entre com duas contas distintas. O formulário passa a pedir e-mail.
+   Os e-mails em `ADMIN_EMAILS` recebem o papel ADMIN ao entrar ou renovar a sessão,
+   desde que o Supabase confirme a verificação do e-mail. A lista fica no servidor;
+   nomes de jogador e metadados de cadastro não concedem acesso administrativo.
+   O Command Center fica disponível em Jogar para essas contas. Remover um e-mail
+   dessa lista impede novas promoções, mas não revoga o papel já concedido; use o
+   painel administrativo para revogar o acesso.
 6. Após uma partida, confira `profiles`, `ranked_matches` e `ranked_events`. Sincronização a cada 5 segundos; falhas geram `cloud_sync_failed`, mantendo os resultados para nova tentativa e bloqueando novas entradas ranqueadas.
 
 Execute `npm.cmd run check:supabase` para verificar Auth, JWKS, tabelas/colunas e a presença da função de resultado. O diagnóstico é somente leitura e não imprime chaves nem dados de usuários. Se indicar tabela/função ausente, abra SQL Editor → New query, cole o conteúdo completo de `server/database/supabase/001_ranked.sql` e clique Run. Depois repita o diagnóstico.

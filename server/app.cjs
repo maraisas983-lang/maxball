@@ -12,10 +12,10 @@ const {createOperations}=require('./services/operations.cjs');
 const {AppError,fail,object}=require('./lib/validation.cjs');
 const ROOT=path.resolve(__dirname,'..');
 
-function createApp({databasePath='var/maxball.sqlite',origin='http://127.0.0.1:5173',production=false,logger=console,sessionMs,supabase}={}){
+function createApp({databasePath='var/maxball.sqlite',origin='http://127.0.0.1:5173',production=false,logger=console,sessionMs,supabase,adminEmails=[]}={}){
  if(production&&!origin.startsWith('https://'))throw new Error('Production requires an HTTPS PUBLIC_ORIGIN');
  const db=openDatabase(databasePath),economy=createEconomy(db),localAuth=createAuth(db,economy,{sessionMs}),career=createCareer(db,economy),admin=createAdmin(db,economy),operations=createOperations(db);
- const cloud=supabase?createSupabase(supabase):null,auth=cloud?useSupabaseAuth(localAuth,db,economy,cloud):localAuth,cloudSync=cloud?createCloudSync(db,cloud,logger):null;
+ const cloud=supabase?createSupabase(supabase):null,auth=cloud?useSupabaseAuth(localAuth,db,economy,cloud,{adminEmails}):localAuth,cloudSync=cloud?createCloudSync(db,cloud,logger):null;
  db.run("UPDATE matches SET status='ABANDONED',finished_at=? WHERE status='RUNNING'",Date.now());
  db.run("UPDATE ranked_matches SET reason='SERVER_RESTART',home_after=home_before,away_after=away_before,finished_at=? WHERE finished_at IS NULL",Date.now());
  const rooms=createRooms({db,auth,economy,career,origin,logger,syncResults:!!cloud,canRank:()=>{const s=operations.settings();return !s.maintenance&&s.ranked_enabled;},audit:(actor,action,resource,metadata)=>operations.audit(actor,action,resource,'OK',metadata)}),limits=new Map();

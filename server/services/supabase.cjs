@@ -29,8 +29,9 @@ function createSupabase({url,anonKey,serviceKey,fetchImpl=fetch}){
   updateProfile:(uid,display_name)=>request('/rest/v1/profiles?id=eq.'+encodeURIComponent(uid),{key:serviceKey,method:'PATCH',body:{display_name}})
  };
 }
-function useSupabaseAuth(local,db,economy,cloud){
+function useSupabaseAuth(local,db,economy,cloud,{adminEmails=[]}={}){
  const {session,allowed,publicUser}=local;
+ const administrators=new Set(adminEmails.map(email=>email.trim().toLowerCase()).filter(Boolean));
  async function establish(tokens,isLogin=true){
   if(!tokens.access_token){return {confirmationRequired:true};}
   const identity=await cloud.user(tokens.access_token);
@@ -44,7 +45,14 @@ function useSupabaseAuth(local,db,economy,cloud){
     db.run('INSERT INTO profiles(id,user_id,display_name,shirt_name,shirt_number,created_at,rating,ranked_wins,ranked_draws,ranked_losses,ranked_goals,ranked_assists) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)',id(),identity.id,name,name,10,now,remote.rating,remote.wins,remote.draws,remote.losses,remote.goals,remote.assists);
     db.run('INSERT INTO wallets VALUES(?,?,?)',identity.id,0,now);for(const item of ['kit-0','kit-1','effect-0'])db.run('INSERT INTO inventory VALUES(?,?,?)',identity.id,item,now);economy.change(identity.id,200,'REWARD','WELCOME','welcome');user=db.one('SELECT * FROM users WHERE id=?',identity.id);
    }
-   allowed(user);if(isLogin)db.run('UPDATE users SET last_login_at=? WHERE id=?',now,identity.id);const result=session(identity.id,now+Math.min(tokens.expires_in||3600,3600)*1000);
+   allowed(user);
+   // Trust only the confirmed email returned by Supabase Auth, never form data or user metadata.
+   if(identity.email_confirmed_at&&administrators.has(identity.email.trim().toLowerCase())&&!['OWNER','SUPER_ADMIN','ADMIN'].includes(user.staff_role||user.role)){
+    db.run("UPDATE users SET role='ADMIN',staff_role='ADMIN',updated_at=? WHERE id=?",now,identity.id);
+    db.run('INSERT INTO admin_audit VALUES(?,?,?,?,?,?,?,?)',id(),identity.id,'CONFIGURED_ADMIN',identity.id,JSON.stringify({role:user.staff_role||user.role}),JSON.stringify({role:'ADMIN'}),'E-mail confirmado na lista administrativa do servidor',now);
+    user=db.one('SELECT * FROM users WHERE id=?',identity.id);
+   }
+   if(isLogin)db.run('UPDATE users SET last_login_at=? WHERE id=?',now,identity.id);const result=session(identity.id,now+Math.min(tokens.expires_in||3600,3600)*1000);
    db.run('INSERT INTO external_sessions VALUES(?,?,?)',hash(result.token),tokens.access_token,tokens.refresh_token);
    return {...result,user:publicUser(user)};
   });
