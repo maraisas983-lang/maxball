@@ -52,6 +52,9 @@ test('account UI creates career, purchases/equips, renders admin and plays a ser
  window.document.querySelector('#menu').click();await until(()=>window.document.querySelector('#portal').classList.contains('on'),'return to career');
  await until(()=>/Rodada 2/.test(window.document.querySelector('#portal-content').textContent),'next fixture');
  assert.equal(app.career.view(portal.account.user.id).career.stats.matches,1);
+ await portal.open('online');button('Criar sala').click();await until(()=>window.document.querySelector('.room-lobby'),'custom room lobby');
+ app.rooms.leave(portal.account.user.id);portal.connection.onMessage({type:'connected',room:null});
+ await until(()=>button('Criar sala'),'stale lobby cleared after server lost the room');
  await portal.open('ranked');assert.equal(app.rooms.rankedStatus(portal.account.user).queued,true);
  button('Cancelar busca').click();await until(()=>!app.rooms.rankedStatus(portal.account.user).queued,'cancel ranked queue');
  button('Buscar partida').click();await until(()=>app.rooms.rankedStatus(portal.account.user).queued,'join ranked queue again');
@@ -66,6 +69,7 @@ test('account UI creates career, purchases/equips, renders admin and plays a ser
  rankedRoom.absent[opponent.user.id]=Date.now()-21000;
  await until(()=>rankedRoom.saved,'ranked disconnect result');assert.equal(rankedRoom.match.G.reason,'FORFEIT');
  assert.equal(app.auth.profile(portal.account.user.id).rating,1016);assert.equal(app.auth.profile(opponent.user.id).rating,984);
+ portal.connection.onMessage({type:'connected',room:null});await until(()=>window.document.querySelector('#portal').classList.contains('on'),'return from a lost remote match');
  assert.deepEqual(errors,[]);
 });
 test('snapshot interpolation uses buffered positions and resets for a new match',()=>{

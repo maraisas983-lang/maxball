@@ -59,6 +59,10 @@
   input:()=>root.MaxballGame.input(),onStatus:message=>{document.querySelector('#network-status').textContent=message;},
   onMessage:message=>{
    if(!account)return;
+   if(message.type==='connected'){
+    if(!message.room&&root.MaxballGame.remote){root.MaxballGame.leaveRemote();return;}
+    if(!message.room&&roomListener&&page==='online'&&shell.classList.contains('on')){portal.open('online').catch(portal.error);return;}
+   }
    if(message.type==='room')roomListener?.(message.room);
    if(message.type==='snapshot')root.MaxballGame.snapshot(message.state,account.user.id);
    if(message.type==='result'){

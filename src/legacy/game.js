@@ -448,6 +448,7 @@ function remoteRender(dt,time){
 }
 window.MaxballGame=Object.freeze({
  show,toast,on:events.on,
+ get remote(){return !!G?.remote;},
  snapshot:receiveRemote,
  localProfile(){return {name:save.name,num:save.num,kit:save.kit,coins:save.coins};},
  cycleKit(dir){const n=save.k.indexOf(save.kit);save.kit=save.k[(n+dir+save.k.length)%save.k.length];persist();},
