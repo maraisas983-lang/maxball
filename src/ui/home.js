@@ -15,4 +15,9 @@
  }
  for(const [id,direction] of [['#home-prev',-1],['#home-next',1]])$(id).onclick=async()=>{try{await cycle(direction);}catch(error){root.MaxballGame.toast(error.message);}};
  root.MaxballHome={refresh};refresh();
+ async function announcement(){
+  if(document.hidden||!$('#home').classList.contains('on')||location.protocol==='file:')return;
+  try{const config=await root.MaxballAPI.request('/config'),welcome=document.querySelector('.home-footer>span');if(welcome)welcome.textContent=config.announcement||'Bem-vindo ao MAXBALL!';}catch{}
+ }
+ announcement();setInterval(announcement,30000);
 })(globalThis);

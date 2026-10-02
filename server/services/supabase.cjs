@@ -31,7 +31,7 @@ function createSupabase({url,anonKey,serviceKey,fetchImpl=fetch}){
 }
 function useSupabaseAuth(local,db,economy,cloud){
  const {session,allowed,publicUser}=local;
- async function establish(tokens){
+ async function establish(tokens,isLogin=true){
   if(!tokens.access_token){return {confirmationRequired:true};}
   const identity=await cloud.user(tokens.access_token);
   if(!identity.id||!identity.email)fail('IDENTITY','Identidade inválida.',401);
@@ -44,7 +44,7 @@ function useSupabaseAuth(local,db,economy,cloud){
     db.run('INSERT INTO profiles(id,user_id,display_name,shirt_name,shirt_number,created_at,rating,ranked_wins,ranked_draws,ranked_losses,ranked_goals,ranked_assists) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)',id(),identity.id,name,name,10,now,remote.rating,remote.wins,remote.draws,remote.losses,remote.goals,remote.assists);
     db.run('INSERT INTO wallets VALUES(?,?,?)',identity.id,0,now);for(const item of ['kit-0','kit-1','effect-0'])db.run('INSERT INTO inventory VALUES(?,?,?)',identity.id,item,now);economy.change(identity.id,200,'REWARD','WELCOME','welcome');user=db.one('SELECT * FROM users WHERE id=?',identity.id);
    }
-   allowed(user);const result=session(identity.id,now+Math.min(tokens.expires_in||3600,3600)*1000);
+   allowed(user);if(isLogin)db.run('UPDATE users SET last_login_at=? WHERE id=?',now,identity.id);const result=session(identity.id,now+Math.min(tokens.expires_in||3600,3600)*1000);
    db.run('INSERT INTO external_sessions VALUES(?,?,?)',hash(result.token),tokens.access_token,tokens.refresh_token);
    return {...result,user:publicUser(user)};
   });
@@ -57,7 +57,7 @@ function useSupabaseAuth(local,db,economy,cloud){
  return {...local,provider:'supabase',
   authenticate(token){const result=local.authenticate(token);if(!db.one('SELECT token_hash FROM external_sessions WHERE token_hash=?',hash(token)))fail('SESSION','Entre com sua conta Supabase.',401);return result;},
   register:async body=>establish(await cloud.register(...credentials(body,true))),login:async body=>establish(await cloud.login(...credentials(body))),
-  async refresh(token){local.authenticate(token);const row=db.one('SELECT * FROM external_sessions WHERE token_hash=?',hash(token));if(!row)fail('SESSION','Entre novamente.',401);const result=await establish(await cloud.refresh(row.refresh_token));local.logout(token);return result;},
+  async refresh(token){local.authenticate(token);const row=db.one('SELECT * FROM external_sessions WHERE token_hash=?',hash(token));if(!row)fail('SESSION','Entre novamente.',401);const result=await establish(await cloud.refresh(row.refresh_token),false);local.logout(token);return result;},
   async logout(token){const row=db.one('SELECT * FROM external_sessions WHERE token_hash=?',hash(token));local.logout(token);if(row)await cloud.logout(row.access_token).catch(()=>{});},
   async updateProfile(uid,body){const before=local.profile(uid),after=local.updateProfile(uid,body);try{await cloud.updateProfile(uid,after.display_name);}catch(error){db.run('UPDATE profiles SET display_name=?,shirt_name=?,shirt_number=?,avatar=? WHERE user_id=?',before.display_name,before.shirt_name,before.shirt_number,before.avatar,uid);throw error;}return after;}
  };
