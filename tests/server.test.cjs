@@ -12,6 +12,7 @@ test('server accounts, economy, career, RBAC and authoritative networking',async
  const url='http://127.0.0.1:'+app.server.address().port;
  t.after(()=>app.close());
  async function request(route,{method='GET',body,session,csrf=true,requestOrigin=origin}={}){
+  if(/^\/api\/auth\/(register|login)$/.test(route)&&body)body={...body,acceptTerms:true,termsVersion:'2026-10-02',privacyVersion:'2026-10-02'};
   const headers={Origin:requestOrigin};if(body!==undefined)headers['Content-Type']='application/json';
   if(session){headers.Cookie=session.cookie;if(csrf)headers['X-CSRF-Token']=session.csrf;}
   const response=await fetch(url+route,{method,headers,body:body===undefined?undefined:JSON.stringify(body)});
@@ -57,7 +58,7 @@ test('server accounts, economy, career, RBAC and authoritative networking',async
   wa.send(JSON.stringify({type:'input',seq:1,x:1,y:0,shoot:false,pass:false}));
   await new Promise(resolve=>{const timer=setTimeout(resolve,250);timer.unref?.();});
   assert.ok(messagesA.some(m=>m.type==='snapshot'));assert.ok(messagesB.some(m=>m.type==='snapshot'));
-  const room=app.rooms.rooms.get(roomId);assert.equal(room.match.G.phase,'starting');for(let i=0;i<180;i++)room.match.update(1/60);room.match.setInput(a.user.id,{x:1,y:0});assert.equal(room.match.P.find(p=>p.id===a.user.id).ctrl,'remote');
+  const room=app.rooms.rooms.get(roomId);assert.equal(room.match.G.phase,'starting');for(let i=0;i<370;i++)room.match.update(1/60);room.match.setInput(a.user.id,{x:1,y:0});assert.equal(room.match.P.find(p=>p.id===a.user.id).ctrl,'remote');
   room.match.G.score=[1,0];room.match.finish();app.rooms.persistResult(room);app.rooms.persistResult(room);
   assert.equal(app.db.one("SELECT count(*) n FROM gem_transactions WHERE user_id=? AND source=?",a.user.id,room.match.id).n,1);
   assert.equal((await request('/api/matches',{session:a})).body[0].status,'COMPLETED');

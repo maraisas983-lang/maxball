@@ -12,7 +12,7 @@ test('real ranked queue matches humans, cancellation, forfeits and persists Elo 
   app.rooms.pairRanked();assert.equal(app.rooms.rooms.size,1);const room=[...app.rooms.rooms.values()][0];assert.equal(room.players.length,2);assert.equal(room.match.P.length,8);assert.equal(app.rooms.rankedStatus(a).queued,false);
   app.rooms.leave(a.id);assert.equal(room.match.G.reason,'FORFEIT');const ar=app.auth.profile(a.id).rating,br=app.auth.profile(b.id).rating;assert.ok(ar<1000);assert.ok(br>1300);assert.equal(ar+br,2300);
   app.rooms.persistResult(room);assert.equal(app.auth.profile(a.id).rating,ar);assert.equal(app.db.one('SELECT count(*) n FROM ranked_matches').n,1);assert.ok(app.db.one("SELECT id FROM ranked_events WHERE type='FORFEIT'"));assert.equal(app.db.one('SELECT count(*) n FROM cloud_outbox').n,0);
-  assert.throws(()=>app.rooms.join(a,room.id));
+  await assert.rejects(()=>app.rooms.join(a,room.id));
  }finally{await app.close();}
 });
 test('Supabase adapter verifies identity and keeps service credentials server side',async()=>{

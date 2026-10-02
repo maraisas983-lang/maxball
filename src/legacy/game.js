@@ -29,7 +29,7 @@ function pSpr(i){return PSPR[i]||(PSPR[i]=(()=>{const c=document.createElement('
  g.strokeStyle='rgba(255,255,255,.55)';g.lineWidth=2;g.beginPath();g.arc(48,48,35,Math.PI*1.05,Math.PI*1.6);g.stroke();return c})())}
 const lum=c=>{const n=parseInt(c.slice(1),16);return((n>>16)*299+((n>>8&255)*587)+(n&255)*114)/1000};
 const cd=(a,b)=>{const f=h=>{const n=parseInt(h.slice(1),16);return[n>>16,n>>8&255,n&255]},x=f(a),y=f(b);return Math.hypot(x[0]-y[0],x[1]-y[1],x[2]-y[2])};
-let HT=0,oppI=0;const FMT=[0,[760,440,100],[1000,560,140],[1240,680,170],[1480,800,200]];function pickOpp(){let i,t=0;do{i=Math.random()*KITS.length|0}while((i==save.kit||cd(SK[i].c[0],KITS[save.kit][1])<110)&&++t<60);return i}
+let HT=0,oppI=0;const FMT=[0,[760,440,100],[1000,560,140],[1240,680,170],[1480,800,200],[1600,860,210]];function pickOpp(){let i,t=0;do{i=Math.random()*KITS.length|0}while((i==save.kit||cd(SK[i].c[0],KITS[save.kit][1])<110)&&++t<60);return i}
 const FX=[['Sem rastro',0],['Neon',50],['Fogo',100],['Estrelas',150]];
 let storageIssue = '', ready = false;
 const storageMessages = {
@@ -105,13 +105,13 @@ function rRoom(){const c=save.room=Object.assign({n:2,time:300,gold:0,diff:1,fs:
  ps.onclick=()=>{c.side=2;persist();rRoom();rlog('Você está assistindo')};
  const box=$('#ropts');box.innerHTML='';
  const opt=(ic,txt,fn)=>{const d=el('div','opt'),l=el('button','ar','‹'),r=el('button','ar','›');l.onclick=()=>fn(-1);r.onclick=()=>fn(1);d.append(l,el('div','ov','<i>'+ic+'</i><b>'+txt+'</b>'),r);box.append(d)};
- opt('🏟️',c.n+'v'+c.n,d=>{c.n=(c.n-1+d+4)%4+1;persist();rRoom();rlog('Formato '+c.n+'v'+c.n+' · gol de '+FMT[c.n][2])});
+ opt('🏟️',c.n+'v'+c.n,d=>{c.n=(c.n-1+d+5)%5+1;persist();rRoom();rlog('Formato '+c.n+'v'+c.n+' · gol de '+FMT[c.n][2])});
  opt('⏱️',c.time/60+' minuto'+(c.time>60?'s':''),d=>{c.time=RT[(RT.indexOf(c.time)+d+4)%4];persist();rRoom();rlog('Tempo: '+c.time/60+' min')});
  opt('🥇','Gol de ouro: '+(c.gold?'sim':'não'),()=>{c.gold=c.gold?0:1;persist();rRoom();rlog('Gol de ouro '+(c.gold?'ativado':'desativado'))});
  opt('🤖','Bots: '+DF[c.diff],d=>{c.diff=(c.diff+d+3)%3;persist();rRoom();rlog('Bots: '+DF[c.diff])});
  opt('📏','Campo: '+FSN[c.fs||0],d=>{c.fs=((c.fs||0)+d+3)%3;persist();rRoom();rlog('Campo '+FSN[c.fs])})}
 $('#rgo').onclick=()=>{aud();start('bot',Object.assign({},save.room,{intro:1}))};
-$('#rinv').onclick=()=>{try{navigator.clipboard.writeText(location.href)}catch(e){}toast('Link copiado. Sala offline por enquanto.')};
+$('#rinv').onclick=()=>{try{navigator.clipboard.writeText(location.href)}catch(e){}toast('Para convidar amigos, abra Sala personalizada no menu.')};
 const CB={j:160,s:88,p:70};
 function place(el,k){const c=save.ctl[k],b=CB[k]*c.s;Object.assign(el.style,{left:c.x*100+'%',top:c.y*100+'%',width:b+'px',height:b+'px',opacity:save.ctl.op,fontSize:Math.max(9,b*.14)+'px'})}
 function applyCtl(){[['#ljoy','j'],['#joy','j'],['#bS','s'],['#bP','p'],['#ej','j'],['#es','s'],['#ep','p']].forEach(([q,k])=>place($(q),k))}
@@ -141,7 +141,7 @@ const joystickBinding=MaxballPointers.bindJoystick(joy,knob,tj);
 const jend=()=>joystickBinding.reset();
 const actionBindings=[['#bS','s','shoot'],['#bP','p','pass']].map(([selector,key,action])=>MaxballPointers.bindAction($(selector),value=>tb[key]=+value,()=>{actionSeq[action]++;aud();}));
 /* ---------- vestiário ---------- */
-const LW=960,LH2=540,LR=18,LNU=[[7,8,5,4],[9,11,6,3]],lx=$('#lcv').getContext('2d'),lcv=$('#lcv');
+const LW=960,LH2=540,LR=18,LNU=[[7,8,5,4,1],[9,11,6,3,1]],lx=$('#lcv').getContext('2d'),lcv=$('#lcv');
 const LRECTS=[{x:0,y:0,w:960,h:140},{x:190,y:330,w:230,h:34},{x:540,y:330,w:230,h:34},{x:700,y:170,w:150,h:70},{x:395,y:190,w:170,h:38}];
 let LK=null,LKRUN=0,LKT=0;
 function lockStart(){const c=save.room;if(c.side==2)return toast('Entre em um time primeiro');const t=c.side,k=c['sk'+t];
@@ -203,14 +203,14 @@ const events=MaxballCore.createEvents(),matchTimers=MaxballCore.createTimers();
 const remoteFrames=new MaxballSnapshots.SnapshotBuffer();let remoteUser=null,remoteMatch=null,remoteScore=[0,0];
 const fixedClock=MaxballCore.createClock(dt=>update(dt));
 const mk=(team,num,ctrl)=>({id:'local-'+team+'-'+num,displayName:ctrl==='p1'?save.name:ctrl==='p2'?'Jogador 2':['Caio','Breno','Davi','Rui','Leo','Nico','Vini','João'][P.length%8],team,num,ctrl,x:0,y:0,vx:0,vy:0,fx:team?-1:1,fy:0,st:1,cd:0,hop:0});
-function start(mode,cfg){actionSeq.shoot=actionSeq.pass=0;$('#versus').hidden=true;$('#penalty-hud').hidden=true;$('#match-notice').textContent='';aud();$('#career-commands').hidden=true;remoteMatch=null;remoteFrames.clear();matchTimers.clear();fixedClock.reset();NET.forEach(n=>n.reset());cfg=Object.assign({n:2,time:300,gold:0,diff:1,ball:1,fs:0,side:0,sk0:save.kit,sk1:-1},cfg||{});
+function start(mode,cfg){window.MaxballResults?.clear();actionSeq.shoot=actionSeq.pass=0;$('#versus').hidden=true;$('#penalty-hud').hidden=true;$('#match-notice').textContent='';aud();$('#career-commands').hidden=true;remoteMatch=null;remoteFrames.clear();matchTimers.clear();fixedClock.reset();NET.forEach(n=>n.reset());cfg=Object.assign({n:2,time:300,gold:0,diff:1,ball:1,fs:0,side:0,sk0:save.kit,sk1:-1},cfg||{});
  if(cfg.teams){for(let i=0;i<2;i++){SK[22+i]=MaxballTeams.skin(cfg.teams[i]);delete SPR[22+i];delete PSPR[22+i];}cfg.sk0=22;cfg.sk1=23;}
- if(mode=='train'){cfg.n=1;cfg.side=0}if(cfg.sk1<0||cfg.sk1==cfg.sk0){const sv=save.kit;save.kit=cfg.sk0;cfg.sk1=pickOpp();save.kit=sv}
+ if(mode=='train'){cfg.side=0;if(!cfg.trainingBots)cfg.n=1;}if(cfg.sk1<0||cfg.sk1==cfg.sk0){const sv=save.kit;save.kit=cfg.sk0;cfg.sk1=pickOpp();save.kit=sv}
  HT=cfg.side==1?1:0;const sk=[cfg.sk0,cfg.sk1];c0=SK[sk[0]].c[0];c1=SK[sk[1]].c[0];oppI=sk[1-HT];
  const fm=FMT[mode=='train'?2:cfg.n],fs=FSS[cfg.fs||0],gs=1+(fs-1)*.6;VH=640/[1.5,1.3,1.15][cfg.fs||0];rsz();W=Math.round(fm[0]*fs);H=Math.round(fm[1]*fs);GY0=H/2-fm[2]*gs/2;GY1=H/2+fm[2]*gs/2;POSTS=[[0,GY0],[0,GY1],[W,GY0],[W,GY1]];GG=G3();STAD=null;
  BR=[9,11,14][cfg.ball];G={mode,cfg,sk,score:[0,0],time:mode=='train'?0:cfg.time,phase:'play',pt:0,shake:0,flash:0,earn:0,fw:0};PA=[];
  P=[];const N=cfg.n,nu=[[7,8,5,4],[9,11,6,3]];
- for(let t=0;t<2;t++)for(let k=0;k<N;k++){if(mode=='train'&&t==1)break;const me=k==0&&t==HT&&cfg.side!=2;P.push(mk(t,me?save.num:nu[t][k],me?'p1':(k==0&&mode=='local'&&t!=HT?'p2':'ai')))}
+ for(let t=0;t<2;t++)for(let k=0;k<N;k++){if(mode=='train'&&!cfg.trainingBots&&t==1)break;const me=k==0&&t==HT&&cfg.side!=2;P.push(mk(t,me?save.num:nu[t][k],me?'p1':(k==0&&mode=='local'&&t!=HT?'p2':'ai')))}
  const L=mode=='local',T=mode=='train',tab=k=>{const c=SK[k].c;return 'linear-gradient(to bottom,'+c[0]+' 50%,'+(c[1]||c[0])+' 50%)'};
  $('#abA').textContent=AB(sk[0]);$('#abB').textContent=AB(sk[1]);$('#tabA').style.background=tab(sk[0]);$('#tabB').style.background=tab(sk[1]);
  ['#abB','#tabB','#s1'].forEach(q=>$(q).style.display=T?'none':'');$('#gbar').classList.remove('on');lastSc=[0,0];
@@ -414,7 +414,7 @@ function fAdd(){const i=$('#fin'),v=i.value.trim();if(v.length<2)return toast('D
 $('#fadd').onclick=fAdd;$('#fin').onkeydown=e=>{if(e.key=='Enter')fAdd()};
 $('#fcp').onclick=()=>{try{navigator.clipboard.writeText(save.fid)}catch(e){}toast('Código copiado')};
 const LG={priv:['Privacidade e dados',`<p><b>Dados locais.</b> Os modos offline guardam preferências e cosméticos no navegador.</p><p><b>Conta.</b> O servidor guarda perfil, sessões, carreira, compras, saldo, inventário, partidas e ações administrativas. Com Supabase configurado, ele autentica o e-mail e armazena perfil e histórico ranqueado.</p><p><b>Conexão.</b> O servidor recebe comandos de jogo e calcula os resultados. Google Fonts fornece as fontes e recebe as requisições do navegador.</p><p>Limpar o navegador apaga o progresso offline; o progresso da conta permanece no servidor.</p>`],terms:['Uso do MAXBALL',`<p>Gemas e cosméticos são itens virtuais do jogo. Resultados oficiais são calculados pelo servidor.</p><p>No ranqueado, sair da partida resulta em derrota. Uma desconexão permite até 20 segundos para reconectar.</p><p>Trapaças e abuso podem resultar em suspensão. O progresso da conta depende da disponibilidade e dos backups do servidor.</p>`]};
-document.addEventListener('click',e=>{const b=e.target.closest('[data-legal]');if(!b)return;const x=LG[b.dataset.legal];$('#lt').textContent=x[0];$('#ltxt').innerHTML=x[1];show('legal')});
+document.addEventListener('click',e=>{const b=e.target.closest('[data-legal]');if(!b)return;const x=LG[b.dataset.legal];$('#lt').textContent=x[0];if(window.MaxballLegal){$('#ltxt').textContent='Versão '+window.MaxballLegal.termsVersion+' · '+window.MaxballLegal[b.dataset.legal==='priv'?'privacy':'terms'];}else $('#ltxt').innerHTML=x[1];show('legal')});
 
 const careerButtons={pass:false,shot:false};
 for(const [id,key] of [['request-pass','pass'],['request-shot','shot']]){const b=$('#'+id);b.addEventListener('pointerdown',e=>{e.preventDefault();careerButtons[key]=true;});for(const type of ['pointerup','pointercancel','pointerleave'])b.addEventListener(type,()=>careerButtons[key]=false);}
@@ -430,14 +430,14 @@ function receiveRemote(snapshot,userId){
 function remoteRender(dt,time){
  const state=remoteFrames.sample(time);if(!state)return;
  const previousPhase=G.phase;
- if(previousPhase==='starting'&&state.G.phase==='play'){resetInputs();actionSeq.shoot=actionSeq.pass=0;}
+ if(previousPhase==='starting'&&state.G.phase==='play'){beep(784,.2,'sine',.08);resetInputs();actionSeq.shoot=actionSeq.pass=0;}
  G={...state.G,mode:'online',remote:true,paused:G.paused,cfg:state.cfg,sk:state.cfg.teams?[22,23]:[state.cfg.sk0,state.cfg.sk1],shake:G.shake||0,flash:Math.max(0,(G.flash||0)-dt*2),earn:0};
- P=state.P.map(p=>({...p,ctrl:p.id===remoteUser?'p1':'ai'}));ball={...state.ball};HT=P.find(p=>p.id===remoteUser)?.team||0;
+ P=state.P.map(p=>({...p,ctrl:p.id===remoteUser?'p1':'ai'}));const predicted=window.MaxballPortal?.connection.predict(remoteUser);if(predicted){const local=P.find(p=>p.id===remoteUser);if(local)Object.assign(local,{x:predicted.x,y:predicted.y,vx:predicted.vx,vy:predicted.vy});}ball={...state.ball};HT=P.find(p=>p.id===remoteUser)?.team||0;
  W=state.W;H=state.H;GY0=state.GY0;GY1=state.GY1;BR=state.BR;
  if(G.phase==='penalties'&&previousPhase!=='penalties'){cam.x=W-120;cam.y=H/2;}
  if(G.cfg.labels){$('#abA').textContent=G.cfg.labels[0].slice(0,12);$('#abB').textContent=G.cfg.labels[1].slice(0,12);}
  for(let team=0;team<2;team++)if(G.score[team]>remoteScore[team]){crowd.goal();showGoal(team);beep(659,.25);G.flash=1;burst(team?0:W,ball.y,40,[c0,c1,'#fff'],320,1);}
- $('#match-notice').textContent=G.notice&&G.notice.until>G.elapsed?G.notice.text:G.period==='EXTRA_TIME'?'PRORROGAÇÃO':'';
+ $('#match-notice').textContent=G.notice&&G.notice.until>G.elapsed?G.notice.text:G.phase==='halftime'?'INTERVALO · '+Math.ceil(G.breakRemaining)+'s':G.period==='EXTRA_TIME'?'PRORROGAÇÃO':'';
  const penaltyHUD=$('#penalty-hud');penaltyHUD.hidden=G.phase!=='penalties';if(G.penalties){const pen=G.penalties,shooter=P.find(p=>p.id===pen.shooter),role=remoteUser===pen.shooter?'Você cobra: mova e chute':remoteUser===pen.keeper?'Você defende: cima / baixo':'Aguarde a cobrança';penaltyHUD.textContent='PÊNALTIS '+pen.score.join(' × ')+' · '+(shooter?.displayName||shooter?.name||'')+' · '+(pen.result==='GOAL'?'GOL':pen.result==='MISS'?'DEFESA / FORA':Math.ceil(Math.max(0,MaxballConfig.match.penaltySeconds-pen.time))+'s')+' · '+role;}
  remoteScore=G.score.slice();netUpd(dt);camUpdate(dt);updHUD();
  for(let i=PA.length-1;i>=0;i--){const p=PA[i];p.l-=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;if(p.l<=0)PA.splice(i,1);}
@@ -447,13 +447,14 @@ function remoteRender(dt,time){
  }
 }
 window.MaxballGame=Object.freeze({
- show,toast,on:events.on,
+ show,toast,on:events.on,startLocal:start,
  get remote(){return !!G?.remote;},
  snapshot:receiveRemote,
  localProfile(){return {name:save.name,num:save.num,kit:save.kit,coins:save.coins};},
  cycleKit(dir){const n=save.k.indexOf(save.kit);save.kit=save.k[(n+dir+save.k.length)%save.k.length];persist();},
  teamSkin(canvas,team){const g=canvas.getContext('2d');g.clearRect(0,0,canvas.width,canvas.height);drawSkin(g,canvas.width/2,canvas.height/2,canvas.width*.43,MaxballTeams.skin(team));},
- input(){if(!G?.remote)return null;if(G.paused||G.phase==='starting')return {x:0,y:0,shoot:false,pass:false};const p=P.find(p=>p.id===remoteUser);if(!p)return null;const i=inputOf(p),n=Math.max(1,Math.hypot(i.x,i.y));return {x:i.x/n,y:i.y/n,shoot:!!i.shoot,pass:!!i.pass,shootSeq:i.shootSeq||0,passSeq:i.passSeq||0,requestPass:!!i.requestPass,requestShot:!!i.requestShot};},
+ teamCrest(canvas,team){const g=canvas.getContext('2d'),w=canvas.width,h=canvas.height;g.clearRect(0,0,w,h);g.beginPath();g.moveTo(w*.12,h*.12);g.lineTo(w*.88,h*.12);g.lineTo(w*.82,h*.66);g.lineTo(w*.5,h*.92);g.lineTo(w*.18,h*.66);g.closePath();g.fillStyle=team.primaryColor;g.fill();g.strokeStyle=team.accentColor||'#fff';g.lineWidth=w*.035;g.stroke();g.fillStyle=team.secondaryColor||'#fff';g.textAlign='center';g.textBaseline='middle';g.font='bold '+Math.round(w*.28)+'px Rubik, sans-serif';g.fillText(team.name.split(/\s+/).map(x=>x[0]).slice(0,3).join(''),w*.5,h*.45);},
+ input(){if(!G?.remote)return null;if(G.paused||['starting','halftime','end'].includes(G.phase))return {x:0,y:0,shoot:false,pass:false};const p=P.find(p=>p.id===remoteUser);if(!p)return null;const i=inputOf(p),n=Math.max(1,Math.hypot(i.x,i.y));return {x:i.x/n,y:i.y/n,shoot:!!i.shoot,pass:!!i.pass,shootSeq:i.shootSeq||0,passSeq:i.passSeq||0,requestPass:!!i.requestPass,requestShot:!!i.requestShot};},
  celebrateSound(){aud();beep(523,.2,'sine',.08);setTimeout(()=>beep(659,.2,'sine',.08),180);setTimeout(()=>beep(784,.5,'sine',.08),360);},
  leaveRemote,
  skin(canvas,index){const g=canvas.getContext('2d');drawSkin(g,canvas.width/2,canvas.height/2,canvas.width*.44,SK[index]||SK[0]);},

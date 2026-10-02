@@ -1,5 +1,5 @@
 (function(root){
- const defaults=Object.freeze({offside:false,extraTime:false,penalties:false,penaltiesAfterExtraTime:false});
+ const defaults=Object.freeze({offside:false,penaltyFouls:false,extraTime:false,penalties:false,penaltiesAfterExtraTime:false});
  function settings(value={},gold=false){
   const result={...defaults,...(gold?{extraTime:true,penalties:true,penaltiesAfterExtraTime:true}:{}),...value};
   if(!value||typeof value!=='object'||Array.isArray(value)||Object.keys(value).some(k=>!(k in defaults)))throw new Error('Configuração de regras inválida.');

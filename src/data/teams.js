@@ -6,5 +6,6 @@ const teams=[...kits.slice(2).map((k,i)=>({id:'br-'+i,name:k.n,category:'BRASILE
 function skin(team){return {n:team.name,c:[team.primaryColor,team.secondaryColor,team.accentColor],p:{SOLID:'solid',HALF:'half',STRIPES:'vstripe',SLEEVES:'sleeves',DETAIL:'detail'}[team.kitStyle]||'solid'};}
 function colorsDistance(a,b){const rgb=x=>[1,3,5].map(i=>parseInt(x.slice(i,i+2),16));return Math.hypot(...rgb(a).map((x,i)=>x-rgb(b)[i]));}
 function contrast(home,away){const result={...away};if(colorsDistance(home.primaryColor,away.primaryColor)<100){result.primaryColor=away.secondaryColor;if(colorsDistance(home.primaryColor,result.primaryColor)<100)result.primaryColor=colorsDistance(home.primaryColor,'#ffffff')>colorsDistance(home.primaryColor,'#101b35')?'#ffffff':'#101b35';result.secondaryColor=away.primaryColor;result.alternate=true;}return result;}
-const api={kits,teams,styles,skin,contrast};if(typeof module!=='undefined')module.exports=api;else root.MaxballTeams=api;
+function fromClub(club){const kit=kits[club.kit]||kits[0];return {id:club.id,name:club.name,category:'CARREIRA',primaryColor:kit.c[0],secondaryColor:kit.c[1]||'#ffffff',accentColor:kit.c[2]||'#ffffff',kitStyle:'DETAIL',legacyKit:club.kit};}
+const api={kits,teams,styles,skin,contrast,fromClub};if(typeof module!=='undefined')module.exports=api;else root.MaxballTeams=api;
 })(globalThis);

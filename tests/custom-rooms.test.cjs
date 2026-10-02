@@ -9,8 +9,8 @@ test('passwords, host permissions, atomic edits, teams, spectators and host migr
  const A=await connect(a),B=await connect(b),C=await connect(c),rooms=app.rooms;
  const club=rooms.clubs.create(a.user.id,{name:'Aurora Personalizado',primaryColor:'#125faa',secondaryColor:'#ffffff',accentColor:'#ffd500',kitStyle:'SLEEVES'});
  assert.equal(rooms.clubs.list(a.user.id)[0].id,club.id);assert.equal(rooms.clubs.list(b.user.id).length,0);assert.throws(()=>rooms.clubs.select(b.user.id,club.id));assert.throws(()=>rooms.clubs.create(a.user.id,{...club,name:'<script>'}));
- const room=rooms.create(a.user,{name:'Sala teste',password:'segredo',n:2});assert.equal(room.hasPassword,true);assert.ok(!JSON.stringify(room).includes('segredo'));assert.ok(!JSON.stringify(room).includes('passwordHash'));
- assert.throws(()=>rooms.join(b.user,room.id,{password:'errada'}));rooms.join(b.user,room.id,{password:'segredo'});rooms.join(c.user,room.id,{password:'segredo',spectator:true});
+ const room=await rooms.create(a.user,{name:'Sala teste',password:'segredo',n:2});assert.equal(room.hasPassword,true);assert.ok(!JSON.stringify(room).includes('segredo'));assert.ok(!JSON.stringify(room).includes('passwordHash'));
+ await assert.rejects(()=>rooms.join(b.user,room.id,{password:'errada'}));await rooms.join(b.user,room.id,{password:'segredo'});await rooms.join(c.user,room.id,{password:'segredo',spectator:true});
  assert.throws(()=>rooms.edit(b.user,room.id,{homeTeamId:'mamo-0'}));assert.throws(()=>rooms.start(b.user,room.id));
  const before=rooms.current(a.user.id);assert.throws(()=>rooms.edit(a.user,room.id,{playerId:b.user.id,destination:'SPECTATORS',settings:{penaltiesAfterExtraTime:true}}));assert.deepEqual(rooms.current(a.user.id),before);
  rooms.edit(a.user,room.id,{playerId:b.user.id,destination:'HOME'});assert.equal(rooms.current(a.user.id).homePlayers.length,2);

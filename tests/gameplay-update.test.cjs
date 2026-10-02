@@ -63,7 +63,7 @@ test('human penalty shooter and keeper receive input, spectators do not',()=>{
 test('presentation blocks play, then advances exactly once into the authoritative kickoff',()=>{
  const m=new Match({id:'intro',players:[{id:'a',team:0,slot:0}],cfg:{presentation:true}}),initial=m.P.map(p=>[p.x,p.y]);
  m.setInput('a',{x:1,y:0,shoot:true});for(let i=0;i<120;i++)m.update(1/60);assert.equal(m.G.phase,'starting');assert.deepEqual(m.P.map(p=>[p.x,p.y]),initial);assert.equal(m.stats.a.inputs,0);
- for(let i=0;i<50;i++)m.update(1/60);assert.equal(m.G.phase,'play');assert.equal(m.G.startRemaining,0);assert.ok(m.G.restarting);
+ for(let i=0;i<241;i++)m.update(1/60);assert.equal(m.G.phase,'play');assert.equal(m.G.startRemaining,0);assert.ok(m.G.restarting);
 });
 test('catalog includes all 21 requested Mamoball teams and contrasting alternatives',()=>{
  assert.equal(teams.teams.filter(t=>t.category==='MAMOBALL').length,21);assert.equal(teams.kits.length,22);

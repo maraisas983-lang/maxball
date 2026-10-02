@@ -1,5 +1,21 @@
 # Configuração
 
+## Testar esta versão
+
+Abra **http://127.0.0.1:5173** neste computador e pressione **Ctrl+F5** após atualizar.
+Se necessário, execute `npm.cmd start` na pasta do projeto. **Jogar → Treino/Local**
+funciona sem conta; os demais modos pedem login e aceite dos documentos.
+
+A migração SQLite `005_operations.sql` roda automaticamente no início. Não execute
+novamente o SQL inicial do ranqueado no Supabase para esta atualização. Preserve o
+banco local: ele contém carreira, suporte, consentimentos e auditoria.
+
+O Command Center aceita OWNER, ADMIN, MODERATOR e SUPPORT conforme suas capacidades.
+SUPER_ADMIN permanece compatível. `npm.cmd run admin -- usuário_ou_uuid` cria o
+primeiro OWNER a partir de uma conta existente; depois, entre novamente.
+
+Veja o [relatório e roteiro de testes](REESTRUTURACAO_2026.md).
+
 ## Supabase
 
 1. Crie um projeto com Auth por e-mail/senha.

@@ -18,9 +18,9 @@ function createAuth(db,economy,{sessionMs=7*86400000}={}){
  const dummy='scrypt$00000000000000000000000000000000$'+'0'.repeat(128);
  function allowed(user){
   if(!user||user.status!=='ACTIVE'||db.one('SELECT id FROM bans WHERE user_id=? AND active=1 AND (expires_at IS NULL OR expires_at>?)',user?.id||'',Date.now()))fail('ACCOUNT','Conta indisponível.',403);
-  return user;
+  return user.staff_role?{...user,role:user.staff_role}:user;
  }
- function publicUser(user){return {id:user.id,username:user.username,role:user.role,createdAt:user.created_at};}
+ function publicUser(user){return {id:user.id,username:user.username,role:user.staff_role||user.role,createdAt:user.created_at};}
  function session(userId,absolute=Date.now()+30*86400000){
   const token=crypto.randomBytes(32).toString('hex'),csrf=crypto.randomBytes(24).toString('hex'),now=Date.now();
   db.run('DELETE FROM sessions WHERE expires_at<?',now);

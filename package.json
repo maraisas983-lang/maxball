@@ -7,7 +7,7 @@
     "start": "node server/index.cjs",
     "check": "node scripts/check.cjs",
     "check:supabase": "node scripts/check-supabase.cjs",
-    "test": "node --test --test-concurrency=1 --test-timeout=30000 tests/*.test.cjs",
+    "test": "node --liftoff-only --no-wasm-tier-up --wasm-num-compilation-tasks=1 --wasm-lazy-compilation --test --test-concurrency=1 --test-timeout=30000 tests/*.test.cjs",
     "start:offline": "node scripts/serve.cjs",
     "migrate": "node scripts/migrate.cjs",
     "admin": "node scripts/admin.cjs"

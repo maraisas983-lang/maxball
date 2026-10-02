@@ -12,10 +12,11 @@
   async function manage(id){
    const detail=await portal.api('/admin/users/'+id);
    const actions=[['BAN','Banir'],['UNBAN','Desbanir'],['STATUS','Alterar status']];
-   if(['ADMIN','SUPER_ADMIN'].includes(portal.account.user.role))actions.push(['GEMS','Adicionar/remover gemas'],['GRANT_ITEM','Dar item'],['REMOVE_ITEM','Remover item']);
-   if(portal.account.user.role==='SUPER_ADMIN')actions.push(['ROLE','Alterar permissão']);
-   results.replaceChildren(card(detail.user.username,note(detail.user.id),table(['Item','Categoria'],detail.inventory.map(i=>[i.name,i.category])),
-    form([select('Ação','action',actions),field('Motivo obrigatório','reason','text','',{required:'',minlength:5,maxlength:300}),field('Gemas (negativo para remover)','amount','number',0,{min:-1000000,max:1000000}),field('ID do item','itemId','text',''),field('Banimento até (vazio = permanente)','expiresAt','datetime-local',''),select('Status','status',[['ACTIVE','Ativo'],['SUSPENDED','Suspenso']]),select('Permissão','role',[['PLAYER','Jogador'],['MODERATOR','Moderador'],['ADMIN','Administrador']])],'Registrar ação',async values=>{
+   if(['ADMIN','SUPER_ADMIN','OWNER'].includes(portal.account.user.role))actions.push(['GEMS','Adicionar/remover gemas'],['GRANT_ITEM','Dar item'],['REMOVE_ITEM','Remover item']);
+   if(['SUPER_ADMIN','OWNER'].includes(portal.account.user.role))actions.push(['ROLE','Alterar permissão']);
+   results.replaceChildren(card(detail.user.username,note(detail.user.id),note('Criada em '+new Date(detail.user.created_at).toLocaleString()+' · Último login '+new Date(detail.user.last_login_at).toLocaleString()),metrics([['Elo',detail.profile.rating],['Vitórias',detail.profile.ranked_wins],['Derrotas',detail.profile.ranked_losses],['Sessões',detail.sessions.length],['Chamados',detail.tickets.length],['Temporada',detail.career?.season||'—']]),table(['Item','Categoria'],detail.inventory.map(i=>[i.name,i.category])),
+    form([select('Ação','action',actions),field('Motivo obrigatório','reason','text','',{required:'',minlength:5,maxlength:300}),field('Gemas (negativo para remover)','amount','number',0,{min:-1000000,max:1000000}),field('ID do item','itemId','text',''),field('Banimento até (vazio = permanente)','expiresAt','datetime-local',''),select('Status','status',[['ACTIVE','Ativo'],['SUSPENDED','Suspenso']]),select('Permissão','role',[['PLAYER','Jogador'],['SUPPORT','Suporte'],['MODERATOR','Moderador'],['ADMIN','Administrador']])],'Registrar ação',async values=>{
+     if(!confirm('Confirmar '+values.action+' para '+detail.user.username+'?'))return;
      const payload={action:values.action,reason:values.reason};
      if(values.action==='GEMS')payload.amount=+values.amount;
      if(values.action.includes('ITEM'))payload.itemId=values.itemId;
@@ -26,6 +27,6 @@
     }),table(['Ação','Motivo','Data'],detail.audit.map(a=>[a.action,a.reason,new Date(a.created_at).toLocaleString('pt-BR')]))));
   }
   portal.content.append(card('Pesquisar contas',form([field('Nome ou ID','query','text','')],'Pesquisar',values=>search(values.query))),results,card('Atividade administrativa',table(['Ação','Conta','Motivo','Data'],data.recent.map(a=>[a.action,a.target_user_id,a.reason,new Date(a.created_at).toLocaleString('pt-BR')]))));
-  await search('');
+  await search(portal.query||'');
  };
 })(globalThis);

@@ -8,16 +8,17 @@ const {createAuth}=require('./services/auth.cjs');
 const {createCareer}=require('./services/career.cjs');
 const {createAdmin}=require('./services/admin.cjs');
 const {createRooms}=require('./online/rooms.cjs');
+const {createOperations}=require('./services/operations.cjs');
 const {AppError,fail,object}=require('./lib/validation.cjs');
 const ROOT=path.resolve(__dirname,'..');
 
 function createApp({databasePath='var/maxball.sqlite',origin='http://127.0.0.1:5173',production=false,logger=console,sessionMs,supabase}={}){
  if(production&&!origin.startsWith('https://'))throw new Error('Production requires an HTTPS PUBLIC_ORIGIN');
- const db=openDatabase(databasePath),economy=createEconomy(db),localAuth=createAuth(db,economy,{sessionMs}),career=createCareer(db,economy),admin=createAdmin(db,economy);
+ const db=openDatabase(databasePath),economy=createEconomy(db),localAuth=createAuth(db,economy,{sessionMs}),career=createCareer(db,economy),admin=createAdmin(db,economy),operations=createOperations(db);
  const cloud=supabase?createSupabase(supabase):null,auth=cloud?useSupabaseAuth(localAuth,db,economy,cloud):localAuth,cloudSync=cloud?createCloudSync(db,cloud,logger):null;
  db.run("UPDATE matches SET status='ABANDONED',finished_at=? WHERE status='RUNNING'",Date.now());
  db.run("UPDATE ranked_matches SET reason='SERVER_RESTART',home_after=home_before,away_after=away_before,finished_at=? WHERE finished_at IS NULL",Date.now());
- const rooms=createRooms({db,auth,economy,career,origin,logger,syncResults:!!cloud}),limits=new Map();
+ const rooms=createRooms({db,auth,economy,career,origin,logger,syncResults:!!cloud,canRank:()=>{const s=operations.settings();return !s.maintenance&&s.ranked_enabled;},audit:(actor,action,resource,metadata)=>operations.audit(actor,action,resource,'OK',metadata)}),limits=new Map();
  const token=req=>(req.headers.cookie||'').split(';').map(x=>x.trim()).find(x=>x.startsWith('maxball_session='))?.slice(16);
  const json=(res,status,data)=>{res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'});res.end(JSON.stringify(data));};
  function cookie(res,value,maxAge=7*86400){res.setHeader('Set-Cookie',`maxball_session=${value}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${maxAge}${production?'; Secure':''}`);}
@@ -42,19 +43,26 @@ function createApp({databasePath='var/maxball.sqlite',origin='http://127.0.0.1:5
   limit('api:'+req.socket.remoteAddress,600,60000);
   const write=!['GET','HEAD'].includes(method);
   if(write&&req.headers.origin!==origin)fail('ORIGIN','Origem não permitida.',403);
-  if(pathname==='/api/config'&&method==='GET')return json(res,200,{authProvider:auth.provider});
+  if(pathname==='/api/config'&&method==='GET')return json(res,200,{authProvider:auth.provider,legal:{termsVersion:operations.policy.termsVersion,privacyVersion:operations.policy.privacyVersion},announcement:operations.settings().announcement});
   if(pathname==='/api/health'&&method==='GET')return json(res,200,{ok:true});
   if(['/api/auth/register','/api/auth/login'].includes(pathname)&&method==='POST'){
    limit('auth:'+req.socket.remoteAddress,12,15*60000);
    const data=await body(req);limit('username:'+String(data.username).toLowerCase().slice(0,24),8,15*60000);
-   const result=pathname.endsWith('register')?await auth.register(data):await auth.login(data);
-   if(result.confirmationRequired)return json(res,200,{confirmationRequired:true});
+   operations.consent(data);const credentials={username:data.username,password:data.password};
+   const result=pathname.endsWith('register')?await auth.register(credentials):await auth.login(credentials);
+   if(result.confirmationRequired){operations.pendingConsent(data.username);return json(res,200,{confirmationRequired:true});}
+   operations.accept(result.user,data.username);operations.audit(result.user,pathname.endsWith('register')?'REGISTER':'LOGIN',result.user.id);
    cookie(res,result.token);return json(res,200,{user:result.user,csrf:result.csrf});
   }
   const sessionToken=token(req),{user,session}=auth.authenticate(sessionToken);
   if(write&&req.headers['x-csrf-token']!==session.csrf)fail('CSRF','Atualize a sessão e tente novamente.',403);
-  const uid=user.id;
+  const uid=user.id;req.actor=user;
   if(method==='GET'){
+   if(pathname==='/api/support')return json(res,200,operations.list(user));
+   if(pathname==='/api/command')return json(res,200,operations.overview(user,rooms,url.searchParams.get('q')||''));
+   if(pathname==='/api/command/tickets')return json(res,200,operations.list(user,true));
+   const ticket=pathname.match(/^\/api\/(support|command\/tickets)\/([\w-]+)$/);if(ticket)return json(res,200,operations.ticket(user,ticket[2],ticket[1]!=='support'));
+
    if(pathname==='/api/auth/me')return json(res,200,{user:auth.publicUser(user),csrf:session.csrf,profile:auth.profile(uid),wallet:economy.wallet(uid),room:rooms.current(uid)});
    if(pathname==='/api/ranked')return json(res,200,rooms.rankedStatus(user));
    if(pathname==='/api/profile')return json(res,200,{profile:auth.profile(uid),achievements:db.all('SELECT * FROM accolades WHERE user_id=? ORDER BY created_at DESC',uid)});
@@ -72,7 +80,14 @@ function createApp({databasePath='var/maxball.sqlite',origin='http://127.0.0.1:5
   }
   if(method==='POST'||method==='PATCH'){
    const data=await body(req);
-   if(pathname==='/api/auth/logout'){await auth.logout(sessionToken);rooms.leave(uid);cookie(res,'',0);return json(res,200,{ok:true});}
+   if(pathname==='/api/support'){limit('ticket:'+uid,15,60000);return json(res,201,operations.create(user,data));}
+   if(pathname==='/api/command/settings')return json(res,200,operations.set(user,data));
+   if(pathname==='/api/command/execute')return json(res,200,operations.command(user,data,rooms,admin));
+   const ticket=pathname.match(/^\/api\/(support|command\/tickets)\/([\w-]+)$/);
+   if(ticket){limit('reply:'+uid,30,60000);return json(res,200,operations.update(user,ticket[2],data,ticket[1]!=='support'));}
+   if((['/api/rooms','/api/matchmaking','/api/career/play','/api/ranked/join'].includes(pathname)||/^\/api\/rooms\/[\w-]+\/start$/.test(pathname))&&operations.settings().maintenance)fail('MAINTENANCE','Novas partidas estão pausadas para manutenção.',503);
+   if(pathname==='/api/ranked/join'&&!operations.settings().ranked_enabled)fail('RANKED_DISABLED','A fila ranqueada está pausada.',503);
+   if(pathname==='/api/auth/logout'){await auth.logout(sessionToken);operations.audit(user,'LOGOUT',uid);rooms.leave(uid);cookie(res,'',0);return json(res,200,{ok:true});}
    if(pathname==='/api/auth/refresh'){const next=await auth.refresh(sessionToken);cookie(res,next.token);return json(res,200,{user:next.user,csrf:next.csrf});}
    if(pathname==='/api/profile'&&method==='PATCH')return json(res,200,await auth.updateProfile(uid,data));
    if(pathname==='/api/shop/purchase')return json(res,200,economy.purchase(uid,data));
@@ -83,25 +98,25 @@ function createApp({databasePath='var/maxball.sqlite',origin='http://127.0.0.1:5
    const offer=pathname.match(/^\/api\/career\/offers\/([\w-]+)$/);if(offer)return json(res,200,career.transfer(uid,offer[1],data));
    if(pathname==='/api/clubs')return json(res,201,rooms.clubs.create(uid,data));
    const editRoom=pathname.match(/^\/api\/rooms\/([\w-]+)$/);if(editRoom&&method==='PATCH')return json(res,200,rooms.edit(user,editRoom[1],data));
-   if(pathname==='/api/rooms')return json(res,201,rooms.create(user,data));
+   if(pathname==='/api/rooms')return json(res,201,await rooms.create(user,data));
    if(pathname==='/api/rooms/leave'){rooms.leave(uid);return json(res,200,{ok:true});}
    if(pathname==='/api/ranked/join'){cloudSync?.assertReady();return json(res,200,rooms.rankedJoin(user));}
    if(pathname==='/api/ranked/cancel')return json(res,200,rooms.rankedCancel(user));
-   if(pathname==='/api/matchmaking')return json(res,200,rooms.matchmaking(user));
-   const room=pathname.match(/^\/api\/rooms\/([\w-]+)\/(join|start)$/);if(room)return json(res,200,room[2]==='join'?rooms.join(user,room[1],data):rooms.start(user,room[1]));
+   if(pathname==='/api/matchmaking')return json(res,200,await rooms.matchmaking(user));
+   const room=pathname.match(/^\/api\/rooms\/([\w-]+)\/(join|start)$/);if(room)return json(res,200,room[2]==='join'?await rooms.join(user,room[1],data):rooms.start(user,room[1]));
    const action=pathname.match(/^\/api\/admin\/users\/([\w-]+)$/);if(action)return json(res,200,admin.action(user,action[1],data));
   }
   fail('NOT_FOUND','Recurso não encontrado.',404);
  }
- const server=http.createServer((req,res)=>route(req,res).catch(error=>{
+ const server=http.createServer((req,res)=>{res.on('finish',()=>{if(req.url.startsWith('/api/')&&!['GET','HEAD'].includes(req.method))try{operations.audit(req.actor,'HTTP_'+req.method,req.url.split('?')[0],res.statusCode<400?'OK':'ERROR',{status:res.statusCode});}catch(error){logger.error('Falha ao registrar auditoria: '+error.message);}});route(req,res).catch(error=>{
   const expected=error instanceof AppError;
   if(!expected||error.status===403||error.status===429)logger[expected?'warn':'error'](JSON.stringify({level:expected?'SECURITY':'ERROR',event:'request_failed',code:error.code||'INTERNAL',message:expected?error.message:'Falha interna',...(expected?{}:{stack:error.stack})}));
   if(!res.headersSent)json(res,expected?error.status:500,{error:{code:expected?error.code:'INTERNAL',message:expected?error.message:'Não foi possível concluir. Tente novamente.'}});else res.end();
- }));
+ });});
  server.requestTimeout=15000;server.headersTimeout=10000;
  server.on('upgrade',(req,socket,head)=>rooms.upgrade(req,socket,head));
  async function close(){rooms.close();await cloudSync?.close();await new Promise(resolve=>{server.close(resolve);server.closeAllConnections();});db.close();}
- return {server,db,auth,economy,career,admin,rooms,cloudSync,close};
+ return {server,db,auth,economy,career,admin,operations,rooms,cloudSync,close};
 }
 async function staticFile(req,res,pathname){
  if(!['GET','HEAD'].includes(req.method)){res.writeHead(405,{Allow:'GET, HEAD'}).end();return;}

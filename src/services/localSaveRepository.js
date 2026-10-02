@@ -54,7 +54,7 @@
         g: integer(stats.g, 0, Number.MAX_SAFE_INTEGER, 0)
       },
       room: {
-        n: integer(room.n, 1, 4, 2),
+        n: integer(room.n, 1, 5, 2),
         time: member(room.time, [60, 180, 300, 600], 300),
         gold: member(room.gold, [0, 1], 0),
         diff: integer(room.diff, 0, 2, 1),

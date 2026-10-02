@@ -10,8 +10,9 @@
    return;
   }
   const {career,current}=data,next=current.schedule.find(f=>f.status==='PENDING');
-  const hero=el('article',{class:'career-hero'},[el('p',{class:'eyebrow',text:'TEMPORADA '+career.season}),el('h2',{text:clubName(career.club_id)}),note(portal.account.profile.shirt_name+' · #'+portal.account.profile.shirt_number),metrics([['Gols',current.stats.goals],['Assistências',current.stats.assists],['Nota média',current.stats.averageRating],['Reputação',career.reputation.toFixed(1)]])]);
-  portal.content.append(hero);
+  const crest=el('canvas',{width:100,height:100});root.MaxballGame.teamCrest(crest,root.MaxballTeams.fromClub(clubs.get(career.club_id)));
+  const hero=el('article',{class:'career-hero'},[el('p',{class:'eyebrow',text:'CARREIRA 5 × 5 · TEMPORADA '+career.season}),el('h2',{text:clubName(career.club_id)}),note(portal.account.profile.shirt_name+' · #'+portal.account.profile.shirt_number),metrics([['Gols',current.stats.goals],['Assistências',current.stats.assists],['Nota média',current.stats.averageRating],['Reputação',career.reputation.toFixed(1)]])]);
+  hero.prepend(crest);portal.content.append(hero);
   if(next)portal.content.append(card('Próxima partida',el('p',{class:'fixture-title',text:clubName(career.club_id)+' × '+clubName(next.opponent)}),note(next.stage+' · '+({league:'Liga MAX',cup:'Copa MAX',continental:'Continental',world:'Mundial'})[next.competition]),button('Entrar em campo',async()=>{const room=await portal.api('/career/play','POST',{});portal.play(room);})));
   else portal.content.append(card('Temporada concluída',note('Confira suas conquistas e as propostas antes de iniciar a próxima temporada.'),button('Ver cerimônia',()=>celebrate(data.trophies.filter(t=>t.season===career.season))),button('Iniciar temporada '+(career.season+1),async()=>{await portal.api('/career/season','POST',{});await portal.open('career');},'secondary')));
   portal.content.append(card('Objetivo da temporada',note(career.reputation<40?'Evolua sua reputação, conquiste títulos e atraia clubes de maior prestígio.':'Dispute as maiores competições e combine gols, assistências e notas altas na busca da Bola de Ouro.')),

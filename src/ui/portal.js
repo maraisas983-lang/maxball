@@ -2,7 +2,7 @@
  'use strict';
  const {el,button,note,field,form,celebrate}=root.MaxballUI;
  const shell=document.querySelector('#portal'),content=document.querySelector('#portal-content'),nav=document.querySelector('#portal-nav'),statusNode=document.querySelector('#portal-status');
- const labels={clubs:'Clubes',ranked:'Ranqueado',career:'Carreira',online:'Online',shop:'Loja',inventory:'Inventário',profile:'Perfil',gallery:'Galeria',admin:'Admin'};
+ const labels={play:'Jogar',training:'Treino',local:'Local',support:'Suporte',clubs:'Clubes',ranked:'Ranqueado',career:'Carreira',online:'Sala personalizada',shop:'Loja',inventory:'Inventário',profile:'Perfil',gallery:'Galeria',command:'Command Center'};
  let authProvider='local';
  let account=null,page='career',generation=0,returnPage='online',knownAwards=new Set(),pendingAwards=[],cleanup=null,roomListener=null;
  const api=root.MaxballAPI.request;
@@ -17,9 +17,9 @@
   async open(next='career'){
    if(cleanup){const stop=cleanup;cleanup=null;await stop();}
    page=next;const version=++generation;root.MaxballGame.show('portal');content.replaceChildren();portal.status('Carregando…');
-   if(!account){try{await portal.refreshAccount();}catch(error){if(error.status!==401)portal.error(error);}}
+   if(!account&&!['training','local','play'].includes(next)){try{await portal.refreshAccount();}catch(error){if(error.status!==401)portal.error(error);}}
    if(version!==generation)return;
-   if(!account){
+   if(!account&&!['training','local','play'].includes(next)){
     try{authProvider=(await api('/config')).authProvider;}catch(error){
      portal.error(error);nav.replaceChildren();
      const link=/^(localhost|127\.0\.0\.1)$/.test(location.hostname)?el('a',{class:'action primary',href:'http://127.0.0.1:5173',text:'Abrir MAXBALL com login'}):null;
@@ -27,8 +27,8 @@
     }
     renderLogin();return;
    }
-   nav.replaceChildren();
-   for(const [key,label] of Object.entries(labels))if(key!=='admin'||account.user.role!=='PLAYER'){
+   shell.classList.toggle('command-mode',next==='command');nav.replaceChildren();
+   for(const [key,label] of Object.entries(labels))if(!['admin','command'].includes(key)||account&&['ADMIN','SUPER_ADMIN','OWNER','MODERATOR','SUPPORT'].includes(account.user.role)){
     const tab=button(label,()=>portal.open(key),'tab'+(page===key?' active':''));tab.setAttribute('aria-current',page===key?'page':'false');nav.append(tab);
    }
    portal.status('');
@@ -42,13 +42,18 @@
  function cardUnavailable(error,link){return el('article',{class:'login-card'},[el('h2',{text:'Conecte ao MAXBALL'}),note(error.message),link]);}
  function renderLogin(){
   nav.replaceChildren();document.querySelector('#account-label').textContent='Sua carreira começa aqui';
-  content.replaceChildren(el('article',{class:'login-card'},[el('p',{class:'eyebrow',text:'ENTRE PARA O MAXBALL'}),el('h2',{text:'Entre em campo.'}),note('Sua conta guarda carreira, troféus e cosméticos. Os modos locais continuam disponíveis no menu principal.'),
-   form([field(authProvider==='supabase'?'E-mail':'Usuário','username',authProvider==='supabase'?'email':'text','',{required:'',minlength:3,maxlength:authProvider==='supabase'?254:24,autocomplete:'username',...(authProvider==='supabase'?{}:{pattern:'[a-zA-Z0-9_]+'})}),field('Senha','password','password','',{required:'',minlength:1,maxlength:128,autocomplete:'current-password'})],'Entrar',async values=>{await api('/auth/login','POST',values);await loggedIn();}),
-   button('Criar conta com esses dados',async()=>{
-    const node=content.querySelector('form');if(!node.reportValidity())return;
-    if(node.querySelector('[name=password]').value.length<12){portal.error(new Error('Para criar uma conta, use uma senha de pelo menos 12 caracteres.'));return;}
-    const result=await api('/auth/register','POST',Object.fromEntries(new FormData(node)));if(result.confirmationRequired){portal.status('Confirme seu e-mail e depois entre na conta.');return;}await loggedIn();
-   },'secondary'),note(authProvider==='supabase'?'Entre com o e-mail e a senha da sua conta. Para criar uma conta, use pelo menos 12 caracteres na senha.':'Usuário: 3–24 letras, números ou _. Para criar uma conta, use pelo menos 12 caracteres na senha.') ]));
+  const legal=root.MaxballLegal,check=el('input',{type:'checkbox',name:'acceptTerms',required:''});
+  const showLegal=(title,body)=>{const dialog=el('dialog',{class:'legal-dialog'},[el('h2',{text:title}),note('Versão '+legal.termsVersion),el('p',{text:body})]);dialog.append(button('Voltar',()=>{dialog.close();dialog.remove();}));document.body.append(dialog);dialog.addEventListener('cancel',()=>dialog.remove());dialog.showModal();};
+  const consent=el('div',{class:'consent'},[el('label',{},[check,el('span',{text:'Li e aceito os Termos de Uso e a Política de Privacidade'})]),button('Termos de Uso',()=>showLegal('Termos de Uso',legal.terms),'secondary'),button('Política de Privacidade',()=>showLegal('Política de Privacidade',legal.privacy),'secondary')]);
+  const payload=values=>({username:values.username,password:values.password,acceptTerms:check.checked,termsVersion:legal.termsVersion,privacyVersion:legal.privacyVersion});
+  const login=form([field(authProvider==='supabase'?'E-mail':'Usuário','username',authProvider==='supabase'?'email':'text','',{required:'',minlength:3,maxlength:authProvider==='supabase'?254:24,autocomplete:'username'}),field('Senha','password','password','',{required:'',minlength:1,maxlength:128,autocomplete:'current-password'}),consent],'Entrar',async values=>{await api('/auth/login','POST',payload(values));await loggedIn();});
+  const register=button('Criar conta com esses dados',async()=>{
+   if(!login.reportValidity()||!check.checked)return;
+   const values=Object.fromEntries(new FormData(login));if(values.password.length<12){portal.error(new Error('Para criar uma conta, use uma senha de pelo menos 12 caracteres.'));return;}
+   const result=await api('/auth/register','POST',payload(values));if(result.confirmationRequired){portal.status('Confirme seu e-mail e depois entre na conta.');return;}await loggedIn();
+  },'secondary');
+  const sync=()=>{login.querySelector('[type=submit]').disabled=register.disabled=!check.checked;};check.onchange=sync;sync();
+  content.replaceChildren(el('article',{class:'login-card'},[el('p',{class:'eyebrow',text:'ENTRE PARA O MAXBALL'}),el('h2',{text:'Entre em campo.'}),note('Sua conta guarda carreira, troféus e cosméticos. Treino e Local estão disponíveis sem login.'),login,register,note('Cadastro: senha com pelo menos 12 caracteres.')]));
   if(!statusNode.classList.contains('error'))portal.status('');
  }
  async function loggedIn(){
@@ -65,7 +70,7 @@
    }
    if(message.type==='room')roomListener?.(message.room);
    if(message.type==='snapshot')root.MaxballGame.snapshot(message.state,account.user.id);
-   if(message.type==='result'){
+   if(message.type==='result'){root.MaxballResults.show(message);
     Promise.all([portal.refreshAccount(),api('/profile')]).then(([,profile])=>{
      pendingAwards=profile.achievements.filter(a=>!knownAwards.has(a.id));knownAwards=new Set(profile.achievements.map(a=>a.id));
     }).catch(portal.error);

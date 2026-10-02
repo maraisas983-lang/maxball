@@ -9,7 +9,7 @@ try{
  if(!user)throw new Error('Crie a conta pelo jogo antes de promover.');
  if(db.one("SELECT id FROM users WHERE role='SUPER_ADMIN'"))throw new Error('Já existe SUPER_ADMIN. Use o painel para gerenciar os demais administradores.');
  db.transaction(()=>{
-  db.run("UPDATE users SET role='SUPER_ADMIN',updated_at=? WHERE id=?",Date.now(),user.id);
+  db.run("UPDATE users SET role='SUPER_ADMIN',staff_role='OWNER',updated_at=? WHERE id=?",Date.now(),user.id);
   db.run('DELETE FROM sessions WHERE user_id=?',user.id);
   db.run('INSERT INTO admin_audit VALUES(?,?,?,?,?,?,?,?)',id(),user.id,'BOOTSTRAP_SUPER_ADMIN',user.id,JSON.stringify({role:user.role}),JSON.stringify({role:'SUPER_ADMIN'}),'Bootstrap local pelo operador',Date.now());
  });

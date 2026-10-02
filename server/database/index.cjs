@@ -7,10 +7,12 @@ function openDatabase(filename) {
   if (filename !== ':memory:') fs.mkdirSync(path.dirname(path.resolve(filename)), { recursive: true });
   const connection = new DatabaseSync(filename);
   connection.exec('PRAGMA foreign_keys=ON; PRAGMA journal_mode=WAL; PRAGMA busy_timeout=5000;');
+  const statements=new Map();
+  const prepare=sql=>{if(!statements.has(sql)){if(statements.size>=256)statements.delete(statements.keys().next().value);statements.set(sql,connection.prepare(sql));}return statements.get(sql);};
   const db = {
-    run: (sql, ...args) => connection.prepare(sql).run(...args),
-    one: (sql, ...args) => connection.prepare(sql).get(...args),
-    all: (sql, ...args) => connection.prepare(sql).all(...args),
+    run: (sql, ...args) => prepare(sql).run(...args),
+    one: (sql, ...args) => prepare(sql).get(...args),
+    all: (sql, ...args) => prepare(sql).all(...args),
     transaction(fn) {
       connection.exec('BEGIN IMMEDIATE');
       try { const result = fn(); if (result?.then) throw new Error('Transactions must be synchronous'); connection.exec('COMMIT'); return result; }

@@ -4,6 +4,7 @@
  const ballPhysics=typeof module!=='undefined'?require('./ballPhysics.js'):root.MaxballBall;
  const tactics=typeof module!=='undefined'?require('../ai/tactics.js'):root.MaxballAI;
  const contacts=typeof module!=='undefined'?require('./contacts.js'):root.MaxballContacts;
+ const movement=typeof module!=='undefined'?require('./movement.js'):root.MaxballMovement;
  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v)),dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
  function createPhysics({state,input,effects={},random=Math.random}){
   let G,P,ball,W,H,GY0,GY1,BR,brain,brainGame;
@@ -35,6 +36,7 @@
     const corrections=active.map(()=>({x:0,y:0}));
     for(let a=0;a<active.length;a++)for(let b=a+1;b<active.length;b++){
      const A=active[a],B=active[b],d=dist(A,B);if(d>=PR*2-.01)continue;
+     if(iteration===0)effects.playerContact?.(A,B);
      const nx=d?(B.x-A.x)/d:String(A.id)<String(B.id)?1:-1,ny=d?(B.y-A.y)/d:0,depth=(PR*2-d)*.5;
      corrections[a].x-=nx*depth;corrections[a].y-=ny*depth;corrections[b].x+=nx*depth;corrections[b].y+=ny*depth;
     }
@@ -51,10 +53,7 @@
     if(blocked){i.x=i.y=0;i.shoot=i.pass=false;}
     let l=Math.hypot(i.x,i.y);if(l>1){i.x/=l;i.y/=l;l=1;}
     const sp=p.ctrl==='ai'?[180,195,205][G.cfg.diff]:config.playerMaxSpeed;
-    const turning=p.vx*i.x+p.vy*i.y<0,response=l<.01?config.playerDeceleration:turning?config.playerTurnResponse:config.playerAcceleration;
-    const k=1-Math.exp(-response*dt);p.vx+=(i.x*sp-p.vx)*k;p.vy+=(i.y*sp-p.vy)*k;
-    if(l>.08){p.fx=i.x/l;p.fy=i.y/l;}
-    p.x+=p.vx*dt;p.y+=p.vy*dt;p.cd-=dt;p.st=1;
+    movement.integrate(p,i,dt,sp);p.cd-=dt;p.st=1;
     for(const type of ['shoot','pass']){
      const edge=i[type]&&!p[type+'Held']||Number.isSafeInteger(i[type+'Seq'])&&i[type+'Seq']>(p[type+'Seq']||0);
      if(!blocked&&(edge||p.ctrl==='ai'&&i[type]))p[type+'Buffer']=config.kickBuffer;

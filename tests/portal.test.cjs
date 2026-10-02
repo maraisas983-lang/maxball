@@ -32,6 +32,7 @@ test('account UI creates career, purchases/equips, renders admin and plays a ser
  await portal.open('career');assert.ok(window.document.querySelector('.login-card'));
  window.document.querySelector('[name=username]').value='ui_player';window.document.querySelector('[name=password]').value='ui-password-1234';
  const button=label=>[...window.document.querySelectorAll('#portal button')].find(b=>b.textContent===label);
+ const acceptance=window.document.querySelector('[name=acceptTerms]');assert.equal(button('Criar conta com esses dados').disabled,true);acceptance.checked=true;acceptance.dispatchEvent(new window.Event('change'));
  button('Criar conta com esses dados').click();
  try{await until(()=>window.document.querySelector('[name=clubId]'),'career creation form');}catch(error){console.error('UI status:',window.document.querySelector('#portal-status').textContent,'errors:',errors);throw error;}
  window.document.querySelector('[name=name]').value='POGGI';
@@ -55,7 +56,7 @@ test('account UI creates career, purchases/equips, renders admin and plays a ser
  await portal.open('online');button('Criar sala').click();await until(()=>window.document.querySelector('.room-lobby'),'custom room lobby');
  app.rooms.leave(portal.account.user.id);portal.connection.onMessage({type:'connected',room:null});
  await until(()=>button('Criar sala'),'stale lobby cleared after server lost the room');
- await portal.open('ranked');assert.equal(app.rooms.rankedStatus(portal.account.user).queued,true);
+ await portal.open('ranked');assert.equal(app.rooms.rankedStatus(portal.account.user).queued,false);button('Buscar partida').click();await until(()=>app.rooms.rankedStatus(portal.account.user).queued,'explicit ranked search');
  button('Cancelar busca').click();await until(()=>!app.rooms.rankedStatus(portal.account.user).queued,'cancel ranked queue');
  button('Buscar partida').click();await until(()=>app.rooms.rankedStatus(portal.account.user).queued,'join ranked queue again');
  const opponent=await app.auth.register({username:'ranked_opponent',password:'opponent-password-123'});

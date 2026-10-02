@@ -1,3 +1,4 @@
+const teamData=require('../../src/data/teams.js');
 const {id}=require('../database/index.cjs');
 const {fail,object,text,name,integer}=require('../lib/validation.cjs');
 const {seeded}=require('../online/match.cjs');
@@ -52,7 +53,7 @@ function createCareer(db,economy){
   const schedule=JSON.parse(current.schedule),index=schedule.findIndex(f=>f.status==='PENDING');
   if(index<0)fail('FIXTURE','Temporada concluída.',409);
   const fixture=schedule[index],home=db.one('SELECT * FROM clubs WHERE id=?',career.club_id),away=db.one('SELECT * FROM clubs WHERE id=?',fixture.opponent);
-  return {career,current,fixture,index,cfg:{n:2,time:120,gold:fixture.competition==='league'?0:1,diff:Math.min(2,Math.floor(away.prestige/2)),sk0:home.kit,sk1:away.kit,labels:[home.name,away.name]}};
+  return {career,current,fixture,index,cfg:{n:5,time:120,gold:fixture.competition==='league'?0:1,diff:Math.min(2,Math.floor(away.prestige/2)),sk0:home.kit,sk1:away.kit,teams:[teamData.fromClub(home),teamData.contrast(teamData.fromClub(home),teamData.fromClub(away))],labels:[home.name,away.name]}};
  }
  function accolade(career,code,title,kind,details){
   db.run('INSERT OR IGNORE INTO accolades VALUES(?,?,?,?,?,?,?,?,?,?)',id(),career.user_id,career.id,career.season,career.club_id,kind,code,title,JSON.stringify(details),Date.now());
