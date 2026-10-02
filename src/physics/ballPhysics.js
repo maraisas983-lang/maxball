@@ -1,6 +1,7 @@
 (function (root) {
   'use strict';
-  const CONFIG = Object.freeze({ maxSpeed: 560, friction: .46, wallBounce: .92, postRadius: 6, postBounce: .7 });
+  const physics=(typeof module!=='undefined'?require('../core/config.js'):root.MaxballConfig).physics;
+  const CONFIG = Object.freeze({maxSpeed:physics.ballMaxSpeed,friction:physics.ballFriction,wallBounce:physics.wallRestitution,postRadius:physics.postRadius,postBounce:physics.postRestitution});
   const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 
   function collideCircle(body, x, y, radius, bounce) {
@@ -32,6 +33,7 @@
 
   function moveBall(state, dt, onGoal = () => {}, onImpact = () => {}) {
     const { ball, G, W, H, GY0, GY1, BR } = state;
+    if(ball.sweepStart&&(G.phase==='play'||G.phase==='penalties')){const crossed=crossedGoal(ball.sweepStart,ball,state);if(crossed!==null)onGoal(crossed);}delete ball.sweepStart;
     const speed = Math.hypot(ball.vx, ball.vy);
     if (speed > CONFIG.maxSpeed) { ball.vx *= CONFIG.maxSpeed / speed; ball.vy *= CONFIG.maxSpeed / speed; }
     // Substeps limit travel to half a radius, including shots near a post.
@@ -43,7 +45,7 @@
       if (ball.y < BR || ball.y > H - BR) {
         ball.y = clamp(ball.y, BR, H - BR); ball.vy *= -CONFIG.wallBounce; onImpact(Math.abs(ball.vy));
       }
-      const mouth = ball.y > GY0 && ball.y < GY1;
+      const mouth = ball.y > GY0 + CONFIG.postRadius + BR && ball.y < GY1 - CONFIG.postRadius - BR;
       if (!mouth && (ball.x < BR || ball.x > W - BR)) {
         ball.x = clamp(ball.x, BR, W - BR); ball.vx *= -CONFIG.wallBounce; onImpact(Math.abs(ball.vx));
       }
@@ -51,7 +53,7 @@
         const impact = collideCircle(ball, x, y, BR + CONFIG.postRadius, CONFIG.postBounce);
         if (impact) onImpact(impact);
       }
-      if (G.phase === 'play') {
+      if ((G.phase === 'play'||G.phase==='penalties')) {
         const team = crossedGoal(previous, ball, state);
         if (team !== null) onGoal(team);
       }
@@ -65,7 +67,7 @@
     }
     const friction = Math.pow(CONFIG.friction, dt);
     ball.vx *= friction; ball.vy *= friction;
-    if (Math.hypot(ball.vx, ball.vy) < 45) { const slow = Math.pow(.03, dt); ball.vx *= slow; ball.vy *= slow; }
+    if (Math.hypot(ball.vx, ball.vy) < 45) { const slow = Math.pow(physics.ballDamping, dt); ball.vx *= slow; ball.vy *= slow; }
     ball.rot += Math.hypot(ball.vx, ball.vy) * dt * .05;
   }
   const api = { CONFIG, collideCircle, crossedGoal, moveBall };

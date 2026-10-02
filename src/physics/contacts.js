@@ -16,9 +16,12 @@
   let impulseX=0,impulseY=0;
   for(const {p,n} of contacts){
    const relative=(ball.vx-p.vx)*n.x+(ball.vy-p.vy)*n.y;
-   if(relative<0){const restitution=Math.max(0,Math.min(.8,(-relative-120)/400)),impulse=-(1+restitution)*relative*.8;
+   if(relative<0&&!(ball.kickedBy===p.id&&ball.contactProtection>0)){const restitution=config.contactRestitution;
+    let impulse=-(1+restitution)*relative/(1+config.ballMass/config.playerMass);
+    const normalSpeed=ball.vx*n.x+ball.vy*n.y;
+    if(normalSpeed>=0)impulse=Math.min(impulse,Math.max(0,config.contactMaxPushSpeed-normalSpeed));
     impulseX+=impulse*n.x;impulseY+=impulse*n.y;
-    p.vx-=impulse*.4*n.x/contacts.length;p.vy-=impulse*.4*n.y/contacts.length;
+    p.vx-=impulse*config.ballMass/config.playerMass*n.x/contacts.length;p.vy-=impulse*config.ballMass/config.playerMass*n.y/contacts.length;
    }
    const damping=Math.pow(.975,dt*60);p.vx*=damping;p.vy*=damping;
   }
@@ -38,7 +41,7 @@
   }
   const speed=Math.hypot(ball.vx,ball.vy);if(speed>config.ballMaxSpeed){ball.vx*=config.ballMaxSpeed/speed;ball.vy*=config.ballMaxSpeed/speed;}
   const touched=contacts.slice().sort((a,b)=>a.n.d-b.n.d||String(a.p.id??a.p.num).localeCompare(String(b.p.id??b.p.num)))[0];
-  touch(touched.p);
+  if(!(ball.kickedBy===touched.p.id&&ball.contactProtection>0))touch(touched.p);
  }
  if(typeof module!=='undefined')module.exports={resolveContacts};else root.MaxballContacts={resolveContacts};
 })(globalThis);

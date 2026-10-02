@@ -6,11 +6,17 @@
   const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),12000);
   try{
    const response=await fetch('/api'+path,{method,credentials:'same-origin',signal:controller.signal,headers:{...(body===undefined?{}:{'Content-Type':'application/json'}),...(csrf?{'X-CSRF-Token':csrf}:{})},body:body===undefined?undefined:JSON.stringify(body)});
-   const data=await response.json();
+   if(!response.headers.get('content-type')?.includes('application/json')){
+    const error=new Error('Este endereço está exibindo apenas os arquivos do jogo. Abra o servidor MAXBALL para entrar na sua conta.');error.code='BACKEND_UNAVAILABLE';error.status=response.status;throw error;
+   }
+   let data;
+   try{data=await response.json();}catch{
+    const error=new Error('O servidor retornou uma resposta vazia ou inválida. Abra o MAXBALL pelo endereço do servidor completo.');error.code='BACKEND_UNAVAILABLE';error.status=response.status;throw error;
+   }
    if(!response.ok){const error=new Error(data.error?.message||'Não foi possível concluir.');error.status=response.status;error.code=data.error?.code;throw error;}
    if(data.csrf)csrf=data.csrf;
    return data;
-  }catch(error){if(error.name==='AbortError')throw new Error('O servidor demorou para responder. Tente novamente.');throw error;}finally{clearTimeout(timer);}
+  }catch(error){if(error.name==='AbortError')throw new Error('O servidor demorou para responder. Tente novamente.');if(error instanceof TypeError)throw new Error('Não foi possível conectar ao servidor MAXBALL. Confira se ele está iniciado.');throw error;}finally{clearTimeout(timer);}
  }
  root.MaxballAPI=Object.freeze({request,clear(){csrf=null;}});
 })(globalThis);

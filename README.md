@@ -8,11 +8,11 @@ Requer Node.js **24.14 ou superior**.
 
 ```powershell
 npm.cmd install
-Copy-Item .env.example .env
+if (!(Test-Path .env)) { Copy-Item .env.example .env }
 npm.cmd start
 ```
 
-Abra **http://127.0.0.1:5173**. As migrations são aplicadas automaticamente em `var/maxball.sqlite`. Use a origem indicada no terminal: `localhost` e `127.0.0.1` são diferentes.
+Abra **http://127.0.0.1:5173**. As migrations são aplicadas automaticamente em `var/maxball.sqlite`. Use a origem indicada no terminal: `localhost` e `127.0.0.1` são diferentes. O Live Server do VS Code, normalmente na porta 5500, não executa contas nem partidas online; para esses recursos, use `npm.cmd start`.
 
 `AUTH_PROVIDER=local` permite testar sem credenciais externas. Para Supabase, siga [CONFIGURACAO.md](docs/CONFIGURACAO.md). Somente offline: abra `index.html` ou use `npm.cmd run start:offline`.
 
@@ -20,7 +20,8 @@ Abra **http://127.0.0.1:5173**. As migrations são aplicadas automaticamente em 
 
 - **Jogar** abre o ranqueado: fila real, 4 × 4, um humano e três bots por equipe, 3 minutos. São necessárias duas contas conectadas.
 - **Carreira**: nome, número, clube, temporadas, liga, copa, continental e mundial conforme classificação; ofertas, transferências, títulos, prêmios e galeria.
-- **Online**: salas e partidas rápidas sem Elo.
+- **Sala personalizada**: nome/senha opcional, anfitrião, arraste de participantes, espectadores, equipes, impedimento, prorrogação e cobranças físicas de pênaltis.
+- **Clubes**: criar uniforme por cores, salvar na conta e escolher em Meus Clubes. Categorias Brasileirão e Mamoball disponíveis nas salas.
 - **Gemas / Conta**: compras, inventário, equipamentos, perfil e sessão.
 - **Jogar contra bots, Treinar, Sala e 2 jogadores** preservam os modos locais.
 
@@ -51,6 +52,6 @@ Execute **uma instância Node** com disco persistente. SQLite guarda carreira, e
 
 O save offline mantém `maxball` e `maxball.backup`. Moedas e cosméticos locais não concedem direitos online. Contas usam scrypt ou Supabase Auth, cookie HttpOnly, CSRF e transações para compras/resultados.
 
-Documentação: [configuração](docs/CONFIGURACAO.md), [implementação](docs/IMPLEMENTACAO.md), [validação](docs/VALIDACAO.md), [auditoria histórica](docs/AUDITORIA.md).
+Documentação: [relatório da atualização](docs/ATUALIZACAO_GAMEPLAY.md), [configuração](docs/CONFIGURACAO.md), [implementação](docs/IMPLEMENTACAO.md), [validação](docs/VALIDACAO.md), [auditoria histórica](docs/AUDITORIA.md).
 
-Pendências externas: credenciais/projeto Supabase, hospedagem pública e revisão visual/áudio em navegador e celular físico.
+Para medir a física: `node scripts/physics-benchmark.cjs`. Pendências externas: hospedagem pública e validação de sensação/áudio em celular físico. A instalação Supabase configurada foi verificada; credenciais de implantação ficam no `.env` privado.

@@ -1,5 +1,6 @@
 (function(root){
  'use strict';
+ const field=typeof module!=='undefined'?require('../game/field.js'):root.MaxballField;
  const CONFIG=(typeof module!=='undefined'?require('../core/config.js'):root.MaxballConfig).ai;
  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v)),distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
  const ROLES=['ATACANTE_ESQUERDO','ATACANTE_DIREITO','VOLANTE_ESQUERDO','VOLANTE_DIREITO'];
@@ -14,7 +15,7 @@
     const players=P.filter(p=>p.team===team),opponents=P.filter(p=>p.team!==team);if(!players.length)continue;
     const tactical=this.teams[team],direction=team?-1:1,home=team?W:0,goal=team?0:W;
     const forward=x=>(x-home)*direction;
-    const inArea=p=>forward(p.x)<CONFIG.defensiveAreaDepth&&p.y>GY0-CONFIG.defensiveAreaPadding&&p.y<GY1+CONFIG.defensiveAreaPadding;
+    const region=field.geometry(s),inArea=p=>field.inArea(p,team,s);
     players.forEach((p,index)=>{p.id??=`local-${team}-${index}`;p.role=players.length>=4?ROLES[index]:players.length===3?(index===2?'VOLANTE_CENTRAL':ROLES[index]):index?'VOLANTE_CENTRAL':'ATACANTE_CENTRAL';});
     const closest=players.reduce((a,b)=>distance(a,ball)<distance(b,ball)?a:b),enemy=opponents.reduce((a,b)=>!a||distance(b,ball)<distance(a,ball)?b:a,null);
     const owned=distance(closest,ball)<20+BR+18,opponentOwns=enemy&&distance(enemy,ball)<20+BR+18;
@@ -36,6 +37,8 @@
      if(defender&&chaser?.role.startsWith('VOLANTE')&&chaser!==p)depth-=CONFIG.defensiveSupportDistance*.45;
      const formation={x:home+direction*clamp(depth,80,W-100),y:clamp(H/2+lane*Math.min(CONFIG.formationWidth,H*.4)/2+(ball.y-H/2)*.18,55,H-55)};
      let target={...formation},state=defender?'COVERING':'SUPPORTING';
+     if(defender&&(phase==='DEFENDING'||phase==='TRANSITION_DEFENSE')){target.x=home+direction*Math.max(region.areaDepth+35,Math.min(forward(formation.x),forward(ball.x)*.6));target.y=clamp(H/2+lane*CONFIG.formationWidth*.4+(ball.y-H/2)*.35,45,H-45);}
+     if(!defender&&owned&&p!==chaser){target.x=home+direction*clamp(forward(ball.x)+CONFIG.attackSupportDistance,region.areaDepth,W-70);target.y=H/2+lane*Math.min(H*.3,CONFIG.formationWidth*.65);}
      const command={x:0,y:0,shoot:false,pass:false};
      const scores={press:0,pass:0,shoot:0,support:40,cover:defender?55:0,returnFormation:distance(p,formation)*.1};
      if(p===chaser){
@@ -73,11 +76,11 @@
      if(human&&defender&&p!==chaser){target.x=home+direction*Math.min(forward(target.x),W*.27);state='COVERING';}
      for(const ally of players){if(ally===p)continue;const dx=target.x-ally.x,dy=target.y-ally.y,d=Math.hypot(dx,dy);if(d<CONFIG.minTeammateDistance){const sign=index%2?1:-1;target.y+=(d?dy/d:sign)*(CONFIG.minTeammateDistance-d);target.x+=(d?dx/d:-direction)*(CONFIG.minTeammateDistance-d)*.4;}}
      if(tactical.areaOwner&&tactical.areaOwner!==p.id){
-      const entering=inArea(target)||forward(p.x)<CONFIG.defensiveAreaDepth+30&&p.y>GY0-CONFIG.defensiveAreaPadding-25&&p.y<GY1+CONFIG.defensiveAreaPadding+25;
-      if(entering){target.x=home+direction*(CONFIG.defensiveAreaDepth+55);target.y=clamp(target.y,45,H-45);state='COVERING';}
+      const entering=inArea(target)||forward(p.x)<region.areaDepth+30&&p.y>GY0-region.areaPadding-25&&p.y<GY1+region.areaPadding+25;
+      if(entering){target.x=home+direction*(region.areaDepth+55);target.y=clamp(target.y,45,H-45);state='COVERING';}
      }
      target.x=clamp(target.x,-40,W+40);target.y=clamp(target.y,-40,H+40);
-     p.formationTarget=formation;p.targetPosition=target;p.currentState=state;p.primaryBallChaser=p.id===tactical.chaser;p.defensiveAreaOwner=tactical.areaOwner;p.decisionScores=scores;
+     p.basePosition={x:home+direction*(defender?W*.3:W*.3+Math.min(CONFIG.formationDepth,W*.23)),y:H/2+lane*CONFIG.formationWidth/2};p.formationTarget=formation;p.targetPosition=target;p.currentState=state;p.primaryBallChaser=p.id===tactical.chaser;p.defensiveAreaOwner=tactical.areaOwner;p.decisionScores=scores;
      const dx=target.x-p.x,dy=target.y-p.y,d=Math.hypot(dx,dy),speed=Math.min(1,d/40);if(d>6){command.x=dx/d*speed;command.y=dy/d*speed;}
      this.commands.set(p,command);
     }

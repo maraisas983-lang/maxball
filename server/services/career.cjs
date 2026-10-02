@@ -63,11 +63,11 @@ function createCareer(db,economy){
   if(career.season!==match.season)fail('SEASON','Partida de outra temporada.',409);
   const schedule=JSON.parse(current.schedule),fixture=schedule[match.fixture];
   if(!fixture||fixture.status!=='PENDING')fail('FIXTURE','Partida já registrada.',409);
-  const score=match.score,won=score[0]>score[1],draw=score[0]===score[1],player=match.stats[career.user_id]||{};
+  const score=match.score,won=match.winner===0||score[0]>score[1],draw=match.winner==null&&score[0]===score[1],player=match.stats[career.user_id]||{};
   const rating=Math.min(10,Math.max(3,6+(player.goals||0)*.65+(player.assists||0)*.45+(won?.7:draw?.1:-.4)+Math.min(.6,(player.passes||0)*.05)-score[1]*.08));
   const stats=JSON.parse(current.stats),total=JSON.parse(career.stats),awards=JSON.parse(current.awards);
   for(const target of [stats,total]){target.matches++;target.starts++;target.minutesPlayed+=match.duration/60;target.goals+=player.goals||0;target.assists+=player.assists||0;target.wins+=won?1:0;target.draws+=draw?1:0;target.losses+=!won&&!draw?1:0;target.ratingTotal+=rating;target.averageRating=+(target.ratingTotal/target.matches).toFixed(2);}
-  fixture.status='COMPLETED';fixture.score=score;fixture.rating=+rating.toFixed(1);fixture.matchId=match.id;
+  fixture.status='COMPLETED';fixture.score=score;fixture.winner=match.winner??(draw?null:won?0:1);fixture.penalties=match.penalties||null;fixture.rating=+rating.toFixed(1);fixture.matchId=match.id;
   const table=JSON.parse(current.table_data),random=seeded(match.id.split('').reduce((n,c)=>n+c.charCodeAt(0),0));
   const apply=(a,b,ga,gb)=>{const x=table.find(t=>t.clubId===a),y=table.find(t=>t.clubId===b);x.played++;y.played++;x.gf+=ga;x.ga+=gb;y.gf+=gb;y.ga+=ga;x.points+=ga>gb?3:ga===gb?1:0;y.points+=gb>ga?3:ga===gb?1:0;if(ga>gb)x.wins++;if(gb>ga)y.wins++;};
   if(fixture.competition==='league')for(const pair of fixture.pairs){if(pair.includes(career.club_id))apply(career.club_id,fixture.opponent,...score);else apply(pair[0],pair[1],Math.floor(random()*4),Math.floor(random()*4));}

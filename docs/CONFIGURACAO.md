@@ -40,4 +40,6 @@ Execute uma instância Node com SQLite persistente. Não use réplicas com banco
 
 Estas instruções não publicam um serviço automaticamente. A configuração local do Supabase não configura a hospedagem ou o domínio público do jogo.
 
+Se o login mostrar “Unexpected end of JSON input” ou indicar que o endereço só exibe arquivos, confira a URL: o Live Server na porta 5500 não executa a API. Inicie `npm.cmd start` e abra `http://127.0.0.1:5173`, conforme o endereço anunciado. O Supabase usa e-mail no login. Senhas já existentes podem ter menos de 12 caracteres; novos cadastros exigem pelo menos 12. Se aparecer confirmação pendente, abra o link do e-mail de confirmação antes de entrar.
+
 Referências: [Auth](https://supabase.com/docs/reference/javascript/auth-getuser), [renovação](https://supabase.com/docs/reference/javascript/auth-refreshsession), [RLS](https://supabase.com/docs/guides/database/postgres/row-level-security), [scrypt/OWASP](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html), [PGlite usado nos testes SQL](https://pglite.dev/docs/api).

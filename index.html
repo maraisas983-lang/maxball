@@ -4,23 +4,18 @@
 <title>MAXBALL</title>
 <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Rubik:wght@500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles/game.css">
-<link rel="stylesheet" href="styles/portal.css"></head><body>
+<link rel="stylesheet" href="styles/portal.css">
+<link rel="stylesheet" href="styles/lobby.css"></head><body>
 
 <section class="scr on" id="home">
- <div class="coins" id="c0"></div><button class="pchip" id="pchip" data-go="prof"></button>
- <div class="logo"><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" fill="#fff" stroke="#0a0f2c" stroke-width="6"/><path d="M50 30l18 13-7 21H39l-7-21z" fill="#0a0f2c"/><path d="M50 30V10M68 43l20-8M61 64l12 18M39 64L27 82M32 43l-20-8" stroke="#0a0f2c" stroke-width="5"/><path d="M62 4L40 52h14l-8 44 30-56H62z" fill="#c8ff2e" stroke="#0a0f2c" stroke-width="4"/></svg><span>MAX<b>BALL</b></span></div>
- <p class="sub">Futebol arcade rápido e competitivo.</p>
- <div class="menu">
-  <button class="btn b1" data-account-page="ranked">Jogar</button>
-  <button class="btn b2" data-go="train">Treinar</button>
-  <button class="btn b3" data-go="room">Sala</button>
-  <button class="btn b4" data-go="custom">Inventário</button>
-  <button class="btn b5" data-go="shop">Loja</button>
-  <button class="btn b6" data-go="ctl">Controles</button>
- </div>
- <div class="account-links"><button class="btn b1" data-account-page="career">Carreira</button><button class="btn b2" data-account-page="online">Online</button><button class="btn b4" data-account-page="shop">Gemas</button><button class="btn b5" data-account-page="profile">Conta</button></div>
- <div class="row"><button class="link" data-go="bot">Jogar contra bots</button><button class="link" data-go="local">2 jogadores no mesmo teclado</button><button class="link" data-go="friends">Amigos</button></div>
- <div class="foot"><button class="link" data-legal="priv">Política de Privacidade</button>·<button class="link" data-legal="terms">Termos de Uso</button></div>
+ <svg class="home-stadium" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><defs><linearGradient id="sky" x2="0" y2="1"><stop stop-color="#ecf4fa"/><stop offset="1" stop-color="#fff"/></linearGradient><linearGradient id="grass" x2="0" y2="1"><stop stop-color="#aaca77"/><stop offset="1" stop-color="#429968"/></linearGradient><pattern id="seats" width="32" height="32" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="6" fill="#9bb3ca" opacity=".35"/></pattern></defs><path fill="url(#sky)" d="M0 0h1600v900H0z"/><path d="M0 125Q800 645 1600 125V540H0Z" fill="#c8d8e3"/><path d="M0 190Q800 690 1600 190V500H0Z" fill="url(#seats)"/><path d="M0 85Q800 625 1600 85" fill="none" stroke="#70b580" stroke-width="26"/><path d="M0 345Q800 660 1600 345" fill="none" stroke="#f4d66b" stroke-width="15"/><path d="M0 470Q800 710 1600 470V900H0Z" fill="url(#grass)"/><path d="M0 650 1600 820M1600 650 0 820M800 585v315" stroke="#e7f4d5" stroke-width="6" fill="none"/><ellipse cx="800" cy="740" rx="270" ry="36" fill="none" stroke="#e7f4d5" stroke-width="5"/><path d="M0 840Q800 780 1600 840v60H0Z" fill="#fff" opacity=".85"/></svg>
+ <div hidden><div class="coins" id="c0"></div><button id="pchip"></button></div>
+ <header class="home-top"><button class="home-profile" data-account-page="profile"><span class="level-badge" id="home-level">1</span><span><strong id="home-name">Jogador</strong><span class="xp-line"><progress id="home-xp" max="250" value="0"></progress><small id="home-xp-label">0 / 250</small></span></span></button><div class="home-wallet"><button data-account-page="shop"><span class="gem-symbol">◆</span><strong id="home-balance">0</strong><span class="wallet-plus">+</span></button><button data-go="ctl" aria-label="Configurações">⚙</button></div></header>
+ <div class="home-brand"><svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="48" fill="#10254a"/><path d="M50 14 82 34 75 72 50 88 20 70 18 33Z" fill="white"/><path d="M30 66V35l20 17 20-17v31H58V55l-8 8-8-8v11Z" fill="#10254a"/></svg><h1>MAXBALL</h1></div>
+ <nav class="home-side" aria-label="Atalhos"><button data-account-page="ranked"><span>♜</span> RANKING <b>›</b></button><button data-go="friends"><span>♟</span> AMIGOS <b>›</b></button><button data-go="ctl"><span>☷</span> CONTROLES <b>›</b></button><button data-account-page="gallery"><span>★</span> GALERIA <b>›</b></button></nav>
+ <div class="home-player"><button id="home-prev" aria-label="Uniforme anterior">‹</button><div><canvas id="home-avatar" width="240" height="240"></canvas><strong id="home-shirt-name">MAXBALL</strong></div><button id="home-next" aria-label="Próximo uniforme">›</button></div>
+ <nav class="home-bottom" aria-label="Jogar e personalizar"><button data-account-page="shop"><span>▰</span>LOJA</button><button data-account-page="inventory"><span>▣</span>INVENTÁRIO</button><button data-account-page="clubs"><span>⬡</span>CLUBES</button><button data-account-page="career"><span>▥</span>MODO CARREIRA</button><button data-account-page="online"><span>♟</span>SALA PERSONALIZADA</button><button class="home-rank" data-account-page="ranked"><span>▶</span>JOGAR <b>›</b></button></nav>
+ <footer class="home-footer"><details><summary>Modos locais</summary><div><button data-go="bot">Contra bots</button><button data-go="train">Treinar</button><button data-go="local">2 jogadores</button><button data-go="room">Sala offline</button><button data-go="custom">Inventário local</button><button data-go="shop">Loja local</button></div></details><span>Bem-vindo ao <strong>MAXBALL!</strong></span><button class="link" data-legal="priv">Privacidade</button><button class="link" data-legal="terms">Termos</button></footer>
 </section>
 
 <section class="scr" id="prof"><h2>Perfil</h2><div class="sub">ID: <b id="pid"></b> <button class="chip" id="pcp">Copiar</button></div>
@@ -74,6 +69,9 @@
 
 <section class="scr" id="game">
  <canvas id="cv"></canvas>
+ <div id="versus" hidden></div>
+ <div id="match-notice" role="status"></div>
+ <div id="penalty-hud" hidden></div>
  <div id="network-status" role="status"></div>
  <button id="exit">Sair</button><button id="gset" aria-label="Configurações">⚙</button>
  <div id="gpan"><b>Configurações</b><label>Zoom <input type="range" id="z0" min="60" max="160"></label><label>Tamanho dos botões <input type="range" id="z1" min="60" max="160"></label><label>Opacidade <input type="range" id="z2" min="30" max="100"></label><label class="ck"><input type="checkbox" id="z3"> Tremor de tela</label><button class="btn b1" id="zok">Continuar</button></div>
@@ -96,8 +94,12 @@
 <script src="src/services/localSaveRepository.js"></script>
 <script src="src/input/inputLifecycle.js"></script>
 <script src="src/core/runtime.js"></script>
-<script src="src/physics/ballPhysics.js"></script>
 <script src="src/core/config.js"></script>
+<script src="src/data/teams.js"></script>
+<script src="src/game/rules.js"></script>
+<script src="src/game/field.js"></script>
+<script src="src/input/pointerControls.js"></script>
+<script src="src/physics/ballPhysics.js"></script>
 <script src="src/ai/tactics.js"></script>
 <script src="src/physics/contacts.js"></script>
 <script src="src/game/kickoff.js"></script>
@@ -111,8 +113,12 @@
 <script src="src/ui/components.js"></script>
 <script src="src/ui/careerView.js"></script>
 <script src="src/ui/economyView.js"></script>
+<script src="src/ui/roomDrag.js"></script>
+<script src="src/ui/clubView.js"></script>
+<script src="src/ui/presentation.js"></script>
 <script src="src/ui/onlineView.js"></script>
 <script src="src/ui/rankedView.js"></script>
 <script src="src/ui/adminView.js"></script>
 <script src="src/ui/portal.js"></script>
+<script src="src/ui/home.js"></script>
 </body></html>

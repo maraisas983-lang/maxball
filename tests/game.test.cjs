@@ -3,25 +3,21 @@ const assert = require('node:assert/strict');
 const { read, plain, gameHarness } = require('./helpers.cjs');
 const stableSave=JSON.stringify({v:2,coins:200,k:[0,1,4],f:[0,1],kit:4,fx:1,num:10,name:'POGGI',fid:'MAX-TEST',st:{p:0,w:0,g:0},fr:[]});
 
-test('CSS and screen markup are preserved from the original artifact', () => {
-  const original=read('maxball-codigo-6 (1).txt'),current=read('index.html');
-  assert.equal(read('styles/game.css'),original.match(/<style>\r?\n([\s\S]*?)<\/style>/)[1]);
-  const screens=html=>html.slice(html.indexOf('<body>')+6,html.indexOf('<script')).trim();
-  const preserved=current.replace(/ <div class="account-links">.*?<\/div>\r?\n/,'').replace(/<div id="network-status" role="status"><\/div>\r?\n /,'').replace(/<section class="scr" id="portal">.*?<\/section>\r?\n/,'').replace('data-account-page="ranked">Jogar','data-go="bot">Jogar').replace('<button class="link" data-go="bot">Jogar contra bots</button>','').replace(/ <div id="career-commands".*?<\/div>\r?\n/,'');
-  assert.equal(screens(preserved),screens(original));
+test('legacy CSS and screens remain available alongside the new home and HUD', () => {
+ const original=read('maxball-codigo-6 (1).txt'),current=read('index.html');
+ assert.equal(read('styles/game.css'),original.match(/<style>\r?\n([\s\S]*?)<\/style>/)[1]);
+ for(const [,id] of original.matchAll(/<section class="scr(?: on)?" id="([^"]+)"/g))assert.ok(current.includes('id="'+id+'"'),id);
+ for(const id of ['home-avatar','home-xp','versus','penalty-hud','match-notice'])assert.ok(current.includes('id="'+id+'"'));
 });
-test('human acceleration and free movement retain the original response',()=>{
-  const before=gameHarness({original:true,saved:stableSave}),after=gameHarness({saved:stableSave});
-  for(const h of [before,after]) {
-    h.api.start('train');h.api.state.P[0].x=150;h.api.state.P[0].y=100;
-    for(let frame=0;frame<90;frame++) {
-      h.api.state.keys.KeyD=frame<60?1:0;h.api.state.keys.KeyS=frame<30?1:0;
-      h.api.update(1/60);if(frame%30===0)h.api.draw();
-    }
-  }
-  const rounded=body=>Object.fromEntries(['x','y','vx','vy'].map(k=>[k,Math.round(body[k]*1e7)/1e7]));
-  const snapshot=h=>plain({players:h.api.state.P.map(rounded)});
-  assert.deepEqual(snapshot(after),snapshot(before));assert.equal(after.errors.length,0);
+test('movement accelerates and stops faster than the original without diagonal boost',()=>{
+ const before=gameHarness({original:true,saved:stableSave}),after=gameHarness({saved:stableSave});
+ for(const h of [before,after]){h.api.start('train');h.api.state.P[0].x=150;h.api.state.P[0].y=100;h.api.state.keys.KeyD=1;for(let i=0;i<6;i++)h.api.update(1/60);}
+ assert.ok(after.api.state.P[0].vx>before.api.state.P[0].vx);
+ for(const h of [before,after]){h.api.state.keys.KeyD=0;for(let i=0;i<30;i++)h.api.update(1/60);}
+ assert.ok(after.api.state.P[0].vx<before.api.state.P[0].vx/10);
+ after.api.state.keys.KeyD=after.api.state.keys.KeyS=1;for(let i=0;i<30;i++)after.api.update(1/60);
+ assert.ok(Math.hypot(after.api.state.P[0].vx,after.api.state.P[0].vy)<=205.001);
+ assert.equal(after.errors.length,0);
 });
 test('all team sizes and field sizes start, simulate and render with finite coordinates',()=>{
   const h=gameHarness({saved:stableSave});

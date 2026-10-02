@@ -2,23 +2,31 @@
  'use strict';
  const {el,button,note,field,form,celebrate}=root.MaxballUI;
  const shell=document.querySelector('#portal'),content=document.querySelector('#portal-content'),nav=document.querySelector('#portal-nav'),statusNode=document.querySelector('#portal-status');
- const labels={ranked:'Ranqueado',career:'Carreira',online:'Online',shop:'Loja',inventory:'Inventário',profile:'Perfil',gallery:'Galeria',admin:'Admin'};
+ const labels={clubs:'Clubes',ranked:'Ranqueado',career:'Carreira',online:'Online',shop:'Loja',inventory:'Inventário',profile:'Perfil',gallery:'Galeria',admin:'Admin'};
  let authProvider='local';
- let account=null,page='career',generation=0,returnPage='online',knownAwards=new Set(),pendingAwards=[],cleanup=null;
+ let account=null,page='career',generation=0,returnPage='online',knownAwards=new Set(),pendingAwards=[],cleanup=null,roomListener=null;
  const api=root.MaxballAPI.request;
  const portal={
   api,content,get account(){return account;},
   onLeave(callback){cleanup=callback;},
+  listenRoom(callback){roomListener=callback;},
   status(message){statusNode.textContent=message;statusNode.classList.remove('error');},
   error(error){statusNode.textContent=error.message||'Não foi possível concluir.';statusNode.classList.add('error');if(error.status===401){account=null;root.MaxballAPI.clear();}},
-  async refreshAccount(){account=await api('/auth/me');document.querySelector('#account-label').textContent=account.profile.display_name+' · '+account.wallet.balance+' gemas';return account;},
+  async refreshAccount(){account=await api('/auth/me');document.querySelector('#account-label').textContent=account.profile.display_name+' · '+account.wallet.balance+' gemas';root.MaxballHome?.refresh();return account;},
   async logout(){await api('/auth/logout','POST',{});portal.connection.close();account=null;root.MaxballAPI.clear();await portal.open('login');},
   async open(next='career'){
    if(cleanup){const stop=cleanup;cleanup=null;await stop();}
    page=next;const version=++generation;root.MaxballGame.show('portal');content.replaceChildren();portal.status('Carregando…');
    if(!account){try{await portal.refreshAccount();}catch(error){if(error.status!==401)portal.error(error);}}
    if(version!==generation)return;
-   if(!account){try{authProvider=(await api('/config')).authProvider;}catch{}renderLogin();return;}
+   if(!account){
+    try{authProvider=(await api('/config')).authProvider;}catch(error){
+     portal.error(error);nav.replaceChildren();
+     const link=/^(localhost|127\.0\.0\.1)$/.test(location.hostname)?el('a',{class:'action primary',href:'http://127.0.0.1:5173',text:'Abrir MAXBALL com login'}):null;
+     content.replaceChildren(cardUnavailable(error,link));return;
+    }
+    renderLogin();return;
+   }
    nav.replaceChildren();
    for(const [key,label] of Object.entries(labels))if(key!=='admin'||account.user.role!=='PLAYER'){
     const tab=button(label,()=>portal.open(key),'tab'+(page===key?' active':''));tab.setAttribute('aria-current',page===key?'page':'false');nav.append(tab);
@@ -31,14 +39,16 @@
   play(room){returnPage=room.kind==='CAREER'?'career':room.cfg.ranked?'ranked':'online';portal.connection.connect();portal.connection.socket?.readyState===WebSocket.OPEN&&portal.connection.socket.send(JSON.stringify({type:'subscribe'}));portal.status('Conectando à partida…');}
  };
  root.MaxballPortal=portal;
+ function cardUnavailable(error,link){return el('article',{class:'login-card'},[el('h2',{text:'Conecte ao MAXBALL'}),note(error.message),link]);}
  function renderLogin(){
   nav.replaceChildren();document.querySelector('#account-label').textContent='Sua carreira começa aqui';
   content.replaceChildren(el('article',{class:'login-card'},[el('p',{class:'eyebrow',text:'ENTRE PARA O MAXBALL'}),el('h2',{text:'Entre em campo.'}),note('Sua conta guarda carreira, troféus e cosméticos. Os modos locais continuam disponíveis no menu principal.'),
-   form([field(authProvider==='supabase'?'E-mail':'Usuário','username',authProvider==='supabase'?'email':'text','',{required:'',minlength:3,maxlength:authProvider==='supabase'?254:24,autocomplete:'username',...(authProvider==='supabase'?{}:{pattern:'[a-zA-Z0-9_]+'})}),field('Senha','password','password','',{required:'',minlength:12,maxlength:128,autocomplete:'current-password'})],'Entrar',async values=>{await api('/auth/login','POST',values);await loggedIn();}),
+   form([field(authProvider==='supabase'?'E-mail':'Usuário','username',authProvider==='supabase'?'email':'text','',{required:'',minlength:3,maxlength:authProvider==='supabase'?254:24,autocomplete:'username',...(authProvider==='supabase'?{}:{pattern:'[a-zA-Z0-9_]+'})}),field('Senha','password','password','',{required:'',minlength:1,maxlength:128,autocomplete:'current-password'})],'Entrar',async values=>{await api('/auth/login','POST',values);await loggedIn();}),
    button('Criar conta com esses dados',async()=>{
     const node=content.querySelector('form');if(!node.reportValidity())return;
+    if(node.querySelector('[name=password]').value.length<12){portal.error(new Error('Para criar uma conta, use uma senha de pelo menos 12 caracteres.'));return;}
     const result=await api('/auth/register','POST',Object.fromEntries(new FormData(node)));if(result.confirmationRequired){portal.status('Confirme seu e-mail e depois entre na conta.');return;}await loggedIn();
-   },'secondary'),note(authProvider==='supabase'?'Use seu e-mail e uma senha de pelo menos 12 caracteres.':'Usuário: 3–24 letras, números ou _. Senha: pelo menos 12 caracteres.') ]));
+   },'secondary'),note(authProvider==='supabase'?'Entre com o e-mail e a senha da sua conta. Para criar uma conta, use pelo menos 12 caracteres na senha.':'Usuário: 3–24 letras, números ou _. Para criar uma conta, use pelo menos 12 caracteres na senha.') ]));
   if(!statusNode.classList.contains('error'))portal.status('');
  }
  async function loggedIn(){
@@ -49,6 +59,7 @@
   input:()=>root.MaxballGame.input(),onStatus:message=>{document.querySelector('#network-status').textContent=message;},
   onMessage:message=>{
    if(!account)return;
+   if(message.type==='room')roomListener?.(message.room);
    if(message.type==='snapshot')root.MaxballGame.snapshot(message.state,account.user.id);
    if(message.type==='result'){
     Promise.all([portal.refreshAccount(),api('/profile')]).then(([,profile])=>{

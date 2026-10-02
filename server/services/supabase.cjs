@@ -8,7 +8,15 @@ function createSupabase({url,anonKey,serviceKey,fetchImpl=fetch}){
   // Publishable/secret keys belong in apikey; only JWTs go in Authorization.
   const bearer=token||(!key.startsWith('sb_')?key:null);
   let response;try{response=await fetchImpl(url+path,{method,headers:{apikey:key,...(bearer?{Authorization:'Bearer '+bearer}:{}),'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined,signal:AbortSignal.timeout(10000)});}catch{fail('CLOUD','Serviço de contas indisponível. Tente novamente.',503);}
-  const data=await response.json().catch(()=>({}));if(!response.ok)fail('CLOUD',response.status===400||response.status===401?'Confira seus dados e a confirmação do e-mail.':'Serviço de contas indisponível.',response.status>=500?503:400);return data;
+  const data=await response.json().catch(()=>({}));
+  if(!response.ok){
+   if(data.error_code==='email_not_confirmed')fail('EMAIL_UNCONFIRMED','Confirme seu e-mail pelo link enviado pelo Supabase antes de entrar.',403);
+   if(response.status===429)fail('AUTH_RATE_LIMIT','Muitas tentativas. Aguarde alguns minutos e tente novamente.',429);
+   if(path.includes('grant_type=password')&&(response.status===400||response.status===401))fail('LOGIN','E-mail ou senha inválidos.',401);
+   if(data.error_code==='signup_disabled')fail('SIGNUP_DISABLED','O cadastro está desativado neste servidor.',403);
+   fail('CLOUD',response.status===400||response.status===401?'Confira os dados informados.':'Serviço de contas indisponível.',response.status>=500?503:400);
+  }
+  return data;
  }
  return {
   register:(email,password)=>request('/auth/v1/signup',{body:{email,password}}),
@@ -41,10 +49,14 @@ function useSupabaseAuth(local,db,economy,cloud){
    return {...result,user:publicUser(user)};
   });
  }
- function credentials(body){if(Object.keys(body).some(k=>!['username','password'].includes(k))||typeof body.username!=='string'||!/^\S+@\S+\.\S+$/.test(body.username)||body.username.length>254||typeof body.password!=='string'||body.password.length<12||body.password.length>128)fail('CREDENTIALS','Informe um e-mail válido e senha de 12 a 128 caracteres.');return [body.username,body.password];}
+ function credentials(body,register=false){
+  const email=typeof body.username==='string'?body.username.trim():'';
+  if(Object.keys(body).some(k=>!['username','password'].includes(k))||!/^\S+@\S+\.\S+$/.test(email)||email.length>254||typeof body.password!=='string'||body.password.length<(register?12:1)||body.password.length>128)fail('CREDENTIALS',register?'Informe um e-mail válido e senha de 12 a 128 caracteres.':'Informe seu e-mail e sua senha.');
+  return [email,body.password];
+ }
  return {...local,provider:'supabase',
   authenticate(token){const result=local.authenticate(token);if(!db.one('SELECT token_hash FROM external_sessions WHERE token_hash=?',hash(token)))fail('SESSION','Entre com sua conta Supabase.',401);return result;},
-  register:async body=>establish(await cloud.register(...credentials(body))),login:async body=>establish(await cloud.login(...credentials(body))),
+  register:async body=>establish(await cloud.register(...credentials(body,true))),login:async body=>establish(await cloud.login(...credentials(body))),
   async refresh(token){local.authenticate(token);const row=db.one('SELECT * FROM external_sessions WHERE token_hash=?',hash(token));if(!row)fail('SESSION','Entre novamente.',401);const result=await establish(await cloud.refresh(row.refresh_token));local.logout(token);return result;},
   async logout(token){const row=db.one('SELECT * FROM external_sessions WHERE token_hash=?',hash(token));local.logout(token);if(row)await cloud.logout(row.access_token).catch(()=>{});},
   async updateProfile(uid,body){const before=local.profile(uid),after=local.updateProfile(uid,body);try{await cloud.updateProfile(uid,after.display_name);}catch(error){db.run('UPDATE profiles SET display_name=?,shirt_name=?,shirt_number=?,avatar=? WHERE user_id=?',before.display_name,before.shirt_name,before.shirt_number,before.avatar,uid);throw error;}return after;}

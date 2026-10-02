@@ -62,6 +62,8 @@ function createApp({databasePath='var/maxball.sqlite',origin='http://127.0.0.1:5
    if(pathname==='/api/inventory')return json(res,200,economy.inventory(uid));
    if(pathname==='/api/wallet')return json(res,200,economy.wallet(uid));
    if(pathname==='/api/career')return json(res,200,career.view(uid));
+   if(pathname==='/api/clubs')return json(res,200,rooms.clubs.list(uid));
+   if(pathname==='/api/teams')return json(res,200,rooms.clubs.catalog(uid));
    if(pathname==='/api/rooms')return json(res,200,{rooms:rooms.list(),current:rooms.current(uid)});
    if(pathname==='/api/matches')return json(res,200,db.all("SELECT id,kind,score,duration,status,created_at FROM matches WHERE EXISTS(SELECT 1 FROM json_each(matches.participants) WHERE json_extract(value,'$.id')=?) ORDER BY created_at DESC LIMIT 30",uid));
    if(pathname==='/api/admin')return json(res,200,admin.dashboard(user,rooms.online()));
@@ -79,12 +81,14 @@ function createApp({databasePath='var/maxball.sqlite',origin='http://127.0.0.1:5
    if(pathname==='/api/career/season')return json(res,200,career.advance(uid));
    if(pathname==='/api/career/play')return json(res,201,rooms.careerMatch(user));
    const offer=pathname.match(/^\/api\/career\/offers\/([\w-]+)$/);if(offer)return json(res,200,career.transfer(uid,offer[1],data));
+   if(pathname==='/api/clubs')return json(res,201,rooms.clubs.create(uid,data));
+   const editRoom=pathname.match(/^\/api\/rooms\/([\w-]+)$/);if(editRoom&&method==='PATCH')return json(res,200,rooms.edit(user,editRoom[1],data));
    if(pathname==='/api/rooms')return json(res,201,rooms.create(user,data));
    if(pathname==='/api/rooms/leave'){rooms.leave(uid);return json(res,200,{ok:true});}
    if(pathname==='/api/ranked/join'){cloudSync?.assertReady();return json(res,200,rooms.rankedJoin(user));}
    if(pathname==='/api/ranked/cancel')return json(res,200,rooms.rankedCancel(user));
    if(pathname==='/api/matchmaking')return json(res,200,rooms.matchmaking(user));
-   const room=pathname.match(/^\/api\/rooms\/([\w-]+)\/(join|start)$/);if(room)return json(res,200,room[2]==='join'?rooms.join(user,room[1]):rooms.start(user,room[1]));
+   const room=pathname.match(/^\/api\/rooms\/([\w-]+)\/(join|start)$/);if(room)return json(res,200,room[2]==='join'?rooms.join(user,room[1],data):rooms.start(user,room[1]));
    const action=pathname.match(/^\/api\/admin\/users\/([\w-]+)$/);if(action)return json(res,200,admin.action(user,action[1],data));
   }
   fail('NOT_FOUND','Recurso não encontrado.',404);

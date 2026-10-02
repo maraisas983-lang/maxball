@@ -16,7 +16,7 @@
   else portal.content.append(card('Temporada concluída',note('Confira suas conquistas e as propostas antes de iniciar a próxima temporada.'),button('Ver cerimônia',()=>celebrate(data.trophies.filter(t=>t.season===career.season))),button('Iniciar temporada '+(career.season+1),async()=>{await portal.api('/career/season','POST',{});await portal.open('career');},'secondary')));
   portal.content.append(card('Objetivo da temporada',note(career.reputation<40?'Evolua sua reputação, conquiste títulos e atraia clubes de maior prestígio.':'Dispute as maiores competições e combine gols, assistências e notas altas na busca da Bola de Ouro.')),
    card('Classificação · Liga MAX',table(['Clube','J','P','SG'],current.table.map(t=>[clubName(t.clubId),t.played,t.points,t.gf-t.ga]))),
-   card('Calendário',table(['Competição / fase','Adversário','Resultado','Nota'],current.schedule.map(f=>[f.stage,clubName(f.opponent),f.score?.join(' × ')||(f.status==='ELIMINATED'?'Eliminado':'A jogar'),f.rating||'—']))));
+   card('Calendário',table(['Competição / fase','Adversário','Resultado','Nota'],current.schedule.map(f=>[f.stage,clubName(f.opponent),(f.score?f.score.join(' × ')+(f.penalties?' (pên. '+f.penalties.join(' × ')+')':''):'')||(f.status==='ELIMINATED'?'Eliminado':'A jogar'),f.rating||'—']))));
   const offers=card('Propostas de transferência');
   const pending=data.offers.filter(o=>o.status==='PENDING');
   if(!pending.length)offers.append(note('Seu desempenho ao longo da temporada pode atrair novos clubes.'));
