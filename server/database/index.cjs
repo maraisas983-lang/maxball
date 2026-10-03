@@ -36,8 +36,13 @@ function seed(db) {
   db.transaction(() => {
     const names = ['Aurora FC','Atlético Vale','Porto Azul','Estrela Norte','União Solar','Real Horizonte','Trovão FC','Capital SC'];
     names.forEach((name, i) => db.run('INSERT OR IGNORE INTO clubs VALUES(?,?,?,?)', 'club-'+i, name, 1+Math.floor(i/2), 2+i));
+    for(const team of require('../../src/data/teams.js').teams)db.run('INSERT OR IGNORE INTO clubs VALUES(?,?,?,?)',team.id,team.name,team.id.startsWith('br-')?([0,1,2,3,8,9].includes(Number(team.id.slice(3)))?4:3):2,team.legacyKit??0);
     for (const item of [['league','Liga MAX','LEAGUE',1],['cup','Copa MAX','CUP',1.3],['continental','Copa Continental','CUP',1.8],['world','Mundial MAX','FINAL',2.2]]) db.run('INSERT OR IGNORE INTO competitions VALUES(?,?,?,?)',...item);
     for (let i=0;i<22;i++) db.run('INSERT OR IGNORE INTO shop_items VALUES(?,?,?,?,?,?,1)', 'kit-'+i, i<2?['Limão','Ciano'][i]:'Uniforme '+(i+1), 'KIT',i<2?'COMMON':i<6?'EPIC':'RARE',i<2?0:i<6?90:60,i);
+    for(const e of require('../../src/data/emotes.js'))db.run('INSERT OR IGNORE INTO shop_items VALUES(?,?,?,?,?,?,1)',e.id,e.name,'EMOTE',e.price>=100?'EPIC':'COMMON',e.price,e.asset_index);
+    // Existing accounts also receive the free starter emote.
+    db.run("INSERT OR IGNORE INTO inventory SELECT id,'emote-0',? FROM users",Date.now());
+    db.run("INSERT OR IGNORE INTO emote_slots SELECT id,0,'emote-0' FROM users WHERE NOT EXISTS(SELECT 1 FROM emote_slots e WHERE e.user_id=users.id AND e.slot=0)");
     ['Sem rastro','Neon','Fogo','Estrelas'].forEach((name,i)=>db.run('INSERT OR IGNORE INTO shop_items VALUES(?,?,?,?,?,?,1)','effect-'+i,name,'EFFECT',['COMMON','RARE','EPIC','LEGENDARY'][i],[0,50,100,150][i],i));
   });
 }

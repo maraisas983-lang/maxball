@@ -13,6 +13,7 @@
   clubs:['Clubes','SEDE DO CLUBE','Jogue com a sua comunidade.','Gerencie seu clube e encontre seu time.','C'],
   shop:['Loja','ESTILO EM CAMPO','Escolha sua identidade.','Explore os cosméticos disponíveis para o seu jogador.','◇'],
   inventory:['Inventário','SEU ARMÁRIO','Prepare seu visual.','Equipe os itens da sua coleção.','◇'],
+  chat:['Chat','COMUNIDADE MAXBALL','Converse com outros jogadores.','O chat acompanha a sala em que você está.','✉'],
   profile:['Perfil','CARTÃO DO JOGADOR','Sua identidade MAXBALL.','Personalize seu jogador e acompanhe suas conquistas.','M'],
   gallery:['Galeria','SALA DE TROFÉUS','Guarde suas conquistas.','Veja a sua coleção de momentos e troféus.','★'],
   login:['Conta','BEM-VINDO AO MAXBALL','Entre para jogar.','Sua conta conecta você à comunidade MAXBALL.','M']

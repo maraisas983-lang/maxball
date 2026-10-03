@@ -25,6 +25,7 @@ function createSupabase({url,anonKey,serviceKey,fetchImpl=fetch}){
   user:token=>request('/auth/v1/user',{token}),
   logout:token=>request('/auth/v1/logout',{token,body:{}}),
   profile:uid=>request('/rest/v1/profiles?id=eq.'+encodeURIComponent(uid)+'&select=*',{key:serviceKey}),
+  partyVersion:()=>request('/rest/v1/rpc/maxball_ranked_version',{key:serviceKey}),
   complete:payload=>request('/rest/v1/rpc/record_ranked_match',{key:serviceKey,body:{result:payload}}),
   updateProfile:(uid,display_name)=>request('/rest/v1/profiles?id=eq.'+encodeURIComponent(uid),{key:serviceKey,method:'PATCH',body:{display_name}})
  };
@@ -43,9 +44,10 @@ function useSupabaseAuth(local,db,economy,cloud,{adminEmails=[]}={}){
     const name=(remote.display_name||identity.email.split('@')[0]).slice(0,14);
     db.run('INSERT INTO users(id,username,password_hash,created_at,updated_at,last_login_at) VALUES(?,?,?,?,?,?)',identity.id,'sb_'+identity.id,'EXTERNAL',now,now,now);
     db.run('INSERT INTO profiles(id,user_id,display_name,shirt_name,shirt_number,created_at,rating,ranked_wins,ranked_draws,ranked_losses,ranked_goals,ranked_assists) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)',id(),identity.id,name,name,10,now,remote.rating,remote.wins,remote.draws,remote.losses,remote.goals,remote.assists);
-    db.run('INSERT INTO wallets VALUES(?,?,?)',identity.id,0,now);for(const item of ['kit-0','kit-1','effect-0'])db.run('INSERT INTO inventory VALUES(?,?,?)',identity.id,item,now);economy.change(identity.id,200,'REWARD','WELCOME','welcome');user=db.one('SELECT * FROM users WHERE id=?',identity.id);
+    db.run('INSERT INTO wallets VALUES(?,?,?)',identity.id,0,now);for(const item of ['kit-0','kit-1','effect-0','emote-0'])db.run('INSERT INTO inventory VALUES(?,?,?)',identity.id,item,now);db.run("INSERT OR IGNORE INTO emote_slots VALUES(?,0,'emote-0')",identity.id);economy.change(identity.id,200,'REWARD','WELCOME','welcome');user=db.one('SELECT * FROM users WHERE id=?',identity.id);
    }
    allowed(user);
+   if(identity.email_confirmed_at)db.run('INSERT INTO verified_emails VALUES(?,?) ON CONFLICT(user_id) DO UPDATE SET email=excluded.email',identity.id,identity.email.trim().toLowerCase());
    // Trust only the confirmed email returned by Supabase Auth, never form data or user metadata.
    if(identity.email_confirmed_at&&administrators.has(identity.email.trim().toLowerCase())&&!['OWNER','SUPER_ADMIN','ADMIN'].includes(user.staff_role||user.role)){
     db.run("UPDATE users SET role='ADMIN',staff_role='ADMIN',updated_at=? WHERE id=?",now,identity.id);

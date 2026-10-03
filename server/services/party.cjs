@@ -14,7 +14,8 @@ function createParty({lookup,connected,available,cancel,notify}){
  function ready(user,value){const g=ensure(user);if(g.state!=='IDLE'||typeof value!=='boolean')fail('PARTY_BUSY','Prontidão inválida.');g.members.find(m=>m.id===user.id).ready=value;publish(g);return view(user.id);}
  function search(user){const g=current(user.id);if(!g)return null;if(g.leader!==user.id)fail('PARTY_LEADER','A busca é iniciada pelo líder.',403);if(g.members.some(m=>!m.ready||!connected(m.id)||!available(m.id)))fail('PARTY_READY','Todos precisam estar conectados, prontos e sem outra partida.',409);g.state='SEARCHING';publish(g);return g;}
  function state(uid,value){const g=current(uid);if(g){g.state=value;publish(g);}}
+ function reconcile(isQueued){for(const g of groups.values())if(g.state==='SEARCHING'&&!isQueued(g.leader)){g.state='IDLE';publish(g);}}
  function tick(){const now=Date.now();for(const [key,i] of invites)if(i.expiresAt<=now){invites.delete(key);notify(i.to,{type:'party',party:view(i.to)});}for(const g of groups.values())for(const m of [...g.members]){if(connected(m.id)){m.absentAt=null;continue;}m.absentAt??=now;if(g.state==='SEARCHING'){cancel(g.leader);g.state='IDLE';m.ready=false;publish(g);}if(g.state!=='IN_MATCH'&&now-m.absentAt>20000)leave(m.id);}}
- return {view,ensure,invite,accept,leave,remove,ready,search,state,tick,current,groups,invites};
+ return {reconcile,view,ensure,invite,accept,leave,remove,ready,search,state,tick,current,groups,invites};
 }
 module.exports={createParty};

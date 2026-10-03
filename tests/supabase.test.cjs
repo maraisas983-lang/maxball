@@ -27,7 +27,7 @@ test('new API keys use apikey while user JWTs use Authorization; legacy keys rem
  const legacy=supabaseConfig({AUTH_PROVIDER:'supabase',SUPABASE_URL:config.url,SUPABASE_ANON_KEY:'legacy-anon',SUPABASE_SERVICE_ROLE_KEY:'legacy-service'});
  const old=createSupabase({...legacy,fetchImpl:async(url,options)=>{assert.equal(options.headers.Authorization,'Bearer legacy-service');return {ok:true,json:async()=>[]};}});await old.profile('test');
 });
-test('Supabase SQL executes; RLS blocks rating edits and RPC settles once',async()=>{
+test('Supabase SQL executes; RLS blocks rating edits and RPC settles once',{timeout:90000},async()=>{
  const pg=new PGlite();
  const a='00000000-0000-4000-8000-000000000001',b='00000000-0000-4000-8000-000000000002',c='00000000-0000-4000-8000-000000000003',mid='00000000-0000-4000-8000-000000000004';
  try{
@@ -45,6 +45,14 @@ test('Supabase SQL executes; RLS blocks rating edits and RPC settles once',async
   await pg.query('update public.profiles set display_name=$1 where id=$2',['Novo nome',a]);
   await pg.query("select set_config('request.jwt.claim.sub',$1,false)",[c]);assert.equal((await pg.query('select * from public.ranked_matches')).rows.length,0);assert.equal((await pg.query('select * from public.ranked_events')).rows.length,0);
   await pg.exec('reset role');const invalid={...result,id:'00000000-0000-4000-8000-000000000005'};await assert.rejects(pg.query('select public.record_ranked_match($1)',[JSON.stringify(invalid)]),/Rating conflict/);
+  await pg.exec(read('server/database/supabase/002_ranked_parties.sql'));await pg.exec(read('server/database/supabase/002_ranked_parties.sql'));
+  assert.equal((await pg.query('select public.maxball_ranked_version()')).rows[0].maxball_ranked_version,2);
+  const d='00000000-0000-4000-8000-000000000006',outsider='00000000-0000-4000-8000-000000000007';for(const uid of [d,outsider])await pg.query('insert into auth.users values($1,$2)',[uid,uid+'@example.com']);
+  const delta=Math.round(32*(1-1/(1+10**((992-1008)/400)))),group={...result,id:'00000000-0000-4000-8000-000000000008',home_before:1016,away_before:984,home_after:1016+delta,away_after:984-delta,participants:[[a,0,1016],[c,0,1000],[b,1,984],[d,1,1000]].map(([user_id,team,rating_before])=>({user_id,team,rating_before,rating_after:rating_before+(team?-delta:delta)}))};
+  await pg.exec('set role service_role');await pg.query('select public.record_ranked_match($1)',[JSON.stringify(group)]);await pg.query('select public.record_ranked_match($1)',[JSON.stringify(group)]);await pg.exec('reset role');
+  assert.equal((await pg.query('select count(*)::int n from public.ranked_participants')).rows[0].n,6);assert.equal((await pg.query('select rating from public.profiles where id=$1',[c])).rows[0].rating,1000+delta);
+  await pg.exec('set role authenticated');await pg.query("select set_config('request.jwt.claim.sub',$1,false)",[c]);assert.equal((await pg.query('select * from public.ranked_matches')).rows.length,1);assert.equal((await pg.query('select * from public.ranked_events')).rows.length,1);assert.equal((await pg.query('select * from public.ranked_participants')).rows.length,1);
+  await pg.query("select set_config('request.jwt.claim.sub',$1,false)",[outsider]);assert.equal((await pg.query('select * from public.ranked_matches')).rows.length,0);await pg.exec('reset role');
  }finally{await pg.close();}
 });
 test('Supabase BFF registration, verified identity, refresh, profile and local logout',async()=>{

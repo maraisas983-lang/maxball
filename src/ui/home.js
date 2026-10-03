@@ -14,6 +14,7 @@
   if(item){await root.MaxballAPI.request('/inventory/equip','POST',{itemId:item.id});await root.MaxballPortal.refreshAccount();}refresh();
  }
  for(const [id,direction] of [['#home-prev',-1],['#home-next',1]])$(id).onclick=async()=>{try{await cycle(direction);}catch(error){root.MaxballGame.toast(error.message);}};
+ const chatLink=document.querySelector('[data-account-page=chat]');if(!chatLink){const chatButton=document.querySelector('#home-chat');if(chatButton)chatButton.onclick=()=>root.MaxballPortal.open('chat');}
  root.MaxballHome={refresh};refresh();
  async function announcement(){
   if(document.hidden||!$('#home').classList.contains('on')||location.protocol==='file:')return;

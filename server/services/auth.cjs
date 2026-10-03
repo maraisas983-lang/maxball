@@ -37,7 +37,8 @@ function createAuth(db,economy,{sessionMs=7*86400000}={}){
    db.run('INSERT INTO users(id,username,password_hash,created_at,updated_at,last_login_at) VALUES(?,?,?,?,?,?)',userId,username,encoded,now,now,now);
    db.run('INSERT INTO profiles(id,user_id,display_name,shirt_name,shirt_number,created_at) VALUES(?,?,?,?,?,?)',id(),userId,username.slice(0,14),username.slice(0,14),10,now);
    db.run('INSERT INTO wallets VALUES(?,?,?)',userId,0,now);
-   for(const item of ['kit-0','kit-1','effect-0'])db.run('INSERT INTO inventory VALUES(?,?,?)',userId,item,now);
+   for(const item of ['kit-0','kit-1','effect-0','emote-0'])db.run('INSERT INTO inventory VALUES(?,?,?)',userId,item,now);
+   db.run("INSERT OR IGNORE INTO emote_slots VALUES(?,0,'emote-0')",userId);
    economy.change(userId,200,'REWARD','WELCOME','welcome');
    return {...session(userId),user:publicUser(db.one('SELECT * FROM users WHERE id=?',userId))};
   });

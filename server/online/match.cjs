@@ -20,6 +20,7 @@ class Match {
   for(let team=0;team<2;team++)for(let slot=0;slot<this.cfg.n;slot++){
    const human=players.find(p=>p.team===team&&p.slot===slot);
    const player={id:human?.id||`bot-${team}-${slot}`,name:human?.name||['Caio','Breno','Davi','Rui','Leo','Nico','Vini','João','Ivo','Theo'][team*5+slot],displayName:human?.name||['Caio','Breno','Davi','Rui','Leo','Nico','Vini','João','Ivo','Theo'][team*5+slot],team,num:human?.num||7+slot,ctrl:human?'remote':'ai',slot,x:0,y:0,vx:0,vy:0,fx:team?-1:1,fy:0,st:1,cd:0,hop:0};
+   const real=this.cfg.teams?.[team]?.squad?.[[4,3,2,1,0][slot]];if(real&&!human){player.name=player.displayName=real.name;player.realPosition=real.role;player.attributes=real.attributes;}
    this.P.push(player);this.stats[player.id]=performanceStats.empty();
   }
   this.offside=new Offside(this);

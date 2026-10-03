@@ -35,7 +35,7 @@ test('account UI creates career, purchases/equips, renders admin and plays a ser
   assert.equal(window.document.querySelector('#portal-nav .tab'),null,'modes do not share a tab bar');
   assert.ok(window.document.querySelector('.lobby-cover'),'destination identity remains visible, including login');
  }
- await portal.open('training');assert.ok(window.document.querySelector('[name=fs]'),'guest can configure training');
+ await portal.open('training');assert.ok(window.document.querySelector('[name=n]'),'guest can configure training format');
  await portal.open('play');window.document.querySelector('[data-mode=local] button').click();
  await until(()=>window.document.querySelector('#portal').dataset.lobby==='local'&&window.document.querySelector('[name=players]'),'mode selector opens the local lobby');
  await portal.open('career');assert.ok(window.document.querySelector('.login-card'));
@@ -46,17 +46,20 @@ test('account UI creates career, purchases/equips, renders admin and plays a ser
  try{await until(()=>window.document.querySelector('[name=clubId]'),'career creation form');}catch(error){console.error('UI status:',window.document.querySelector('#portal-status').textContent,'errors:',errors);throw error;}
  window.document.querySelector('[name=name]').value='POGGI';
  window.document.querySelector('.sport-form').dispatchEvent(new window.Event('submit',{bubbles:true,cancelable:true}));
- await until(()=>button('Entrar em campo'),'career fixture');assert.match(window.document.querySelector('#portal-content').textContent,/Aurora FC/);
+ await until(()=>button('Entrar em campo'),'career fixture');assert.match(window.document.querySelector('#portal-content').textContent,/Flamengo/);
  await portal.open('shop');assert.ok(window.document.querySelectorAll('.cosmetic-grid canvas').length>=22);
  const buy=button('Comprar');buy.click();await until(()=>portal.account.wallet.balance<200,'purchase');
  await portal.open('inventory');const equip=button('Equipar');if(equip){equip.click();await until(()=>!equip.disabled,'equip');}
- await portal.open('profile');assert.equal(window.document.querySelector('[name=shirtName]').value,'POGGI');
+ await portal.open('profile');assert.equal(window.document.querySelector('[name=shirtName]').value,'ui_player');
  await portal.open('support');assert.ok(window.document.querySelector('[name=description]'));assert.equal(window.document.querySelector('#portal').dataset.lobby,'support');
  app.db.run("UPDATE users SET role='SUPER_ADMIN' WHERE id=?",portal.account.user.id);await portal.refreshAccount();await portal.open('admin');assert.match(window.document.querySelector('#portal-content').textContent,/Administração MAXBALL/);
  await portal.open('career');button('Entrar em campo').click();
  await until(()=>window.document.querySelector('#game').classList.contains('on'),'live match');
  await until(()=>window.MaxballGame.input()!==null,'remote controls');
  const room=[...app.rooms.rooms.values()][0];assert.equal(room.kind,'CAREER');
+ window.document.dispatchEvent(new window.KeyboardEvent('keydown',{code:'KeyT',bubbles:true}));await until(()=>window.document.querySelectorAll('.emote-bar button').length===4,'in-game chat and equipped slots');
+ const chat=window.document.querySelector('.game-chat');chat.querySelector('input').value='<img src=x onerror=alert(1)>';chat.querySelector('form').dispatchEvent(new window.Event('submit',{bubbles:true,cancelable:true}));await until(()=>chat.querySelector('.chat-history').textContent.includes('<img src=x onerror=alert(1)>'),'server chat delivered');assert.equal(chat.querySelector('.chat-history img'),null);
+ window.dispatchEvent(new window.KeyboardEvent('keydown',{code:'KeyW',bubbles:true}));assert.equal(window.MaxballGame.input().x,0);assert.equal(window.MaxballGame.input().y,0);window.document.dispatchEvent(new window.KeyboardEvent('keydown',{code:'Escape',bubbles:true}));assert.equal(window.document.querySelector('.game-chat'),null);assert.equal(window.document.querySelector('#game.on')!==null,true);
  // Advance the authoritative clock to completion; the client never submits a result.
  room.match.G.score=[2,0];room.match.G.time=0;room.match.finish();app.rooms.persistResult(room);
  await until(()=>window.document.querySelector('#res').classList.contains('on'),'match result overlay');

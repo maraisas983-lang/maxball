@@ -15,7 +15,7 @@
   async logout(){await api('/auth/logout','POST',{});portal.connection.close();account=null;root.MaxballAPI.clear();await portal.open('login');},
   async open(next='career'){
    if(cleanup){const stop=cleanup;cleanup=null;await stop();}
-   page=next;const version=++generation;root.MaxballGame.show('portal');content.replaceChildren();portal.status('Carregando…');
+   root.MaxballSocial?.close();page=next;const version=++generation;root.MaxballGame.show('portal');content.replaceChildren();portal.status('Carregando…');
    root.MaxballLobby.mount(shell,content,nav,next,key=>portal.open(key));
    if(!account&&!['training','local','play'].includes(next)){try{await portal.refreshAccount();}catch(error){if(error.status!==401)portal.error(error);}}
    if(version!==generation)return;
@@ -58,9 +58,9 @@
   portal.connection.connect();await portal.open(page==='login'?'career':page);
  }
  portal.connection=new root.MaxballOnline.Connection({
-  input:()=>root.MaxballGame.input(),onStatus:message=>{document.querySelector('#network-status').textContent=message;},
+  input:()=>root.MaxballGame.input(),onStatus:message=>{root.MaxballSocial?.status(message);document.querySelector('#network-status').textContent=message;},
   onMessage:message=>{
-   if(!account)return;
+   if(!account)return;root.MaxballSocial?.receive(message);
    if(message.type==='connected'){
     if(!message.room&&root.MaxballGame.remote){root.MaxballGame.leaveRemote();return;}
     if(!message.room&&roomListener&&page==='online'&&shell.classList.contains('on')){portal.open('online').catch(portal.error);return;}

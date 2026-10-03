@@ -28,7 +28,7 @@
   const paint=data=>{queued=data.queued;if(data.party)paintParty(data.party);portal.connection.state=queued?'MATCHMAKING':data.room?'IN_MATCH':'CONNECTED';panel.classList.toggle('searching',queued);format.querySelector('select').disabled=queued;const leader=!group||group.leader===portal.account.user.id;search.disabled=queued||!leader;cancel.disabled=!queued||!leader;rating.textContent='Seu Elo: '+data.rating;label.textContent=data.room?'Adversário encontrado. Entrando em campo…':queued?'Buscando adversário · '+data.wait+' s · diferença de até '+data.range+' pontos':'Pronto para a próxima partida.';if(data.room)portal.play(data.room);};
   const search=button('Buscar partida',async()=>paint(await portal.api('/ranked/join','POST',{n:+format.querySelector('select').value}))),cancel=button('Cancelar busca',async()=>paint(await portal.api('/ranked/cancel','POST',{})),'secondary');panel.append(search,cancel);
   portal.content.append(panel,groupPanel,list);paint(current);
-  for(const m of current.history||[])list.append(note((m.score?JSON.parse(m.score).join(' × '):'Em andamento')+' · '+(m.reason||'')+' · Elo '+(m.home_id===portal.account.user.id?m.home_before:m.away_before)+' → '+(m.home_id===portal.account.user.id?m.home_after:m.away_after)));
+  for(const m of current.history||[])list.append(note((m.score?JSON.parse(m.score).join(' × '):'Em andamento')+' · '+(m.reason||'')+' · Elo '+m.rating_before+' → '+m.rating_after));
 
   let stopped=false;
   const stop=async()=>{if(stopped)return;stopped=true;clearInterval(timer);if(queued&&(!group||group.leader===portal.account.user.id))await portal.api('/ranked/cancel','POST',{}).catch(()=>{});};

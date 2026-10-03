@@ -6,15 +6,39 @@ Abra **http://127.0.0.1:5173** neste computador e pressione **Ctrl+F5** após at
 Se necessário, execute `npm.cmd start` na pasta do projeto. **Jogar → Treino/Local**
 funciona sem conta; os demais modos pedem login e aceite dos documentos.
 
-A migração SQLite `005_operations.sql` roda automaticamente no início. Não execute
-novamente o SQL inicial do ranqueado no Supabase para esta atualização. Preserve o
-banco local: ele contém carreira, suporte, consentimentos e auditoria.
+As migrações SQLite até `008_social_payments.sql` rodam automaticamente no início.
+Preserve o banco local: ele contém carreira, economia, suporte e auditoria.
+No Supabase, depois do `001_ranked.sql` já executado, abra SQL Editor → New query,
+cole o arquivo completo `server/database/supabase/002_ranked_parties.sql` e clique
+Run. Esse novo arquivo pode ser executado novamente. Ele habilita os resultados
+e as permissões de todos os participantes de grupos ranqueados.
 
 O Command Center aceita OWNER, ADMIN, MODERATOR e SUPPORT conforme suas capacidades.
 SUPER_ADMIN permanece compatível. `npm.cmd run admin -- usuário_ou_uuid` cria o
 primeiro OWNER a partir de uma conta existente; depois, entre novamente.
 
 Veja o [relatório e roteiro de testes](REESTRUTURACAO_2026.md).
+
+## Configuração da Cakto pelo painel
+
+Abra **Jogar → Command Center → Pagamentos** com uma conta ADMIN ou OWNER.
+Preços, IDs de ofertas, links de checkout e chave do webhook são definidos nessa
+tela. As compras permanecem desligadas até a configuração completa.
+Veja [o passo a passo da Cakto](PAGAMENTOS_CAKTO.md).
+
+## Testar a evolução de gameplay
+
+- **Ranqueada:** criar grupo, convidar pelo código ou usuário e marcar todos como
+  prontos; o líder escolhe 1v1, 2v2, 3v3 ou 4v4 e busca um grupo do mesmo tamanho.
+- **Carreira:** escolher Brasileirão 2026 ou Mamoball; usar “Trocar carreira / saves”
+  para criar e carregar carreiras independentes.
+- **Salas:** equipes à esquerda, configuração à direita; a bola tem tamanho padrão.
+- **Chat:** durante uma partida, pressionar T ou tocar “Chat / emotes”; Esc fecha.
+  Emotes comprados na loja são equipados em quatro slots no inventário.
+- **4v4:** a área fica amarela quando dois defensores ocupam a própria área;
+  o terceiro fica do lado de fora até uma vaga liberar.
+
+Detalhes da entrega e limitações: [EVOLUCAO_2026.md](EVOLUCAO_2026.md).
 
 ## Supabase
 

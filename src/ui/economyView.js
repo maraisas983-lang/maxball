@@ -10,15 +10,24 @@
  };
  async function shop(portal,inventoryOnly){
   const [catalog,owned,wallet]=await Promise.all([portal.api('/shop'),portal.api('/inventory'),portal.api('/wallet')]);
+  const slots=await portal.api('/emotes');
   const own=new Set(owned.map(i=>i.id)),profile=portal.account.profile;
   portal.content.append(card(inventoryOnly?'Seu inventário':'Loja de gemas',metrics([['Gemas',wallet.balance],['Itens',owned.length]]),note('Cosméticos para expressar seu estilo em partidas de carreira e online.')));
+  if(!inventoryOnly){
+   const payments=await portal.api('/gems'),packs=el('div',{class:'cosmetic-grid'});
+   for(const p of payments.packs){const buy=button('Ir para checkout',async()=>{const checkout=await portal.api('/gems/checkout','POST',{gems:p.gems});location.assign(checkout.url);});buy.disabled=!p.available;packs.append(card(p.gems+' gemas',note(p.priceCents?new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(p.priceCents/100):'Preço aguardando configuração'),buy));}
+   portal.content.append(card('Comprar gemas · Cakto',note(payments.enabled?'Use o mesmo e-mail confirmado da sua conta no checkout. As gemas chegam após a confirmação do pagamento.':'As compras serão liberadas após a configuração pelo administrador.'),packs));
+   if(payments.history.length)portal.content.append(card('Compras de gemas',table(['Gemas','Valor','Situação','Data'],payments.history.map(p=>[p.gems,(p.amount_cents/100).toFixed(2),({PAID:'Pago',REFUNDED:'Estornado',CHARGEBACK:'Contestado'})[p.status],new Date(p.created_at).toLocaleString('pt-BR')]))));
+  }
   const grid=el('div',{class:'cosmetic-grid'});portal.content.append(grid);
   for(const item of inventoryOnly?owned:catalog){
    const canvas=el('canvas',{width:96,height:96,'aria-label':item.name});
-   item.category==='KIT'?root.MaxballGame.skin(canvas,item.asset_index):root.MaxballGame.effect(canvas,item.asset_index);
+   if(item.category==='EMOTE'){canvas.remove();}
+   else item.category==='KIT'?root.MaxballGame.skin(canvas,item.asset_index):root.MaxballGame.effect(canvas,item.asset_index);
    const equipped=(item.category==='KIT'?profile.kit:profile.effect)===item.asset_index;
-   const tile=card(item.name,canvas,note(item.rarity+' · '+(own.has(item.id)?'Adquirido':item.price+' gemas')));
-   if(own.has(item.id))tile.append(equipped?el('span',{class:'equipped',text:'Equipado'}):button('Equipar',async()=>{await portal.api('/inventory/equip','POST',{itemId:item.id});await portal.refreshAccount();await portal.open(inventoryOnly?'inventory':'shop');},'secondary'));
+   const tile=card(item.name,item.category==='EMOTE'?el('span',{class:'emote-preview',text:root.MaxballEmotes[item.asset_index].emoji}):canvas,note(item.rarity+' · '+(own.has(item.id)?'Adquirido':item.price+' gemas')));
+   if(own.has(item.id)&&item.category==='EMOTE'){const slot=select('Atalho','slot',[0,1,2,3].map(i=>[i,'Slot '+(i+1)]),slots.find(e=>e.id===item.id)?.slot??0);tile.append(slot,button('Equipar emote',async()=>{await portal.api('/inventory/equip','POST',{itemId:item.id,slot:+slot.querySelector('select').value});await portal.open(inventoryOnly?'inventory':'shop');},'secondary'));}
+   else if(own.has(item.id))tile.append(equipped?el('span',{class:'equipped',text:'Equipado'}):button('Equipar',async()=>{await portal.api('/inventory/equip','POST',{itemId:item.id});await portal.refreshAccount();await portal.open(inventoryOnly?'inventory':'shop');},'secondary'));
    else{
     // One key per displayed purchase survives a lost response and a retry.
     const requestId=crypto.randomUUID();

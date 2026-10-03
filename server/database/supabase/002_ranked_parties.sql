@@ -1,3 +1,4 @@
+begin;
 -- Run after 001_ranked.sql. This migration can be run again.
 create table if not exists public.ranked_participants (
  match_id uuid not null references public.ranked_matches(id),
@@ -14,6 +15,8 @@ drop policy if exists own_ranked_participant on public.ranked_participants;
 create policy own_ranked_participant on public.ranked_participants for select to authenticated using(user_id=auth.uid());
 drop policy if exists own_matches on public.ranked_matches;
 create policy own_matches on public.ranked_matches for select to authenticated using(home_id=auth.uid() or away_id=auth.uid() or exists(select 1 from public.ranked_participants p where p.match_id=id and p.user_id=auth.uid()));
+drop policy if exists own_events on public.ranked_events;
+create policy own_events on public.ranked_events for select to authenticated using(exists(select 1 from public.ranked_matches m where m.id=ranked_events.match_id));
 create or replace function public.record_ranked_match(result jsonb) returns void language plpgsql security definer set search_path='' as $$
 declare mid uuid:=(result->>'id')::uuid;parts jsonb;sa integer;sb integer;avga numeric;avgb numeric;outcome numeric;delta integer;p jsonb;uid uuid;team integer;before_rating integer;after_rating integer;actual integer;total integer;homes integer;aways integer;
 begin
@@ -23,6 +26,7 @@ begin
  select count(*),count(distinct value->>'user_id'),count(*) filter(where (value->>'team')::int=0),count(*) filter(where (value->>'team')::int=1) into total,actual,homes,aways from jsonb_array_elements(parts);
  if total<>actual or homes<>aways or homes<1 or homes>4 or total<>homes+aways then raise exception 'Invalid participants';end if;
  if not exists(select 1 from jsonb_array_elements(parts) where value->>'user_id'=result->>'home_id' and (value->>'team')::int=0) or not exists(select 1 from jsonb_array_elements(parts) where value->>'user_id'=result->>'away_id' and (value->>'team')::int=1) then raise exception 'Invalid leaders';end if;
+ if exists(select 1 from jsonb_array_elements(parts) where (value->>'user_id'=result->>'home_id' and ((value->>'rating_before')::int<>(result->>'home_before')::int or (value->>'rating_after')::int<>(result->>'home_after')::int)) or (value->>'user_id'=result->>'away_id' and ((value->>'rating_before')::int<>(result->>'away_before')::int or (value->>'rating_after')::int<>(result->>'away_after')::int))) then raise exception 'Invalid leader rating';end if;
  perform 1 from public.profiles where id in(select (value->>'user_id')::uuid from jsonb_array_elements(parts)) order by id for update;
  select avg((value->>'rating_before')::numeric) filter(where (value->>'team')::int=0),avg((value->>'rating_before')::numeric) filter(where (value->>'team')::int=1) into avga,avgb from jsonb_array_elements(parts);
  sa:=((result->>'score')::jsonb->>0)::integer;sb:=((result->>'score')::jsonb->>1)::integer;
@@ -32,7 +36,7 @@ begin
  for p in select value from jsonb_array_elements(parts) loop
   uid:=(p->>'user_id')::uuid;team:=(p->>'team')::integer;before_rating:=(p->>'rating_before')::integer;after_rating:=(p->>'rating_after')::integer;
   select rating into actual from public.profiles where id=uid;
-  if actual is null or before_rating is null or after_rating is null or actual<>before_rating or after_rating<>before_rating+case when team=0 then delta else -delta end then raise exception 'Rating conflict or invalid Elo';end if;
+  if actual is null or before_rating is null or after_rating is null or actual<>before_rating or after_rating<>before_rating+(case when team=0 then delta else -delta end) then raise exception 'Rating conflict or invalid Elo';end if;
  end loop;
  insert into public.ranked_matches values(mid,(result->>'home_id')::uuid,(result->>'away_id')::uuid,(result->>'home_before')::integer,(result->>'away_before')::integer,(result->>'home_after')::integer,(result->>'away_after')::integer,(result->>'score')::jsonb,result->>'reason',(result->>'created_at')::bigint,(result->>'finished_at')::bigint);
  for p in select value from jsonb_array_elements(parts) loop
@@ -44,3 +48,8 @@ begin
 end $$;
 revoke all on function public.record_ranked_match(jsonb) from public,anon,authenticated;
 grant execute on function public.record_ranked_match(jsonb) to service_role;
+
+create or replace function public.maxball_ranked_version() returns integer language sql stable set search_path='' as $$select 2$$;
+revoke all on function public.maxball_ranked_version() from public,anon,authenticated;
+grant execute on function public.maxball_ranked_version() to service_role;
+commit;

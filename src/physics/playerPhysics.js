@@ -26,7 +26,8 @@
    const n=Math.hypot(ax,ay)||1;
    const power=type==='s'?config.shotImpulse:aim?clamp(160+n*.45,config.passMinSpeed,config.passMaxSpeed):config.passImpulse;
    G.restarting=false;G.kl=.08;p.cd=config.kickCooldown;
-   ball.vx=ax/n*power;ball.vy=ay/n*power;ball.kickedBy=p.id;ball.contactProtection=config.recontactProtection;
+   const ability=type==='s'?p.attributes?.shooting:p.attributes?.passing,factor=clamp((ability??70)/70,.8,1.2);
+   ball.vx=ax/n*power*factor;ball.vy=ay/n*power*factor;ball.kickedBy=p.id;ball.contactProtection=config.recontactProtection;
    touch(p);effects.kick?.(p,type);
    const col=p.team?'#ff2d87':'#c8ff2e';effects.burst?.(ball.x,ball.y,type==='s'?10:6,[col,'#fff'],type==='s'?220:120,.3);
    effects.beep?.(type==='s'?180:420,.1,type==='s'?'sawtooth':'triangle',.06);
