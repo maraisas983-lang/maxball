@@ -5,6 +5,8 @@
  const tactics=typeof module!=='undefined'?require('../ai/tactics.js'):root.MaxballAI;
  const contacts=typeof module!=='undefined'?require('./contacts.js'):root.MaxballContacts;
  const movement=typeof module!=='undefined'?require('./movement.js'):root.MaxballMovement;
+ const field=typeof module!=='undefined'?require('../game/field.js'):root.MaxballField;
+ const goalColliders=typeof module!=='undefined'?require('./goalColliders.js'):root.MaxballGoalColliders;
  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v)),dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
  function createPhysics({state,input,effects={},random=Math.random}){
   let G,P,ball,W,H,GY0,GY1,BR,brain,brainGame;
@@ -46,7 +48,7 @@
   function step(dt){
    ball.sweepStart={x:ball.x,y:ball.y};G.kl=(G.kl||0)-dt;ball.contactProtection=Math.max(0,(ball.contactProtection||0)-dt);
    if(G.restarting){G.restartTime+=dt;if(G.restartTime>8)G.restarting=false;}
-   brain.update(dt);const active=P.filter(p=>!p.inactive),actions=[];
+   brain.update(dt);const active=P.filter(p=>!p.inactive),actions=[],previous=new Map(active.map(p=>[p.id,{x:p.x,y:p.y}]));
    for(const p of active){
     const source=p.ctrl==='ai'&&G.phase!=='penalties'?brain.command(p):input(p),i={x:0,y:0,...source};
     const blocked=G.restarting&&p.team!==G.ko;
@@ -67,7 +69,8 @@
    for(const action of actions)if(kick(action.p,action.type,action.aim)){action.p.shootBuffer=action.p.passBuffer=0;break;}
    separatePlayers(active);contacts.resolveContacts(active,ball,BR,dt,touch);
    if(G.restarting&&Math.hypot(ball.x-(G.restartSpot?.x??W/2),ball.y-(G.restartSpot?.y??H/2))>BR)G.restarting=false;
-   for(const p of active){p.x=clamp(p.x,PR-config.playerOutsideMargin,W+config.playerOutsideMargin-PR);p.y=clamp(p.y,PR-config.playerOutsideMargin,H+config.playerOutsideMargin-PR);for(const x of [0,W])for(const y of [GY0,GY1])ballPhysics.collideCircle(p,x,y,PR+config.postRadius,0);}
+   for(const p of active){p.x=clamp(p.x,PR-config.playerOutsideMargin,W+config.playerOutsideMargin-PR);p.y=clamp(p.y,PR-config.playerOutsideMargin,H+config.playerOutsideMargin-PR);goalColliders.resolve(p,previous.get(p.id),{W,GY0,GY1},PR);}
+   field.limitDefense(state(),previous);
   }
   return {ai(p){sync();return brain.command(p);},kick(...args){sync();return kick(...args);},step(dt){sync();step(dt);}};
  }

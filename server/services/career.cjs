@@ -17,7 +17,11 @@ function roundRobin(clubs){
 }
 function createCareer(db,economy){
  const clubs=()=>db.all('SELECT * FROM clubs ORDER BY prestige,id');
- const get=userId=>db.one('SELECT * FROM careers WHERE user_id=?',userId);
+ const get=userId=>db.one('SELECT c.* FROM careers c JOIN active_career a ON a.career_id=c.id WHERE a.user_id=? AND c.user_id=?',userId,userId);
+ const saves=userId=>db.all('SELECT id,save_name,player_name,shirt_number,club_id,season,reputation,stats,last_access FROM careers WHERE user_id=? ORDER BY last_access DESC,id',userId).map(c=>({...c,stats:JSON.parse(c.stats)}));
+ function selectSave(userId,saveId){const career=db.one('SELECT * FROM careers WHERE id=? AND user_id=?',saveId,userId);if(!career)fail('CAREER','Carreira não encontrada.',404);if(db.one("SELECT id FROM matches WHERE career_id IN(SELECT id FROM careers WHERE user_id=?) AND status='RUNNING'",userId))fail('CAREER_BUSY','Termine ou saia da partida antes de trocar de carreira.',409);db.run('INSERT INTO active_career VALUES(?,?) ON CONFLICT(user_id) DO UPDATE SET career_id=excluded.career_id',userId,saveId);db.run('UPDATE careers SET last_access=? WHERE id=?',Date.now(),saveId);return view(userId);}
+ function removeSave(userId,saveId,body){object(body,['confirm']);if(body.confirm!==true)fail('CONFIRM','Confirme a exclusão da carreira.',409);const c=db.one('SELECT id FROM careers WHERE id=? AND user_id=?',saveId,userId);if(!c)fail('CAREER','Carreira não encontrada.',404);if(db.one("SELECT id FROM matches WHERE career_id=? AND status='RUNNING'",saveId))fail('CAREER_BUSY','Saia da partida antes de excluir.',409);db.transaction(()=>{db.run('DELETE FROM active_career WHERE career_id=?',saveId);db.run('DELETE FROM transfer_offers WHERE career_id=?',saveId);db.run('DELETE FROM transfer_history WHERE career_id=?',saveId);db.run('DELETE FROM accolades WHERE career_id=?',saveId);db.run('DELETE FROM career_seasons WHERE career_id=?',saveId);db.run('UPDATE matches SET career_id=NULL WHERE career_id=?',saveId);db.run('DELETE FROM careers WHERE id=?',saveId);});return {saves:saves(userId)};}
+ function renameSave(userId,saveId,body){object(body,['name']);const value=text(body.name,'Nome do save',1,40);if(!db.one('SELECT id FROM careers WHERE id=? AND user_id=?',saveId,userId))fail('CAREER','Carreira não encontrada.',404);db.run('UPDATE careers SET save_name=? WHERE id=?',value,saveId);return {saves:saves(userId)};}
  const season=career=>db.one('SELECT * FROM career_seasons WHERE career_id=? AND season=?',career.id,career.season);
  function newSeason(career){
   const all=clubs(),rounds=roundRobin(all.map(c=>c.id));
@@ -28,13 +32,14 @@ function createCareer(db,economy){
   db.run('INSERT INTO career_seasons(id,career_id,season,club_id,status,schedule,table_data,stats,created_at) VALUES(?,?,?,?,?,?,?,?,?)',id(),career.id,career.season,career.club_id,'ACTIVE',JSON.stringify(schedule),JSON.stringify(table),JSON.stringify(emptyStats()),Date.now());
  }
  function create(userId,body){
-  object(body,['name','shirtNumber','clubId']);const display=name(body.name),num=integer(body.shirtNumber,'Número',1,99),club=text(body.clubId,'Clube',1,40);
+  object(body,['name','shirtNumber','clubId','saveName']);const display=name(body.name),num=integer(body.shirtNumber,'Número',1,99),club=text(body.clubId,'Clube',1,40),saveName=text(body.saveName||display,'Nome do save',1,40);
   const team=db.one('SELECT * FROM clubs WHERE id=?',club);if(!team||team.prestige>2)fail('CLUB','Escolha um clube inicial de prestígio 1 ou 2.');
   return db.transaction(()=>{
-   if(get(userId))fail('CAREER_EXISTS','Você já possui uma carreira.',409);
+   if(saves(userId).length>=12)fail('SAVE_LIMIT','Limite de 12 carreiras atingido.',409);
+   if(db.one("SELECT id FROM matches WHERE career_id IN(SELECT id FROM careers WHERE user_id=?) AND status='RUNNING'",userId))fail('CAREER_BUSY','Saia da partida antes de criar uma carreira.',409);
    const profile=db.one('SELECT id FROM profiles WHERE user_id=?',userId),career={id:id(),user_id:userId,player_id:profile.id,club_id:club,season:1};
-   db.run('UPDATE profiles SET display_name=?,shirt_name=?,shirt_number=? WHERE user_id=?',display,display,num,userId);
-   db.run('INSERT INTO careers(id,user_id,player_id,club_id,stats,created_at) VALUES(?,?,?,?,?,?)',career.id,userId,profile.id,club,JSON.stringify(emptyStats()),Date.now());
+   db.run('INSERT INTO careers(id,user_id,player_id,club_id,stats,created_at,save_name,player_name,shirt_number,last_access) VALUES(?,?,?,?,?,?,?,?,?,?)',career.id,userId,profile.id,club,JSON.stringify(emptyStats()),Date.now(),saveName,display,num,Date.now());
+   db.run('INSERT INTO active_career VALUES(?,?) ON CONFLICT(user_id) DO UPDATE SET career_id=excluded.career_id',userId,career.id);
    newSeason(career);return view(userId);
   });
  }
@@ -45,7 +50,7 @@ function createCareer(db,economy){
   return {career:{...career,stats:JSON.parse(career.stats)},current:{...current,schedule:JSON.parse(current.schedule),table:JSON.parse(current.table_data),stats:JSON.parse(current.stats),awards:JSON.parse(current.awards)},
    clubs:clubs(),history:db.all('SELECT season,club_id,stats,awards,status FROM career_seasons WHERE career_id=? ORDER BY season DESC',career.id).map(s=>({...s,stats:JSON.parse(s.stats),awards:JSON.parse(s.awards)})),
    offers:db.all('SELECT * FROM transfer_offers WHERE career_id=? ORDER BY created_at DESC LIMIT 30',career.id),transfers:db.all('SELECT * FROM transfer_history WHERE career_id=? ORDER BY created_at',career.id),
-   trophies:db.all('SELECT * FROM accolades WHERE user_id=? ORDER BY created_at DESC',userId)};
+   trophies:db.all('SELECT * FROM accolades WHERE user_id=? AND career_id=? ORDER BY created_at DESC',userId,career.id),saves:saves(userId)};
  }
  function nextMatch(userId){
   const career=get(userId);if(!career)fail('CAREER','Crie sua carreira primeiro.',404);
@@ -65,7 +70,7 @@ function createCareer(db,economy){
   const schedule=JSON.parse(current.schedule),fixture=schedule[match.fixture];
   if(!fixture||fixture.status!=='PENDING')fail('FIXTURE','Partida já registrada.',409);
   const score=match.score,won=match.winner===0||score[0]>score[1],draw=match.winner==null&&score[0]===score[1],player=match.stats[career.user_id]||{};
-  const rating=Math.min(10,Math.max(3,6+(player.goals||0)*.65+(player.assists||0)*.45+(won?.7:draw?.1:-.4)+Math.min(.6,(player.passes||0)*.05)-score[1]*.08));
+  const rating=player.grade??require('../../src/game/performance.js').grade(player,won,draw);
   const stats=JSON.parse(current.stats),total=JSON.parse(career.stats),awards=JSON.parse(current.awards);
   for(const target of [stats,total]){target.matches++;target.starts++;target.minutesPlayed+=match.duration/60;target.goals+=player.goals||0;target.assists+=player.assists||0;target.wins+=won?1:0;target.draws+=draw?1:0;target.losses+=!won&&!draw?1:0;target.ratingTotal+=rating;target.averageRating=+(target.ratingTotal/target.matches).toFixed(2);}
   fixture.status='COMPLETED';fixture.score=score;fixture.winner=match.winner??(draw?null:won?0:1);fixture.penalties=match.penalties||null;fixture.rating=+rating.toFixed(1);fixture.matchId=match.id;
@@ -100,7 +105,7 @@ function createCareer(db,economy){
    }
   }
   db.run('UPDATE career_seasons SET schedule=?,table_data=?,stats=?,awards=?,status=? WHERE id=?',JSON.stringify(schedule),JSON.stringify(table),JSON.stringify(stats),JSON.stringify(awards),finished?'COMPLETED':'ACTIVE',current.id);
-  db.run('UPDATE careers SET stats=?,reputation=? WHERE id=?',JSON.stringify(total),reputation,career.id);
+  db.run('UPDATE careers SET stats=?,reputation=?,money=money+?,last_access=? WHERE id=?',JSON.stringify(total),reputation,won?100:draw?40:20,Date.now(),career.id);
   return {rating,awards,seasonEnded:finished};
  }
  function transfer(userId,offerId,body){
@@ -120,6 +125,6 @@ function createCareer(db,economy){
   db.run("UPDATE transfer_offers SET status='EXPIRED' WHERE career_id=? AND status='PENDING'",career.id);
   db.run('UPDATE careers SET season=season+1 WHERE id=?',career.id);career.season++;newSeason(career);return view(userId);
  });}
- return {create,view,nextMatch,complete,transfer,advance};
+ return {create,view,nextMatch,complete,transfer,advance,saves,selectSave,removeSave,renameSave};
 }
 module.exports={createCareer,emptyStats,performance,roundRobin};

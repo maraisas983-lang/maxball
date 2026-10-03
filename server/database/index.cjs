@@ -22,10 +22,12 @@ function openDatabase(filename) {
   };
   connection.exec('CREATE TABLE IF NOT EXISTS schema_migrations(version TEXT PRIMARY KEY,applied_at INTEGER NOT NULL)');
   for (const file of fs.readdirSync(path.join(__dirname, 'migrations')).filter(f => f.endsWith('.sql')).sort()) {
-    if (!db.one('SELECT version FROM schema_migrations WHERE version=?', file)) db.transaction(() => {
-      connection.exec(fs.readFileSync(path.join(__dirname, 'migrations', file), 'utf8'));
-      db.run('INSERT INTO schema_migrations VALUES(?,?)', file, Date.now());
-    });
+    if (!db.one('SELECT version FROM schema_migrations WHERE version=?', file)) {
+      const sql=fs.readFileSync(path.join(__dirname,'migrations',file),'utf8'),rebuild=sql.startsWith('-- migration: foreign_keys=off');
+      if(rebuild)connection.exec('PRAGMA foreign_keys=OFF');
+      try{db.transaction(()=>{connection.exec(sql);if(connection.prepare('PRAGMA foreign_key_check').all().length)throw new Error('Migration left invalid foreign keys: '+file);db.run('INSERT INTO schema_migrations VALUES(?,?)',file,Date.now());});}
+      finally{if(rebuild)connection.exec('PRAGMA foreign_keys=ON');}
+    }
   }
   seed(db);
   return db;

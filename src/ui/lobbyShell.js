@@ -25,7 +25,8 @@
   nav.replaceChildren();
   shell.scrollTop=0;
   if(command){shell.querySelector('.portal-brand').replaceChildren(el('span',{text:'MAXBALL'}),el('small',{text:'Command Center'}));return;}
-  const [name,tag,title,description,mark]=identities[page]||identities.login;
+  const [name,tag,title,description,mark]=identities[page]||(['careerSaves','newCareer'].includes(page)?identities.career:identities.login);
+  if(['careerSaves','newCareer'].includes(page))shell.dataset.lobby='career';
   shell.querySelector('.portal-brand').replaceChildren(el('span',{text:'MAXBALL'}),el('small',{text:name}));
   nav.setAttribute('aria-label','Navegação de '+name);
   nav.append(button(page==='play'?'Voltar ao menu':'← Escolher modo',()=>page==='play'?document.querySelector('#portal-home').click():open('play'),'secondary'));

@@ -65,11 +65,14 @@ function createApp({databasePath='var/maxball.sqlite',origin='http://127.0.0.1:5
 
    if(pathname==='/api/auth/me')return json(res,200,{user:auth.publicUser(user),csrf:session.csrf,profile:auth.profile(uid),wallet:economy.wallet(uid),room:rooms.current(uid)});
    if(pathname==='/api/ranked')return json(res,200,rooms.rankedStatus(user));
+   if(pathname==='/api/party')return json(res,200,rooms.party.view(uid));
+   if(pathname==='/api/party/players'){const q='%'+String(url.searchParams.get('q')||'').slice(0,40)+'%';return json(res,200,db.all('SELECT u.id,p.display_name name FROM users u JOIN profiles p ON p.user_id=u.id WHERE u.id<>? AND (p.display_name LIKE ? OR u.id=?) LIMIT 10',uid,q,String(url.searchParams.get('q')||'')));}
    if(pathname==='/api/profile')return json(res,200,{profile:auth.profile(uid),achievements:db.all('SELECT * FROM accolades WHERE user_id=? ORDER BY created_at DESC',uid)});
    if(pathname==='/api/shop')return json(res,200,economy.catalog());
    if(pathname==='/api/inventory')return json(res,200,economy.inventory(uid));
    if(pathname==='/api/wallet')return json(res,200,economy.wallet(uid));
    if(pathname==='/api/career')return json(res,200,career.view(uid));
+   if(pathname==='/api/career/saves')return json(res,200,{saves:career.saves(uid)});
    if(pathname==='/api/clubs')return json(res,200,rooms.clubs.list(uid));
    if(pathname==='/api/teams')return json(res,200,rooms.clubs.catalog(uid));
    if(pathname==='/api/rooms')return json(res,200,{rooms:rooms.list(),current:rooms.current(uid)});
@@ -93,6 +96,8 @@ function createApp({databasePath='var/maxball.sqlite',origin='http://127.0.0.1:5
    if(pathname==='/api/shop/purchase')return json(res,200,economy.purchase(uid,data));
    if(pathname==='/api/inventory/equip')return json(res,200,economy.equip(uid,data));
    if(pathname==='/api/career')return json(res,201,career.create(uid,data));
+   const save=pathname.match(/^\/api\/career\/saves\/([\w-]+)(?:\/(select))?$/);
+   if(save){if(method==='DELETE')return json(res,200,career.removeSave(uid,save[1],data));if(method==='PATCH')return json(res,200,career.renameSave(uid,save[1],data));if(method==='POST'&&save[2])return json(res,200,career.selectSave(uid,save[1]));fail('METHOD','Ação de save inválida.',405);}
    if(pathname==='/api/career/season')return json(res,200,career.advance(uid));
    if(pathname==='/api/career/play')return json(res,201,rooms.careerMatch(user));
    const offer=pathname.match(/^\/api\/career\/offers\/([\w-]+)$/);if(offer)return json(res,200,career.transfer(uid,offer[1],data));
@@ -100,7 +105,19 @@ function createApp({databasePath='var/maxball.sqlite',origin='http://127.0.0.1:5
    const editRoom=pathname.match(/^\/api\/rooms\/([\w-]+)$/);if(editRoom&&method==='PATCH')return json(res,200,rooms.edit(user,editRoom[1],data));
    if(pathname==='/api/rooms')return json(res,201,await rooms.create(user,data));
    if(pathname==='/api/rooms/leave'){rooms.leave(uid);return json(res,200,{ok:true});}
-   if(pathname==='/api/ranked/join'){cloudSync?.assertReady();return json(res,200,rooms.rankedJoin(user));}
+   if(pathname==='/api/ranked/join'){cloudSync?.assertReady();return json(res,200,rooms.rankedJoin(user,data));}
+   if(pathname.startsWith('/api/party/')){
+    limit('party:'+uid,30,60000);
+    const action=pathname.slice('/api/party/'.length);let result;
+    if(action==='invite'){object(data,['playerId']);result=rooms.party.invite(user,data.playerId);}
+    else if(action==='accept'){object(data,['inviteId']);result=rooms.party.accept(user,data.inviteId);}
+    else if(action==='ready'){object(data,['ready']);result=rooms.party.ready(user,data.ready);}
+    else if(action==='remove'){object(data,['playerId']);result=rooms.party.remove(user,data.playerId);}
+    else if(action==='leave'){object(data,[]);result=rooms.party.leave(uid);}
+    else if(action==='create'){object(data,[]);rooms.party.ensure(user);result=rooms.party.view(uid);}
+    else fail('NOT_FOUND','Ação de grupo não encontrada.',404);
+    return json(res,200,result);
+   }
    if(pathname==='/api/ranked/cancel')return json(res,200,rooms.rankedCancel(user));
    if(pathname==='/api/matchmaking')return json(res,200,await rooms.matchmaking(user));
    const room=pathname.match(/^\/api\/rooms\/([\w-]+)\/(join|start)$/);if(room)return json(res,200,room[2]==='join'?await rooms.join(user,room[1],data):rooms.start(user,room[1]));

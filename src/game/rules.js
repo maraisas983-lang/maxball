@@ -4,6 +4,7 @@
   const result={...defaults,...(gold?{extraTime:true,penalties:true,penaltiesAfterExtraTime:true}:{}),...value};
   if(!value||typeof value!=='object'||Array.isArray(value)||Object.keys(value).some(k=>!(k in defaults)))throw new Error('Configuração de regras inválida.');
   if(Object.values(result).some(v=>typeof v!=='boolean'))throw new Error('As regras devem estar ligadas ou desligadas.');
+  result.penaltyFouls=false;
   if(result.penaltiesAfterExtraTime&&(!result.extraTime||!result.penalties))throw new Error('Pênaltis após prorrogação exigem prorrogação e pênaltis ligados.');
   return result;
  }

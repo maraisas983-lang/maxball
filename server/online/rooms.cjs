@@ -3,6 +3,7 @@ const {settings}=require('../../src/game/rules.js');
 const {createClubs}=require('../services/clubs.cjs');
 const teamData=require('../../src/data/teams.js');
 const {createRanked}=require('../services/ranked.cjs');
+const {createParty}=require('../services/party.cjs');
 const {randomInt}=require('node:crypto');
 const {WebSocketServer}=require('ws');
 const {id}=require('../database/index.cjs');
@@ -22,6 +23,7 @@ function createRooms({db,auth,economy,career,origin,logger=console,syncResults=f
  const send=(ws,data)=>{if(ws?.readyState!==1)return;if(ws.bufferedAmount>=256000){metrics.dropped++;ws.close(1013,'Reconecte para atualizar o estado');return;}const payload=typeof data==='string'?data:JSON.stringify(data);ws.send(payload);metrics.packets++;metrics.bytes+=Buffer.byteLength(payload);};
  const broadcast=(room,data)=>{const payload=JSON.stringify(data);for(const p of all(room))if(membership.get(p.id)===room.id)send(connections.get(p.id)?.ws,payload);};
  const notify=room=>broadcast(room,{type:'room',room:visible(room)});
+ const party=createParty({lookup:uid=>db.one('SELECT u.id,p.display_name name FROM users u JOIN profiles p ON p.user_id=u.id WHERE u.id=? OR u.username=?',uid,uid),connected:uid=>connections.has(uid),available:uid=>!membership.has(uid)&&!ranked.queue.has(uid),cancel:uid=>ranked.cancel(uid),notify:(uid,data)=>send(connections.get(uid)?.ws,data)});
  function current(userId){const room=rooms.get(membership.get(userId));return room?visible(room):null;}
  async function join(user,roomId,body={}){
   object(body,['password','spectator']);
@@ -79,11 +81,12 @@ function createRooms({db,auth,economy,career,origin,logger=console,syncResults=f
     for(const [code,title,eligible] of [['FIRST_MATCH','Estreia MAX',true],['FIRST_WIN','Primeira vitória',won],['LEVEL_10','Veterano MAX',profile.level>=10]])if(eligible&&!db.one('SELECT id FROM accolades WHERE user_id=? AND code=?',player.id,code))db.run('INSERT INTO accolades VALUES(?,?,NULL,0,NULL,?,?,?,?,?)',id(),player.id,'ACHIEVEMENT',code,title,'{}',Date.now());
    }
   });
+  for(const p of room.originalPlayers||room.players)party.state(p.id,'IDLE');
   audit(null,'MATCH_FINISHED',match.id,{score:match.G.score,reason:match.G.reason});room.saved=true;room.results=new Map();
   const rankedResult=room.ranked?db.one('SELECT * FROM ranked_matches WHERE id=?',match.id):null;
   for(const player of room.originalPlayers||room.players){
-   const profile=auth.profile(player.id),before=rankedResult?.[player.team?'away_before':'home_before'],after=rankedResult?.[player.team?'away_after':'home_after'];
-   const result={type:'result',matchId:match.id,score:match.G.score,penalties:match.G.penalties?.score,winner:match.G.winner,reason:match.G.reason,stats:match.stats[player.id],players:match.P.map(p=>({name:p.displayName,team:p.team,...match.stats[p.id]})),progress:{level:profile.level,xp:profile.xp},rating:rankedResult?{before,after,delta:after-before}:null,career:room.kind==='CAREER'?career.view(player.id).career:null};
+   const profile=auth.profile(player.id),personal=rankedResult&&db.one('SELECT * FROM ranked_participants WHERE match_id=? AND user_id=?',match.id,player.id),before=personal?.rating_before,after=personal?.rating_after;
+   const result={type:'result',matchId:match.id,score:match.G.score,penalties:match.G.penalties?.score,winner:match.G.winner,reason:match.G.reason,stats:match.stats[player.id],players:match.performance.players,mvp:match.performance.mvp,progress:{level:profile.level,xp:profile.xp},rating:rankedResult?{before,after,delta:after-before}:null,career:room.kind==='CAREER'?career.view(player.id).career:null};
    room.results.set(player.id,result);send(connections.get(player.id)?.ws,result);
   }
  }
@@ -102,11 +105,11 @@ function createRooms({db,auth,economy,career,origin,logger=console,syncResults=f
  function careerMatch(user){
   if(membership.has(user.id))fail('ROOM','Saia da sala atual primeiro.',409);
   const fixture=career.nextMatch(user.id),profile=auth.profile(user.id);
-  const room={id:id(),owner:user.id,name:'Carreira · '+fixture.fixture.stage,kind:'CAREER',createdAt:Date.now(),cfg:{...fixture.cfg,career:true},career:fixture,players:[{id:user.id,name:profile.shirt_name,num:profile.shirt_number,team:0,slot:0}]};
+  const room={id:id(),owner:user.id,name:'Carreira · '+fixture.fixture.stage,kind:'CAREER',createdAt:Date.now(),cfg:{...fixture.cfg,career:true},career:fixture,players:[{id:user.id,name:fixture.career.player_name,num:fixture.career.shirt_number,team:0,slot:0}]};
   rooms.set(room.id,room);membership.set(user.id,room.id);start(user,room.id);return visible(room);
  }
  function leave(userId){
-  ranked.cancel(userId);
+  ranked.cancel(userId);party.state(userId,'IDLE');
   const room=rooms.get(membership.get(userId));membership.delete(userId);if(!room)return;audit({id:userId},'ROOM_LEAVE',room.id);
   if(room.match&&room.match.G.phase!=='end'){
    if(room.ranked){room.left??=new Set();room.left.add(userId);forfeit(room,userId,'LEFT');persistResult(room);return;}
@@ -160,16 +163,16 @@ function createRooms({db,auth,economy,career,origin,logger=console,syncResults=f
   room.match.G.score[1-loser]=Math.max(room.match.G.score[1-loser],room.match.G.score[loser]+1);
   room.match.record('FORFEIT',{userId,reason});room.match.finish('FORFEIT');
  }
- function rankedStatus(user){return {...ranked.status(user.id),room:current(user.id),history:ranked.history(user.id)};}
- function rankedJoin(user){if(membership.has(user.id))return rankedStatus(user);ranked.join(user);return rankedStatus(user);}
- function rankedCancel(user){ranked.cancel(user.id);return rankedStatus(user);}
+ function rankedStatus(user){return {...ranked.status(user.id),party:party.view(user.id),room:current(user.id),history:ranked.history(user.id)};}
+ function rankedJoin(user,body={}){object(body,['n']);if(membership.has(user.id))return rankedStatus(user);const n=integer(body.n??4,'Formato',1,4),g=party.current(user.id);if(g&&g.members.length>n)fail('PARTY_FORMAT','O formato precisa comportar todos os integrantes.');const group=party.search(user);ranked.join(user,group?{members:group.members.map(m=>({id:m.id})),partyId:group.id,n}:{n});return rankedStatus(user);}
+ function rankedCancel(user){const g=party.current(user.id);if(g&&g.leader!==user.id)fail('PARTY_LEADER','Somente o líder cancela a busca.',403);ranked.cancel(user.id);party.state(user.id,'IDLE');return rankedStatus(user);}
  function pairRanked(){
   if(!canRank())return;
   const pair=ranked.pair();if(!pair)return;
   const eligible=pair.filter(u=>{try{auth.allowed(db.one('SELECT * FROM users WHERE id=?',u.id));return !membership.has(u.id);}catch{return false;}});
-  if(eligible.length!==2){for(const u of eligible)ranked.join(u);return;}
-  const room={id:id(),owner:pair[0].id,name:'Ranqueado MAX',kind:'ONLINE',ranked:true,createdAt:Date.now(),cfg:{n:4,time:180,gold:0,fs:0,diff:2,sk0:0,sk1:1,ranked:true},players:pair.map((u,team)=>{const p=auth.profile(u.id);return {id:u.id,name:p.shirt_name,num:p.shirt_number,team,slot:0};})};
-  rooms.set(room.id,room);for(const u of pair)membership.set(u.id,room.id);start(pair[0],room.id);
+  if(eligible.length!==pair.length){for(const u of pair)party.state(u.id,'IDLE');return;}
+  const room={id:id(),owner:pair[0].id,name:'Ranqueado MAX',kind:'ONLINE',ranked:true,createdAt:Date.now(),cfg:{n:pair[0].rankedFormat,time:180,gold:0,fs:0,diff:2,sk0:0,sk1:1,ranked:true},players:pair.map(u=>{const p=auth.profile(u.id);return {id:u.id,name:p.shirt_name,num:p.shirt_number,team:u.team,slot:u.slot};})};
+  rooms.set(room.id,room);for(const u of pair){membership.set(u.id,room.id);party.state(u.id,'IN_MATCH');}start(pair[0],room.id);
  }
  function connect(ws,user,token){
   const prior=connections.get(user.id);if(seenConnections.has(user.id))metrics.reconnects++;seenConnections.add(user.id);if(seenConnections.size>10000)seenConnections.delete(seenConnections.values().next().value);if(prior)prior.ws.close(4000,'Outra conexão aberta');
@@ -203,7 +206,7 @@ function createRooms({db,auth,economy,career,origin,logger=console,syncResults=f
  const timer=setInterval(()=>{
   const processingStart=performance.now();
   if(Date.now()-heartbeat>10000){heartbeat=Date.now();for(const c of connections.values()){if(!c.alive)c.ws.terminate();else{c.alive=false;c.pingAt=Date.now();c.ws.ping();}}}
-  if(Date.now()>=nextPair){nextPair=Date.now()+1000;try{pairRanked();}catch(error){logger.error(error.message);}}
+  if(Date.now()>=nextPair){nextPair=Date.now()+1000;try{party.tick();pairRanked();}catch(error){logger.error(error.message);}}
   const now=performance.now();accumulator+=Math.min(.25,(now-last)/1000);last=now;
   for(const [userId,connection] of connections){
    if(Date.now()>=connection.nextAuth){connection.nextAuth=Date.now()+1000;try{auth.authenticate(connection.token)}catch{connection.ws.close(1008,'Sessão encerrada');}}
@@ -243,6 +246,6 @@ function createRooms({db,auth,economy,career,origin,logger=console,syncResults=f
   list:()=>[...rooms.values()].filter(r=>r.kind==='ONLINE'&&!r.ranked&&r.match?.G.phase!=='end').map(visible),online:()=>connections.size,
   close(){clearInterval(timer);for(const c of connections.values())c.ws.terminate();wss.close();},
   // Server-side state only, useful to deterministic integration tests.
-  rooms,persistResult,disconnect:userId=>connections.get(userId)?.ws.close(1008,'Sessão encerrada pela moderação'),metrics:()=>({...metrics,p95ProcessingMs:processingSamples.slice().sort((a,b)=>a-b)[Math.floor(processingSamples.length*.95)]||0,ping:Math.round([...connections.values()].reduce((sum,c)=>sum+(c.ping||0),0)/Math.max(1,connections.size)),queued:ranked.queue.size,queueWait:Math.floor(Math.max(0,...[...ranked.queue.values()].map(q=>(Date.now()-q.since)/1000))),tickRate:60,updateRate:20,connections:connections.size,rooms:rooms.size,players:[...rooms.values()].reduce((sum,r)=>sum+(r.match?.G.phase!=='end'?r.match?.P.length||0:0),0)})};
+  rooms,party,persistResult,disconnect:userId=>connections.get(userId)?.ws.close(1008,'Sessão encerrada pela moderação'),metrics:()=>({...metrics,p95ProcessingMs:processingSamples.slice().sort((a,b)=>a-b)[Math.floor(processingSamples.length*.95)]||0,ping:Math.round([...connections.values()].reduce((sum,c)=>sum+(c.ping||0),0)/Math.max(1,connections.size)),queued:ranked.queue.size,queueWait:Math.floor(Math.max(0,...[...ranked.queue.values()].map(q=>(Date.now()-q.since)/1000))),tickRate:60,updateRate:20,connections:connections.size,rooms:rooms.size,players:[...rooms.values()].reduce((sum,r)=>sum+(r.match?.G.phase!=='end'?r.match?.P.length||0:0),0)})};
 }
 module.exports={createRooms};

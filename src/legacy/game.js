@@ -29,7 +29,7 @@ function pSpr(i){return PSPR[i]||(PSPR[i]=(()=>{const c=document.createElement('
  g.strokeStyle='rgba(255,255,255,.55)';g.lineWidth=2;g.beginPath();g.arc(48,48,35,Math.PI*1.05,Math.PI*1.6);g.stroke();return c})())}
 const lum=c=>{const n=parseInt(c.slice(1),16);return((n>>16)*299+((n>>8&255)*587)+(n&255)*114)/1000};
 const cd=(a,b)=>{const f=h=>{const n=parseInt(h.slice(1),16);return[n>>16,n>>8&255,n&255]},x=f(a),y=f(b);return Math.hypot(x[0]-y[0],x[1]-y[1],x[2]-y[2])};
-let HT=0,oppI=0;const FMT=[0,[760,440,100],[1000,560,140],[1240,680,170],[1480,800,200],[1600,860,210]];function pickOpp(){let i,t=0;do{i=Math.random()*KITS.length|0}while((i==save.kit||cd(SK[i].c[0],KITS[save.kit][1])<110)&&++t<60);return i}
+let HT=0,oppI=0;const FMT=[0,...Object.values(MaxballFields.formats).map(f=>[f.width,f.height,f.goal])];function pickOpp(){let i,t=0;do{i=Math.random()*KITS.length|0}while((i==save.kit||cd(SK[i].c[0],KITS[save.kit][1])<110)&&++t<60);return i}
 const FX=[['Sem rastro',0],['Neon',50],['Fogo',100],['Estrelas',150]];
 let storageIssue = '', ready = false;
 const storageMessages = {
@@ -198,7 +198,7 @@ $('#lgo').onclick=()=>{aud();start('bot',Object.assign({},save.room,{intro:1}))}
 /* ---------- jogo ---------- */
 let G=null,P=[],ball,PA=[],c0,c1='#ff2d87',cam={x:W/2,y:H/2},Z=1.5,VH=427;
 const simulationState=()=>({G,P,ball,W,H,GY0,GY1,BR});
-const physics=MaxballPhysics.createPhysics({state:simulationState,input:inputOf,effects:{burst,beep,particle:p=>PA.push(p)}});
+const physics=MaxballPhysics.createPhysics({state:simulationState,input:inputOf,effects:{burst,beep,particle:p=>PA.push(p),touch:p=>{if(G.stats)MaxballPerformance.touch(simulationState(),p,G.stats);},kick:(p,type)=>{if(G.stats)MaxballPerformance.kick(simulationState(),p,type,G.stats);}}});
 const events=MaxballCore.createEvents(),matchTimers=MaxballCore.createTimers();
 const remoteFrames=new MaxballSnapshots.SnapshotBuffer();let remoteUser=null,remoteMatch=null,remoteScore=[0,0];
 const fixedClock=MaxballCore.createClock(dt=>update(dt));
@@ -207,10 +207,11 @@ function start(mode,cfg){window.MaxballResults?.clear();actionSeq.shoot=actionSe
  if(cfg.teams){for(let i=0;i<2;i++){SK[22+i]=MaxballTeams.skin(cfg.teams[i]);delete SPR[22+i];delete PSPR[22+i];}cfg.sk0=22;cfg.sk1=23;}
  if(mode=='train'){cfg.side=0;if(!cfg.trainingBots)cfg.n=1;}if(cfg.sk1<0||cfg.sk1==cfg.sk0){const sv=save.kit;save.kit=cfg.sk0;cfg.sk1=pickOpp();save.kit=sv}
  HT=cfg.side==1?1:0;const sk=[cfg.sk0,cfg.sk1];c0=SK[sk[0]].c[0];c1=SK[sk[1]].c[0];oppI=sk[1-HT];
- const fm=FMT[mode=='train'?2:cfg.n],fs=FSS[cfg.fs||0],gs=1+(fs-1)*.6;VH=640/[1.5,1.3,1.15][cfg.fs||0];rsz();W=Math.round(fm[0]*fs);H=Math.round(fm[1]*fs);GY0=H/2-fm[2]*gs/2;GY1=H/2+fm[2]*gs/2;POSTS=[[0,GY0],[0,GY1],[W,GY0],[W,GY1]];GG=G3();STAD=null;
+ const fm=FMT[cfg.n],fs=FSS[cfg.fs||0],gs=1+(fs-1)*.6;VH=640/[1.5,1.3,1.15][cfg.fs||0];rsz();W=Math.round(fm[0]*fs);H=Math.round(fm[1]*fs);GY0=H/2-fm[2]*gs/2;GY1=H/2+fm[2]*gs/2;POSTS=[[0,GY0],[0,GY1],[W,GY0],[W,GY1]];GG=G3();STAD=null;
  BR=[9,11,14][cfg.ball];G={mode,cfg,sk,score:[0,0],time:mode=='train'?0:cfg.time,phase:'play',pt:0,shake:0,flash:0,earn:0,fw:0};PA=[];
  P=[];const N=cfg.n,nu=[[7,8,5,4],[9,11,6,3]];
- for(let t=0;t<2;t++)for(let k=0;k<N;k++){if(mode=='train'&&!cfg.trainingBots&&t==1)break;const me=k==0&&t==HT&&cfg.side!=2;P.push(mk(t,me?save.num:nu[t][k],me?'p1':(k==0&&mode=='local'&&t!=HT?'p2':'ai')))}
+ for(let t=0;t<2;t++)for(let k=0;k<N;k++){if(mode=='train'&&!cfg.trainingBots&&t==1)break;const me=k==0&&t==HT&&cfg.side!=2;P.push(mk(t,me?save.num:(nu[t][k]||7+k),me?'p1':(k==0&&mode=='local'&&t!=HT?'p2':'ai')))}
+ G.stats=Object.fromEntries(P.map(p=>[p.id,MaxballPerformance.empty()]));
  const L=mode=='local',T=mode=='train',tab=k=>{const c=SK[k].c;return 'linear-gradient(to bottom,'+c[0]+' 50%,'+(c[1]||c[0])+' 50%)'};
  $('#abA').textContent=AB(sk[0]);$('#abB').textContent=AB(sk[1]);$('#tabA').style.background=tab(sk[0]);$('#tabB').style.background=tab(sk[1]);
  ['#abB','#tabB','#s1'].forEach(q=>$(q).style.display=T?'none':'');$('#gbar').classList.remove('on');lastSc=[0,0];
@@ -257,13 +258,14 @@ function showGoal(t){const k=G.sk[t],sk=SK[k],c=sk.c,x=c[1]||c[0],z=c[2]||c[0],p
  const gt=$('#gtx');gt.style.background=bg;gt.style.color=lum(c[0])>170?'#0a0f2c':'#fff';const b=$('#gbar');b.classList.add('on');clearTimeout(showGoal.h);showGoal.h=matchTimers.after(()=>b.classList.remove('on'),2600)}
 function wh(v){if(Math.abs(v)>240){burst(ball.x,ball.y,5,['#fff','#c8ff2e'],150,.25);beep(160,.05,'triangle',.05)}}
 function moveBall(dt){MaxballBall.moveBall(simulationState(),dt,goal,wh)}
-function goal(t){if(!G||G.phase!=='play')return;events.emit('GOAL_SCORED',{team:t});crowd.goal();showGoal(t);G.ko=1-t;G.phase='goal';G.pt=0;G.sc=t;G.score[t]++;G.flash=1;G.shake=18;G.fw=0;
+function goal(t){if(!G||G.phase!=='play')return;const scorer=P.find(p=>p.id===ball.lastPlayer),previous=ball.previousTouch;if(scorer&&scorer.team===t&&G.stats){G.stats[scorer.id].goals++;if(previous?.id&&previous.id!==scorer.id&&previous.team===t&&(G.el||0)-previous.time<8)G.stats[previous.id].assists++;}events.emit('GOAL_SCORED',{team:t});crowd.goal();showGoal(t);G.ko=1-t;G.phase='goal';G.pt=0;G.sc=t;G.score[t]++;G.flash=1;G.shake=18;G.fw=0;
  const gx=t?0:W;burst(gx,ball.y,60,[c0,c1,'#fff','#c8ff2e'],420,1,'c',300);
  if(t==HT&&G.cfg.side!=2&&G.mode!='local'){const e=G.mode=='train'?3:10;save.coins+=e;G.earn+=e;save.st.g++;persist()}
  beep(523,.15,'square',.07);matchTimers.after(()=>beep(659,.15,'square',.07),130);matchTimers.after(()=>beep(784,.35,'square',.07),260)}
 function endMatch(){if(!G||G.phase==='end')return;G.phase='end';events.emit('MATCH_ENDED',{score:G.score.slice()});const a=G.score[0],b=G.score[1],L=G.mode=='local',sp=G.cfg.side==2,me=HT?b:a,ot=HT?a:b;
  const t=a==b?'EMPATE':L?(a>b?'J1 VENCEU':'J2 VENCEU'):sp?(a>b?'MANDANTE VENCEU':'VISITANTE VENCEU'):me>ot?'VITÓRIA':'DERROTA';let bonus=0;if(!L&&!sp){save.st.p++;if(me>ot)save.st.w++;persist()}
  if(!L&&!sp&&me>ot){bonus=20;save.coins+=20;persist()}
+ if(G.stats){const result=MaxballPerformance.finalize(P,G.stats,a===b?null:a>b?0:1);window.MaxballResults?.show({...result,matchId:'local',stats:G.stats[P.find(p=>p.ctrl==='p1')?.id]});}
  $('#rt').textContent=t;$('#rs').textContent=a+' x '+b+(L||sp?'':' · +'+(G.earn+bonus)+' moedas');matchTimers.after(()=>$('#res').classList.add('on'),700)}
 $('#again').onclick=()=>{if(G.remote){leaveRemote();return}start(G.mode,G.cfg)};$('#menu').onclick=()=>{if(G?.remote){leaveRemote();return}matchTimers.clear();G=null;show('home')};
 $('#exit').onclick=()=>{if(G?.remote){leaveRemote();return}matchTimers.clear();G=null;show('home')};
@@ -295,7 +297,7 @@ function drawBall(){const R=BR,sp=Math.hypot(ball.vx,ball.vy),a=ball.rot;
  cx.fillStyle='rgba(255,255,255,.75)';cx.beginPath();cx.ellipse(-R*.36,-R*.42,R*.22,R*.12,-.7,0,7);cx.fill();cx.restore()}
 function draw(){cx.setTransform(1,0,0,1,0,0);cx.fillStyle='#0a0f2c';cx.fillRect(0,0,cv.width,cv.height);
  const sh=RM||save.ns?0:G.shake;cx.translate(cv.width/2+rnd(-sh,sh),cv.height/2+rnd(-sh,sh));cx.scale(Z,Z);cx.translate(-cam.x,-cam.y);
- if(!STAD)STAD=buildStadium();cx.drawImage(STAD,-E,-E);crowd.draw(cx,simulationState(),RM);netBack(0);netBack(1);
+ if(!STAD)STAD=buildStadium();cx.drawImage(STAD,-E,-E);if(G.cfg.n===4){const f=MaxballField.geometry(simulationState());for(let team=0;team<2;team++)if(G.areaOccupancy?.[team]>=2){cx.fillStyle='rgba(255,221,80,.16)';cx.fillRect(team?W-f.areaDepth:0,GY0-f.areaPadding,f.areaDepth,GY1-GY0+f.areaPadding*2);cx.font='11px Rubik';cx.fillStyle='#ffe087';cx.textAlign='center';cx.fillText('ÁREA BLOQUEADA',team?W-f.areaDepth/2:f.areaDepth/2,GY0-f.areaPadding+18);}}crowd.draw(cx,simulationState(),RM);netBack(0);netBack(1);
  PA.filter(q=>q.t!='k').forEach(dq);
  P.forEach(p=>{if(p.hid||p.inactive)return;cx.fillStyle='rgba(0,0,0,.3)';cx.beginPath();cx.ellipse(p.x,p.y+PR*.75,PR,PR*.5,0,0,7);cx.fill()});
  P.forEach((p,i)=>{if(p.hid||p.inactive)return;const y=p.y-p.hop,col=p.team?c1:c0;

@@ -7,23 +7,23 @@ const {createPhysics}=require('../../src/physics/playerPhysics.js');
 const {moveBall}=require('../../src/physics/ballPhysics.js');
 const {createEvents}=require('../../src/core/runtime.js');
 const field=require('../../src/game/field.js');
-const FMT={1:[760,440,100],2:[1000,560,140],3:[1240,680,170],4:[1480,800,200],5:[1600,860,210]};
+const performanceStats=require('../../src/game/performance.js');
+const {dimensions}=require('../../src/game/fieldConfig.js');
 function seeded(seed){let n=seed>>>0;return()=>{n=(Math.imul(n,1664525)+1013904223)>>>0;return n/4294967296};}
 class Match {
  constructor({id,players=[],cfg={},seed=12345}){
   this.id=id;this.cfg={n:2,time:180,gold:0,diff:1,fs:0,ball:1,sk0:0,sk1:1,...cfg};
   this.cfg.settings=rules.settings(cfg.settings,!!cfg.gold);
-  const [w,h,g]=FMT[this.cfg.n],scale=[1,1.3,1.6][this.cfg.fs],height=g*(1+(scale-1)*.6);
-  this.W=Math.round(w*scale);this.H=Math.round(h*scale);this.GY0=this.H/2-height/2;this.GY1=this.H/2+height/2;this.BR=[9,11,14][this.cfg.ball];
+  Object.assign(this,dimensions(this.cfg.n,this.cfg.fs));this.BR=11;
   this.G={cfg:this.cfg,period:'REGULATION',phase:this.cfg.presentation?'starting':'play',startRemaining:this.cfg.presentation?timing.introSeconds:0,score:[0,0],time:this.cfg.time,elapsed:0,pt:0,shake:0,ko:0};
   this.random=seeded(seed);this.events=createEvents();this.log=[];this.inputs=new Map();this.stats={};this.P=[];
   for(let team=0;team<2;team++)for(let slot=0;slot<this.cfg.n;slot++){
    const human=players.find(p=>p.team===team&&p.slot===slot);
    const player={id:human?.id||`bot-${team}-${slot}`,name:human?.name||['Caio','Breno','Davi','Rui','Leo','Nico','Vini','João','Ivo','Theo'][team*5+slot],displayName:human?.name||['Caio','Breno','Davi','Rui','Leo','Nico','Vini','João','Ivo','Theo'][team*5+slot],team,num:human?.num||7+slot,ctrl:human?'remote':'ai',slot,x:0,y:0,vx:0,vy:0,fx:team?-1:1,fy:0,st:1,cd:0,hop:0};
-   this.P.push(player);this.stats[player.id]={goals:0,assists:0,shots:0,passes:0,inputs:0};
+   this.P.push(player);this.stats[player.id]=performanceStats.empty();
   }
   this.offside=new Offside(this);
-  this.physics=createPhysics({state:()=>this,input:p=>this.penalties?this.penalties.input(p):this.inputs.get(p.id)||{x:0,y:0},random:this.random,effects:{playerContact:(a,b)=>this.contact(a,b),touch:p=>this.offside.touch(p),kick:(p,type)=>{if(this.penalties){this.penalties.kicked(p);return;}this.stats[p.id][type==='s'?'shots':'passes']++;this.offside.kick(p);}}});
+  this.physics=createPhysics({state:()=>this,input:p=>this.penalties?this.penalties.input(p):this.inputs.get(p.id)||{x:0,y:0},random:this.random,effects:{playerContact:(a,b)=>this.contact(a,b),touch:p=>{this.offside.touch(p);if(!this.penalties)performanceStats.touch(this,p,this.stats);},kick:(p,type)=>{if(this.penalties){this.penalties.kicked(p);return;}performanceStats.kick(this,p,type,this.stats);this.offside.kick(p);}}});
   this.kickoff();if(this.cfg.presentation){this.introPositions=this.P.map(p=>({x:p.x,y:p.y}));this.P.forEach((p,i)=>{p.x=this.W/2+(i%5-2)*45;p.y=this.H+60;});}this.record('MATCH_STARTED',{});
  }
  record(type,payload){const event={type,time:this.G.elapsed,...payload};this.log.push(event);this.events.emit(type,event);}
@@ -42,30 +42,19 @@ class Match {
   let assist=null;
   if(scorer?.team===team){this.stats[scorer.id].goals++;if(previous?.id&&previous.id!==scorer.id&&previous.team===team&&this.G.elapsed-previous.time<8){assist=previous.id;this.stats[assist].assists++;}}
   this.G.score[team]++;this.G.phase='goal';this.G.pt=0;this.G.sc=team;this.G.ko=1-team;
+  for(const p of this.P)if(p.team!==team&&field.inArea(p,p.team,this))this.stats[p.id].goalsConceded++;
+  if(scorer&&scorer.team!==team)this.stats[scorer.id].errors++;
   this.record('GOAL_SCORED',{team,scorer:scorer?.id||null,assist,ownGoal:!!scorer&&scorer.team!==team});
  }
  finish(reason='TIME'){
   if(this.G.phase==='end')return;
   this.G.phase='end';this.G.period='FINISHED';this.G.reason=reason;if(this.G.winner===undefined)this.G.winner=this.G.score[0]===this.G.score[1]?null:this.G.score[0]>this.G.score[1]?0:1;
+  this.performance=performanceStats.finalize(this.P,this.stats,this.G.winner);
   this.record('MATCH_ENDED',{score:this.G.score.slice(),reason});
  }
  moveBall(dt,onGoal){moveBall(this,dt,onGoal);}
- contact(a,b){
-  if(!this.cfg.settings.penaltyFouls||this.G.phase!=='play'||this.G.restarting||this.G.elapsed<(this.foulCooldown||0)||a.team===b.team)return;
-  for(const [defender,attacker] of [[a,b],[b,a]]){
-   if(!field.inArea(attacker,defender.team,this)||Math.hypot(attacker.x-this.ball.x,attacker.y-this.ball.y)>20+this.BR+16||Math.hypot(defender.x-this.ball.x,defender.y-this.ball.y)<20+this.BR+10)continue;
-   const dx=attacker.x-defender.x,dy=attacker.y-defender.y,d=Math.hypot(dx,dy)||1;
-   if((defender.vx*dx+defender.vy*dy)/d>145&&((defender.vx-attacker.vx)*dx+(defender.vy-attacker.vy)*dy)/d>90)this.pendingFoul={team:attacker.team,defender:defender.id};
-  }
- }
- applyFoul(){
-  const foul=this.pendingFoul;if(!foul)return false;this.pendingFoul=null;this.foulCooldown=this.G.elapsed+8;this.inputs.clear();this.offside.candidates.clear();this.offside.pending=null;
-  this.G.phase='penalties';this.record('PENALTY_FOUL',foul);
-  this.penalties=new Penalties(this,{team:foul.team,onComplete:(scored,shooter)=>{
-   this.penalties=null;delete this.G.penalties;this.P.forEach(p=>{p.inactive=false;p.shootHeld=p.passHeld=false;});this.G.phase='play';this.G.ko=1-foul.team;this.kickoff();
-   if(scored){this.ball.lastPlayer=shooter;this.goal(foul.team);}
-  }});return true;
- }
+ contact(){ /* Contacts use physical resolution, never an automatic penalty. */ }
+ applyFoul(){this.pendingFoul=null;return false;}
  nextPeriod(){
   const next=rules.nextPeriod(this.cfg.settings,this.G.period,this.G.score[0]===this.G.score[1]);
   if(next==='FINISHED'){this.finish();return;}
