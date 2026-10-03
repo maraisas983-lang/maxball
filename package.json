@@ -3,7 +3,6 @@
   "version": "0.1.0",
   "private": true,
   "description": "MAXBALL - futebol arcade, carreira e multiplayer",
-  "type": "module",
   "scripts": {
     "start": "node server/index.cjs",
     "check": "node scripts/check.cjs",
@@ -14,7 +13,7 @@
     "admin": "node scripts/admin.cjs"
   },
   "engines": {
-    "node": "20.x"
+    "node": "20.10.0"
   },
   "dependencies": {
     "ws": "^8.22.0"
