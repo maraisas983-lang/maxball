@@ -4,7 +4,7 @@
 
 1. Crie um **Blueprint** no Render apontando para este repositório. O arquivo `render.yaml` cria o serviço Node, a rota de health check e um disco persistente para o SQLite.
 2. Troque `PUBLIC_ORIGIN` pela URL final do serviço (por exemplo, `https://maxball.onrender.com`) e salve as variáveis secretas do Supabase no painel, se for usar Supabase.
-3. Faça o deploy. O Render executa `npm ci --omit=dev` e `npm start`.
+3. Faça o deploy. O Render executa `npm ci` e `npm start`.
 
 O Render é a opção completa porque mantém o processo Node ativo, aceita WebSocket e tem disco persistente para carreira, contas e economia.
 
