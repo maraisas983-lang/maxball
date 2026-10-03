@@ -18,7 +18,7 @@ test('players cross field lines while ball stays inside sidelines',()=>{
 });
 test('kickoff belongs to home, then conceded side; opponents wait',()=>{
  const m=new Match({id:'ko',cfg:{n:4}});assert.equal(m.G.ko,0);const before=m.P.filter(p=>p.team===1).map(p=>[p.x,p.y]);m.update(1/60);assert.deepEqual(m.P.filter(p=>p.team===1).map(p=>[p.x,p.y]),before);
- m.goal(0);m.goal(0);assert.deepEqual(m.G.score,[1,0]);assert.equal(m.G.ko,1);for(let i=0;i<160;i++)m.update(1/60);assert.equal(m.G.phase,'play');assert.equal(m.G.restarting,true);
+ m.goal(0);m.goal(0);assert.deepEqual(m.G.score,[1,0]);assert.equal(m.G.ko,1);for(let i=0;i<400&&m.G.phase==='goal';i++)m.update(1/60);assert.equal(m.G.phase,'play');assert.equal(m.G.restarting,true);
 });
 test('square roles, one chaser, human area reservation and hysteresis',()=>{
  const m=new Match({id:'ai',players:[{id:'human',team:0,slot:0}],cfg:{n:4}});m.G.restarting=false;m.P[0].x=80;m.P[0].y=m.H/2;m.ball.x=100;m.ball.y=m.H/2;

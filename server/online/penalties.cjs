@@ -1,5 +1,6 @@
 const {shootoutWinner}=require('../../src/game/rules.js');
 const timing=require('../../src/core/config.js').match;
+const {radius:interactionRadius}=require('../../src/physics/interaction.js');
 class Penalties {
  constructor(match,{team=0,onComplete=null}={}){this.match=match;this.onComplete=onComplete;this.state={score:[0,0],taken:[0,0],turn:team,attempt:0,result:null,time:0,kicked:false,single:!!onComplete};match.G.penalties=this.state;this.prepare();}
  prepare(){
@@ -8,7 +9,7 @@ class Penalties {
   s.shooter=shooter.id;s.keeper=keeper.id;s.time=0;s.kicked=false;s.result=null;s.attempt++;
   m.ball={x:m.W-190,y:m.H/2,vx:0,vy:0,rot:0,last:-1};m.G.restarting=false;m.G.kl=0;
   for(const p of m.P){p.inactive=p!==shooter&&p!==keeper;p.vx=p.vy=0;p.cd=0;p.shootBuffer=p.passBuffer=0;if(p.inactive){p.x=m.W/2;p.y=60+p.slot*50+p.team*220;}}
-  shooter.x=m.ball.x-34;shooter.y=m.ball.y;shooter.fx=1;shooter.fy=0;
+  shooter.x=m.ball.x-(interactionRadius(m)-.75);shooter.y=m.ball.y;shooter.fx=1;shooter.fy=0;
   keeper.x=m.W-24;keeper.y=m.H/2;keeper.fx=-1;keeper.fy=0;
   this.aimY=m.GY0+18+m.random()*(m.GY1-m.GY0-36);this.reaction=.35+m.random()*.3;this.shootAt=.7+m.random()*.7;
   this.keeperGuess=m.H/2+(m.random()<.5?-1:1)*(m.GY1-m.GY0)*.25;

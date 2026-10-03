@@ -74,7 +74,7 @@ class Match {
   if(this.G.phase==='penalties'){this.G.elapsed+=dt;this.penalties.update(dt);return;}
   if(this.G.phase==='halftime'){this.G.breakRemaining-=dt;if(this.G.breakRemaining<=0){this.G.phase='play';this.G.ko=1;this.kickoff();}return;}
   this.G.pt+=dt;
-  if(this.G.phase==='goal'){moveBall(this,dt*.4);if(this.G.pt>=2.6){if(this.cfg.goalLimit&&Math.max(...this.G.score)>=this.cfg.goalLimit){this.finish('GOAL_LIMIT');return;}if(this.G.time<=0)this.nextPeriod();else{this.G.phase='play';this.kickoff();}}return;}
+  if(this.G.phase==='goal'){moveBall(this,dt*.4);if(this.G.pt>=timing.goalPauseSeconds){if(this.cfg.goalLimit&&Math.max(...this.G.score)>=this.cfg.goalLimit){this.finish('GOAL_LIMIT');return;}if(this.G.time<=0)this.nextPeriod();else{this.G.phase='play';this.kickoff();}}return;}
   this.G.elapsed+=dt;this.physics.step(dt);if(this.applyFoul())return;if(!this.offside.apply())moveBall(this,dt,team=>this.goal(team));
   if(this.G.ot)this.G.otT=(this.G.otT||0)+dt;
   this.G.time=Math.max(0,this.G.time-dt);

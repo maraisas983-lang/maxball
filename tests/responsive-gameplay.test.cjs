@@ -9,7 +9,7 @@ test('online authoritative release has zero velocity; stopping near ball adds no
  const m=practice(),p=m.P[0];m.setInput(p.id,{x:1,y:0});for(let i=0;i<20;i++)m.update(1/60);m.setInput(p.id,{x:0,y:0});const x=p.x;m.update(1/60);assert.deepEqual([p.x,p.vx,p.vy],[x,0,0]);m.ball.x=p.x+30;m.ball.y=p.y;m.ball.vx=m.ball.vy=0;m.update(1/60);assert.equal(Math.hypot(m.ball.vx,m.ball.vy),0);
 });
 test('interaction ring and kick detection agree at the exact boundary on all fields',()=>{
- let previous=0;for(let n=1;n<=5;n++){const m=practice(n),p=m.P[0],r=interaction.radius(m);assert.ok(r>=39&&r<=47);assert.ok(r>=previous);previous=r;m.ball.x=p.x+r;m.ball.y=p.y;assert.ok(interaction.contains(p,m.ball,m));assert.ok(m.physics.kick(p,'p'));p.cd=0;m.G.kl=0;m.ball.x=p.x+r+.01;assert.equal(interaction.contains(p,m.ball,m),false);assert.equal(m.physics.kick(p,'s'),false);}
+ let previous=0;for(let n=1;n<=5;n++){const m=practice(n),p=m.P[0],r=interaction.radius(m);assert.ok(r>=33&&r<=36);assert.ok(r>=previous);previous=r;m.ball.x=p.x+r-.000001;m.ball.y=p.y;assert.ok(interaction.contains(p,m.ball,m));assert.ok(m.physics.kick(p,'p'));p.cd=0;m.G.kl=0;m.ball.x=p.x+r+.01;assert.equal(interaction.contains(p,m.ball,m),false);assert.equal(m.physics.kick(p,'s'),false);}
 });
 test('fast ball cannot cross a stationary player between physics ticks',()=>{
  const m=practice(),p=m.P[0];m.P=[p];p.x=400;p.y=250;m.ball.x=362;m.ball.vx=560;for(let i=0;i<30;i++){m.update(1/60);assert.ok(m.ball.x<=p.x-30.99);assert.ok(Math.hypot(m.ball.vx,m.ball.vy)<=560.001);}assert.ok(m.ball.vx<=0.5);

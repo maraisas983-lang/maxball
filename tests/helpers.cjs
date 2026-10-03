@@ -87,11 +87,12 @@ function gameHarness({ original = false, saved } = {}) {
   // Test-only access inside the legacy closure; no debug API is shipped in the game.
   const probe = `globalThis.gameProbe = {
     start, show, update, draw, kick, moveBall, kickoff, endMatch, lockStart, lkStep, lkDraw, netUpd,
+    ${original?'':'drawWithReplay, goalReplay, replaySkip,'}
     get state(){return {G,P,ball,save,keys,tj,tb,ljs,inv,NET,LK,W,H,GY0,GY1,BR};}
   };`;
   if (original) vm.runInContext(html.match(/<script>\r?\n([\s\S]*?)<\/script>/)[1] + '\n' + probe, context);
   else {
-    const scripts = [...html.matchAll(/<script src="([^"]+)"><\/script>/g)].map(x => x[1]).filter(file=>!file.startsWith('src/ui/')||file.endsWith('/ballVisual.js'));
+    const scripts = [...html.matchAll(/<script src="([^"]+)"><\/script>/g)].map(x => x[1]).filter(file=>!file.startsWith('src/ui/')||file.endsWith('/ballVisual.js')||file.endsWith('/goalReplay.js'));
     for (const file of scripts) {
       const source = read(file);
       vm.runInContext(file.endsWith('/game.js') ? source.replace(/\n\}\)\(\);\s*$/, '\n' + probe + '\n})();') : source, context, { filename: file });
