@@ -2,7 +2,7 @@
  const movement=typeof module!=='undefined'?require('../physics/movement.js'):root.MaxballMovement;
  function predict(state,userId,input,seconds){
   const source=state?.P.find(p=>p.id===userId);if(!source)return null;
-  const p={...source};if(state.G.phase!=='play'||state.G.restarting||p.inactive)return p;
+  const p={...source};if(Math.hypot(input.x,input.y)<.01)p.vx=p.vy=0;if(state.G.phase!=='play'||state.G.restarting||p.inactive)return p;
   if([0,state.W].some(x=>[state.GY0,state.GY1].some(y=>Math.hypot(p.x-x,p.y-y)<70)))return p;
   if(state.cfg.n===4&&state.G.areaOccupancy?.[p.team]>=2)return p;
   // Predict movement only in free space; contacts and all ball actions stay authoritative.

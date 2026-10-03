@@ -58,13 +58,20 @@ function createCareer(db,economy){
    offers:db.all('SELECT * FROM transfer_offers WHERE career_id=? ORDER BY created_at DESC LIMIT 30',career.id),transfers:db.all('SELECT * FROM transfer_history WHERE career_id=? ORDER BY created_at',career.id),
    trophies:db.all('SELECT * FROM accolades WHERE user_id=? AND career_id=? ORDER BY created_at DESC',userId,career.id),saves:saves(userId)};
  }
+ function settings(userId,body){
+  object(body,['time','diff']);const career=get(userId);if(!career)fail('CAREER','Crie sua carreira primeiro.',404);
+  const time=integer(body.time,'Tempo',60,600),diff=integer(body.diff,'Dificuldade',0,2);if(![60,120,180,300,600].includes(time))fail('TIME','Escolha um tempo disponível.');
+  if(db.one("SELECT id FROM matches WHERE career_id=? AND status='RUNNING'",career.id))fail('CAREER_BUSY','Termine a partida antes de alterar as opções.',409);
+  db.run('UPDATE careers SET config=? WHERE id=?',JSON.stringify({...JSON.parse(career.config),time,diff}),career.id);return view(userId);
+ }
  function nextMatch(userId){
   const career=get(userId);if(!career)fail('CAREER','Crie sua carreira primeiro.',404);
   const current=season(career);if(current.status!=='ACTIVE')fail('SEASON','Inicie a próxima temporada.',409);
   const schedule=JSON.parse(current.schedule),index=schedule.findIndex(f=>f.status==='PENDING');
   if(index<0)fail('FIXTURE','Temporada concluída.',409);
+  const config=JSON.parse(career.config);
   const fixture=schedule[index],home=db.one('SELECT * FROM clubs WHERE id=?',career.club_id),away=db.one('SELECT * FROM clubs WHERE id=?',fixture.opponent);
-  return {career,current,fixture,index,cfg:{n:5,time:120,gold:fixture.competition==='league'?0:1,diff:Math.min(2,Math.floor(away.prestige/2)),sk0:home.kit,sk1:away.kit,teams:[{...teamData.fromClub(home),squad:JSON.parse(career.roster)},{...teamData.contrast(teamData.fromClub(home),teamData.fromClub(away)),squad:rosters.forTeam(away.id)?.players}],labels:[home.name,away.name]}};
+  return {career,current,fixture,index,cfg:{n:5,time:config.time??120,gold:fixture.competition==='league'?0:1,diff:config.diff??1,sk0:home.kit,sk1:away.kit,teams:[{...teamData.fromClub(home),squad:JSON.parse(career.roster)},{...teamData.contrast(teamData.fromClub(home),teamData.fromClub(away)),squad:rosters.forTeam(away.id)?.players}],labels:[home.name,away.name]}};
  }
  function accolade(career,code,title,kind,details){
   db.run('INSERT OR IGNORE INTO accolades VALUES(?,?,?,?,?,?,?,?,?,?)',id(),career.user_id,career.id,career.season,career.club_id,kind,code,title,JSON.stringify(details),Date.now());
@@ -122,7 +129,7 @@ function createCareer(db,economy){
    if(offer.status!=='PENDING'||offer.expires_at<Date.now()||offer.season!==career.season)fail('OFFER_EXPIRED','Proposta indisponível ou expirada.',409);
    if(season(career).status!=='COMPLETED')fail('TRANSFER_WINDOW','Transferências somente entre temporadas.',409);
    db.run('UPDATE transfer_offers SET status=? WHERE id=?',body.accept?'ACCEPTED':'REJECTED',offer.id);
-   if(body.accept){db.run('INSERT INTO transfer_history VALUES(?,?,?,?,?,?)',id(),career.id,career.club_id,offer.to_club,career.season+1,Date.now());const team=db.one('SELECT * FROM clubs WHERE id=?',offer.to_club),roster=rosters.forTeam(offer.to_club)?.players||Array.from({length:5},(_,i)=>({id:offer.to_club+'-player-'+i,name:team.name+' '+(i+1),role:['Goleiro','Defensor','Volante','Meia','Atacante'][i],rating:70,ratingKind:'GAME_BALANCE'}));db.run('UPDATE careers SET club_id=?,roster=?,config=? WHERE id=?',offer.to_club,JSON.stringify(roster),JSON.stringify({format:5,league:teamData.fromClub(team).category}),career.id);db.run("UPDATE transfer_offers SET status='EXPIRED' WHERE career_id=? AND status='PENDING'",career.id);}
+   if(body.accept){db.run('INSERT INTO transfer_history VALUES(?,?,?,?,?,?)',id(),career.id,career.club_id,offer.to_club,career.season+1,Date.now());const team=db.one('SELECT * FROM clubs WHERE id=?',offer.to_club),roster=rosters.forTeam(offer.to_club)?.players||Array.from({length:5},(_,i)=>({id:offer.to_club+'-player-'+i,name:team.name+' '+(i+1),role:['Goleiro','Defensor','Volante','Meia','Atacante'][i],rating:70,ratingKind:'GAME_BALANCE'}));db.run('UPDATE careers SET club_id=?,roster=?,config=? WHERE id=?',offer.to_club,JSON.stringify(roster),JSON.stringify({...JSON.parse(career.config),format:5,league:teamData.fromClub(team).category}),career.id);db.run("UPDATE transfer_offers SET status='EXPIRED' WHERE career_id=? AND status='PENDING'",career.id);}
    return view(userId);
   });
  }
@@ -131,6 +138,6 @@ function createCareer(db,economy){
   db.run("UPDATE transfer_offers SET status='EXPIRED' WHERE career_id=? AND status='PENDING'",career.id);
   db.run('UPDATE careers SET season=season+1 WHERE id=?',career.id);career.season++;newSeason(career);return view(userId);
  });}
- return {create,view,nextMatch,complete,transfer,advance,saves,selectSave,removeSave,renameSave};
+ return {create,view,nextMatch,complete,transfer,advance,saves,selectSave,removeSave,renameSave,settings};
 }
 module.exports={createCareer,emptyStats,performance,roundRobin};

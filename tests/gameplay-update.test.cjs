@@ -13,7 +13,7 @@ test('contact remains gentler than a pass, and stationary overlaps add no energy
 });
 test('manual pass follows facing and recontact cannot immediately reverse it',()=>{
  const {m,p}=practice();p.fx=0;p.fy=-1;assert.ok(m.physics.kick(p,'p'));
- assert.equal(m.ball.vx,0);assert.equal(m.ball.vy,-280);
+ assert.equal(m.ball.vx,0);assert.equal(m.ball.vy,-340);
  p.x=m.ball.x;p.y=m.ball.y-30;p.vy=205;const before=m.ball.vy;resolveContacts([p],m.ball,11,1/60);assert.equal(m.ball.vy,before);
 });
 test('held shoot fires once; a new action sequence survives a short released tap',()=>{
@@ -63,7 +63,7 @@ test('human penalty shooter and keeper receive input, spectators do not',()=>{
 test('presentation blocks play, then advances exactly once into the authoritative kickoff',()=>{
  const m=new Match({id:'intro',players:[{id:'a',team:0,slot:0}],cfg:{presentation:true}}),initial=m.P.map(p=>[p.x,p.y]);
  m.setInput('a',{x:1,y:0,shoot:true});for(let i=0;i<120;i++)m.update(1/60);assert.equal(m.G.phase,'starting');assert.deepEqual(m.P.map(p=>[p.x,p.y]),initial);assert.equal(m.stats.a.inputs,0);
- for(let i=0;i<241;i++)m.update(1/60);assert.equal(m.G.phase,'play');assert.equal(m.G.startRemaining,0);assert.ok(m.G.restarting);
+ for(let i=0;i<361;i++)m.update(1/60);assert.equal(m.G.phase,'play');assert.equal(m.G.startRemaining,0);assert.ok(m.G.restarting);
 });
 test('catalog includes all 21 requested Mamoball teams and contrasting alternatives',()=>{
  assert.equal(teams.teams.filter(t=>t.category==='MAMOBALL').length,21);assert.equal(teams.kits.length,22);

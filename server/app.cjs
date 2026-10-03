@@ -113,6 +113,7 @@ function createApp({databasePath='var/maxball.sqlite',origin='http://127.0.0.1:5
    if(pathname==='/api/career')return json(res,201,career.create(uid,data));
    const save=pathname.match(/^\/api\/career\/saves\/([\w-]+)(?:\/(select))?$/);
    if(save){if(method==='DELETE')return json(res,200,career.removeSave(uid,save[1],data));if(method==='PATCH')return json(res,200,career.renameSave(uid,save[1],data));if(method==='POST'&&save[2])return json(res,200,career.selectSave(uid,save[1]));fail('METHOD','Ação de save inválida.',405);}
+   if(pathname==='/api/career/settings'&&method==='PATCH')return json(res,200,career.settings(uid,data));
    if(pathname==='/api/career/season')return json(res,200,career.advance(uid));
    if(pathname==='/api/career/play')return json(res,201,rooms.careerMatch(user));
    const offer=pathname.match(/^\/api\/career\/offers\/([\w-]+)$/);if(offer)return json(res,200,career.transfer(uid,offer[1],data));

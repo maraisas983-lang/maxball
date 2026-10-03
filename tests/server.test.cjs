@@ -58,7 +58,7 @@ test('server accounts, economy, career, RBAC and authoritative networking',async
   wa.send(JSON.stringify({type:'input',seq:1,x:1,y:0,shoot:false,pass:false}));
   await new Promise(resolve=>{const timer=setTimeout(resolve,250);timer.unref?.();});
   assert.ok(messagesA.some(m=>m.type==='snapshot'));assert.ok(messagesB.some(m=>m.type==='snapshot'));
-  const room=app.rooms.rooms.get(roomId);assert.equal(room.match.G.phase,'starting');for(let i=0;i<370;i++)room.match.update(1/60);room.match.setInput(a.user.id,{x:1,y:0});assert.equal(room.match.P.find(p=>p.id===a.user.id).ctrl,'remote');
+  const room=app.rooms.rooms.get(roomId);assert.equal(room.match.G.phase,'starting');for(let i=0;i<Math.ceil(require('../src/core/config.js').match.introSeconds*60)+2;i++)room.match.update(1/60);room.match.setInput(a.user.id,{x:1,y:0});assert.equal(room.match.P.find(p=>p.id===a.user.id).ctrl,'remote');
   room.match.G.score=[1,0];room.match.finish();app.rooms.persistResult(room);app.rooms.persistResult(room);
   assert.equal(app.db.one("SELECT count(*) n FROM gem_transactions WHERE user_id=? AND source=?",a.user.id,room.match.id).n,1);
   assert.equal((await request('/api/matches',{session:a})).body[0].status,'COMPLETED');

@@ -1,5 +1,5 @@
 (function(root){
- let current=null,box=null;
+ let current=null,box=null,label=null,progress=null;
  function update(state,userId){
   const node=document.querySelector('#versus');
   if(state.G.phase!=='starting'){node.hidden=true;current=null;return;}
@@ -14,9 +14,9 @@
     const crest=el('canvas',{width:150,height:150});root.MaxballGame.teamCrest(crest,team);section.append(crest,el('h2',{text:team.name}));
     const cards=el('div',{class:'vs-players'});for(const p of state.P.filter(p=>p.team===side))cards.append(el('div',{class:'vs-player'},[el('span',{class:'vs-number',text:p.num}),el('strong',{text:p.displayName||p.name}),el('small',{text:p.id===userId?'VOCÊ':p.ctrl==='ai'?'BOT':'JOGADOR'})]));section.append(cards);node.append(section);
    }
-   box=root.MaxballUI.el('div',{class:'vs-count'});node.append(root.MaxballUI.el('div',{class:'vs-sign',text:'VS'}),box);
+   box=root.MaxballUI.el('div',{class:'vs-count'});label=root.MaxballUI.el('strong');progress=root.MaxballUI.el('progress',{max:root.MaxballConfig.match.introSeconds});box.append(label,progress);node.append(root.MaxballUI.el('div',{class:'vs-sign',text:'VS'}),box);
   }
-  box.replaceChildren(root.MaxballUI.el('strong',{text:state.G.startStage==='LINEUP'?state.cfg.n+' × '+state.cfg.n+' · '+(state.cfg.career?'CARREIRA':state.cfg.ranked?'RANQUEADA':'SALA PERSONALIZADA'):state.G.startStage==='ENTRY'?'ENTRANDO EM CAMPO':state.G.startRemaining>3?'PREPARANDO A PARTIDA':state.G.startRemaining>.2?String(Math.ceil(state.G.startRemaining)):'GO!'}),root.MaxballUI.el('progress',{max:root.MaxballConfig.match.introSeconds,value:root.MaxballConfig.match.introSeconds-state.G.startRemaining}));
+  const text=state.G.startStage==='LINEUP'?state.cfg.n+' × '+state.cfg.n+' · '+(state.cfg.career?'CARREIRA':state.cfg.ranked?'RANQUEADA':'SALA PERSONALIZADA'):state.G.startStage==='ENTRY'?'ENTRANDO EM CAMPO':state.G.startRemaining>3?'PREPARANDO A PARTIDA':state.G.startRemaining>.2?String(Math.ceil(state.G.startRemaining)):'GO!';if(label.textContent!==text)label.textContent=text;progress.value=root.MaxballConfig.match.introSeconds-state.G.startRemaining;
  }
  root.MaxballPresentation={update};
 })(globalThis);

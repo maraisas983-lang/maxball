@@ -67,8 +67,8 @@ class Match {
   if(this.G.phase==='end')return;
   if(this.G.phase==='starting'){
    this.G.startRemaining=Math.max(0,this.G.startRemaining-dt);const elapsed=timing.introSeconds-this.G.startRemaining;
-   this.G.startStage=elapsed<.7?'PREPARE':elapsed<2.2?'LINEUP':elapsed<3?'ENTRY':'COUNTDOWN';
-   const progress=Math.max(0,Math.min(1,(elapsed-2.2)/.8));this.P.forEach((p,i)=>{const target=this.introPositions[i];p.x=this.W/2+(i%5-2)*45+(target.x-this.W/2-(i%5-2)*45)*progress;p.y=this.H+60+(target.y-this.H-60)*progress;});
+   this.G.startStage=elapsed<.7?'PREPARE':elapsed<2.2?'LINEUP':elapsed<2.2+timing.entrySeconds?'ENTRY':'COUNTDOWN';
+   const progress=Math.max(0,Math.min(1,(elapsed-2.2)/timing.entrySeconds));this.P.forEach((p,i)=>{const target=this.introPositions[i];p.x=this.W/2+(i%5-2)*45+(target.x-this.W/2-(i%5-2)*45)*progress;p.y=this.H+60+(target.y-this.H-60)*progress;});
    if(this.G.startRemaining===0){this.G.phase='play';this.inputs.clear();this.kickoff();}return;
   }
   if(this.G.phase==='penalties'){this.G.elapsed+=dt;this.penalties.update(dt);return;}
