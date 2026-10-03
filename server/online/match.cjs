@@ -46,7 +46,7 @@ class Match {
   const scorer=this.P.find(p=>p.id===this.ball.lastPlayer),previous=this.ball.previousTouch;
   let assist=null;
   if(scorer?.team===team){this.stats[scorer.id].goals++;if(previous?.id&&previous.id!==scorer.id&&previous.team===team&&this.G.elapsed-previous.time<8){assist=previous.id;this.stats[assist].assists++;}}
-  this.G.score[team]++;this.G.phase='goal';this.G.pt=0;this.G.sc=team;this.G.ko=1-team;this.G.scorerId=scorer?.id||null;this.G.scorerName=scorer?.displayName||scorer?.name||'Gol da equipe';this.G.goalVariant=((this.G.cinematicVariant||0)+this.G.score.reduce((a,b)=>a+b,0))%3;
+  this.G.score[team]++;this.G.phase='goal';this.G.pt=0;this.G.sc=team;this.G.ko=1-team;this.G.scorerId=scorer?.id||null;this.G.scorerName=scorer?.displayName||scorer?.name||'Gol da equipe';this.G.assistId=assist;this.G.assistName=this.P.find(p=>p.id===assist)?.displayName||this.P.find(p=>p.id===assist)?.name||null;this.G.ownGoal=!!scorer&&scorer.team!==team;this.G.goalVariant=((this.G.cinematicVariant||0)+this.G.score.reduce((a,b)=>a+b,0))%3;
   for(const p of this.P)if(p.team!==team&&field.inArea(p,p.team,this))this.stats[p.id].goalsConceded++;
   if(scorer&&scorer.team!==team)this.stats[scorer.id].errors++;
   this.record('GOAL_SCORED',{team,scorer:scorer?.id||null,assist,ownGoal:!!scorer&&scorer.team!==team});

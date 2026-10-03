@@ -24,9 +24,9 @@ Transferências preservam as opções; não é necessária outra migração SQL.
 
 ## Ajustes de jogo
 
-- Passe manual: 280 → **340** unidades/s; passes com mira: **300–390** antes dos atributos.
-- Chute: 460 unidades/s; limite da bola: 560 unidades/s. Há uma contribuição pequena do movimento do jogador e da velocidade tangencial anterior da bola, respeitando o limite.
-- Atrito da bola: fator por segundo 0,52 → **0,60**, preservando mais movimento. Velocidades abaixo de 0,5 são zeradas para encerrar o movimento residual.
+- Passe manual: **250** unidades/s; passes com mira: **230–280** antes dos atributos.
+- Chute: **320** unidades/s; limite da bola: **400** unidades/s. Há uma contribuição pequena do movimento do jogador e da velocidade tangencial anterior da bola, respeitando o limite.
+- Atrito da bola: fator por segundo **0,38**, para dar resistência à condução e encerrar o movimento mais cedo. Velocidades abaixo de 0,5 são zeradas para encerrar o movimento residual.
 - Entrada local e online usam a mesma sequência com movimento suave e saídas escalonadas. A opção de pular a entrada local continua disponível.
 - Entrada online: 0,8 → **5 segundos**; apresentação comum: **10,2 segundos**, carreira: **21,8 segundos**.
 - Bola: painéis projetados sobre uma esfera, sombra e iluminação fixa, com rotação em dois eixos derivada do deslocamento. Usa canvas 2D e até 96 imagens de 96×96, cerca de 3,4 MiB de pixels, além da memória do navegador.

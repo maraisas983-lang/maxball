@@ -1,3 +1,5 @@
 .replay-skip{position:absolute;top:76px;right:18px;z-index:20;padding:10px 16px;border:1px solid rgba(255,255,255,.35);border-radius:10px;background:rgba(8,15,35,.88);color:#fff;font:700 14px Rubik,sans-serif;cursor:pointer;touch-action:manipulation}
 .replay-skip[hidden]{display:none}
 #game.replaying #joy,#game.replaying #bS,#game.replaying #bP,#game.replaying #career-commands{visibility:hidden}
+
+#replay-credits{position:absolute;top:124px;left:18px;z-index:21;display:grid;gap:5px;max-width:calc(100% - 36px);padding:10px 14px;border-left:3px solid #c8ff2e;border-radius:6px;background:rgba(8,15,35,.88);color:#fff;font:13px Rubik,sans-serif;pointer-events:none}#replay-credits[hidden]{display:none}#replay-credits strong{font-size:14px}#replay-credits span{color:#cfdaeb}@media(max-height:450px){#replay-credits{top:119px;padding:7px 10px;gap:3px;font-size:11px}#replay-credits strong{font-size:12px}}

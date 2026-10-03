@@ -1,6 +1,6 @@
 (function(root){
  const config=Object.freeze({
-  physics:Object.freeze({playerRadius:20,playerMass:3,playerMaxSpeed:165,playerAcceleration:22,playerDeceleration:24,playerTurnResponse:30,playerOutsideMargin:70,ballMass:1,ballMaxSpeed:560,ballFriction:.60,ballDamping:.04,wallRestitution:.82,postRestitution:.62,postRadius:6,contactRestitution:.06,contactMaxPushSpeed:190,shotImpulse:460,passImpulse:340,passMinSpeed:300,passMaxSpeed:390,kickCooldown:.3,kickReach:12,kickBuffer:.12,recontactProtection:.12,contactIterations:8}),
+  physics:Object.freeze({playerRadius:20,playerMass:3,playerMaxSpeed:130,playerAcceleration:22,playerDeceleration:24,playerTurnResponse:30,playerOutsideMargin:70,ballMass:1.8,ballMaxSpeed:400,ballFriction:.38,ballDamping:.04,wallRestitution:.65,postRestitution:.48,postRadius:6,contactRestitution:.06,contactMaxPushSpeed:122,shotImpulse:320,passImpulse:250,passMinSpeed:230,passMaxSpeed:280,kickCooldown:.3,kickReach:12,kickBuffer:.12,recontactProtection:.12,contactIterations:8}),
   field:Object.freeze({areaDepth:200,areaPadding:100,centerRadius:105}),
   input:Object.freeze({deadzone:.08}),
   match:Object.freeze({introSeconds:10.2,entrySeconds:5,goalCelebrationSeconds:1.6,goalPauseSeconds:6.2,extraTimeSeconds:60,penaltySeconds:8,penaltyFlightSeconds:3,penaltyPauseSeconds:1.2}),

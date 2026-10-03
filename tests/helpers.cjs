@@ -87,7 +87,7 @@ function gameHarness({ original = false, saved } = {}) {
   // Test-only access inside the legacy closure; no debug API is shipped in the game.
   const probe = `globalThis.gameProbe = {
     start, show, update, draw, kick, moveBall, kickoff, endMatch, lockStart, lkStep, lkDraw, netUpd,
-    ${original?'':'drawWithReplay, goalReplay, replaySkip,'}
+    ${original?'':'drawWithReplay, goalReplay, replaySkip, replayCredits,'}
     get state(){return {G,P,ball,save,keys,tj,tb,ljs,inv,NET,LK,W,H,GY0,GY1,BR};}
   };`;
   if (original) vm.runInContext(html.match(/<script>\r?\n([\s\S]*?)<\/script>/)[1] + '\n' + probe, context);

@@ -128,7 +128,7 @@ function createRooms({db,auth,economy,career,origin,logger=console,syncResults=f
   if(!all(room).length){if(!room.match)rooms.delete(room.id);}else notify(room);
  }
  function edit(user,roomId,body){
-  const room=rooms.get(roomId);if(!room||room.owner!==user.id)fail('OWNER','Somente o anfitrião pode alterar a sala.',403);
+  const room=rooms.get(roomId);if(!room||room.owner!==user.id&&room.referee?.id!==user.id)fail('OWNER','Somente o anfitrião ou o árbitro designado pode alterar a sala.',403);
   if(room.match||room.ranked)fail('STARTED','A sala já iniciou.',409);
   object(body,['settings','homeTeamId','awayTeamId','playerId','destination','n','time','fs','ball','goalLimit','halftime','diff']);
   const beforeCfg=structuredClone(room.cfg),nextCfg={...room.cfg};for(const [key,min,max] of [['n',1,5],['time',60,600],['fs',0,2],['ball',0,2],['goalLimit',0,20],['diff',0,2]])if(body[key]!==undefined)nextCfg[key]=integer(body[key],key,min,max);
@@ -146,7 +146,7 @@ function createRooms({db,auth,economy,career,origin,logger=console,syncResults=f
   }
   if(body.playerId!==undefined){
    if(!['HOME','AWAY','SPECTATORS','HOME_COACH','AWAY_COACH','REFEREE'].includes(body.destination))fail('DESTINATION','Destino inválido.');
-   const p=all(room).find(p=>p.id===body.playerId);if(!p)fail('PLAYER','Jogador saiu da sala.',404);
+   const p=all(room).find(p=>p.id===body.playerId);if(!p)fail('PLAYER','Jogador saiu da sala.',404);if(room.owner!==user.id&&(body.destination==='REFEREE'||p.id===room.referee?.id))fail('OWNER','Somente o anfitrião pode alterar o posto do árbitro.',403);
    const coach=body.destination.endsWith('_COACH'),official=body.destination==='REFEREE',team=body.destination.startsWith('HOME')?0:body.destination.startsWith('AWAY')?1:null;
    if(coach&&(room.coaches||[]).some(q=>q.team===team&&q.id!==p.id)||official&&room.referee&&room.referee.id!==p.id)fail('FULL','Esse posto já está ocupado.',409);
    if(!coach&&team!==null&&room.players.filter(q=>q.team===team&&q.id!==p.id).length>=room.cfg.n)fail('FULL','Time cheio.',409);

@@ -35,8 +35,8 @@
   }
 
   function moveBall(state, dt, onGoal = () => {}, onImpact = () => {}) {
-    const { ball, G, W, H, GY0, GY1, BR } = state;
-    if(ball.sweepStart&&(G.phase==='play'||G.phase==='penalties')){const crossed=crossedGoal(ball.sweepStart,ball,state);if(crossed!==null)onGoal(crossed);}delete ball.sweepStart;
+    const { ball, G, W, H, GY0, GY1, BR } = state;let awarded=false;
+    if(ball.sweepStart&&(G.phase==='play'||G.phase==='penalties')){const crossed=crossedGoal(ball.sweepStart,ball,state);if(crossed!==null){awarded=true;onGoal(crossed);if(G.phase==='goal'){ball.vx*=.12;ball.vy*=.12;delete ball.sweepStart;return;}}}delete ball.sweepStart;
     const speed = Math.hypot(ball.vx, ball.vy);
     if (speed > CONFIG.maxSpeed) { ball.vx *= CONFIG.maxSpeed / speed; ball.vy *= CONFIG.maxSpeed / speed; }
     // Substeps limit travel to half a radius, including shots near a post.
@@ -52,31 +52,32 @@
         ball.y = clamp(ball.y, BR, H - BR); ball.vy *= -CONFIG.wallBounce; onImpact(Math.abs(ball.vy));
       }
       const mouth = ball.y > GY0 + CONFIG.postRadius + BR && ball.y < GY1 - CONFIG.postRadius - BR;
-      if (!mouth && (ball.x < BR || ball.x > W - BR)) {
+      if (!mouth && G.phase!=='goal' && (ball.x < BR || ball.x > W - BR)) {
         ball.x = clamp(ball.x, BR, W - BR); ball.vx *= -CONFIG.wallBounce; onImpact(Math.abs(ball.vx));
       }
-      for (const x of [0, W]) for (const y of [GY0, GY1]) {
+      if(G.phase!=='goal')for (const x of [0, W]) for (const y of [GY0, GY1]) {
         const impact = collideCircle(ball, x, y, BR + CONFIG.postRadius, CONFIG.postBounce);
         if (impact) onImpact(impact);
       }
+      if(!awarded&&(G.phase==='play'||G.phase==='penalties')){const scored=crossedGoal(previous,ball,state);if(scored!==null){awarded=true;onGoal(scored);if(G.phase==='goal'){ball.vx*=.12;ball.vy*=.12;return;}}}
       if(candidates?.length&&(G.phase==='play'||G.phase==='penalties')&&contacts.resolveContacts(candidates,ball,BR,step,notify,state)){
        for(const x of [0,W])for(const y of [GY0,GY1]){const impact=collideCircle(ball,x,y,BR+CONFIG.postRadius,CONFIG.postBounce);if(impact)onImpact(impact);}
       }
       const dx=ball.x-previous.x,dy=ball.y-previous.y;
       ball.rollX=(ball.rollX||0)+dy/BR;ball.rollY=(ball.rollY||0)-dx/BR;
-      if ((G.phase === 'play'||G.phase==='penalties')) {
+      if (!awarded&&(G.phase === 'play'||G.phase==='penalties')) {
         const team = crossedGoal(previous, ball, state);
-        if (team !== null) onGoal(team);
+        if (team !== null) {awarded=true;onGoal(team);if(G.phase==='goal'){ball.vx*=.12;ball.vy*=.12;return;}}
       }
       if (ball.x < 0 || ball.x > W) {
-        ball.y = clamp(ball.y, GY0 + BR, GY1 - BR);
+        const netY=clamp(ball.y,GY0+BR,GY1-BR);if(netY!==ball.y)ball.vy=0;ball.y=netY;
         const back = 46 - BR - 3;
         if (ball.x < -back || ball.x > W + back) {
-          ball.x = clamp(ball.x, -back, W + back); ball.vx *= -.2;
+          ball.x = clamp(ball.x, -back, W + back); ball.vx = 0; ball.vy *= .35;
         }
       }
     }
-    const friction = Math.pow(CONFIG.friction, dt);
+    const friction = Math.pow(G.phase==='goal'?.12:CONFIG.friction, dt);
     ball.vx *= friction; ball.vy *= friction;
     if (Math.hypot(ball.vx, ball.vy) < 45) { const slow = Math.pow(physics.ballDamping, dt); ball.vx *= slow; ball.vy *= slow; }
     if(Math.hypot(ball.vx,ball.vy)<.5)ball.vx=ball.vy=0;

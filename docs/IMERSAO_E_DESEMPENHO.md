@@ -2,7 +2,7 @@
 
 ## O que mudou
 
-- Velocidade base de 165 unidades/s, mudança rápida de direção e parada real imediata ao soltar o controle.
+- Velocidade base de 130 unidades/s, mudança rápida de direção e parada real imediata ao soltar o controle.
 - Círculo de interação com raio de 31,75–32,5 unidades. O desenho e o alcance real usam a mesma função.
 - Grande área proporcional: profundidade de 10,5% da largura; em 4v4, 14%. Dois defensores podem entrar; o terceiro é bloqueado pela física.
 - A saída de bola fica protegida até um contato ou comando válido da equipe responsável. Não expira por tempo.
@@ -12,7 +12,7 @@
 
 ## Técnicos e árbitro na sala personalizada
 
-Antes de iniciar, o dono da sala usa **Mover** para atribuir **Técnico mandante**, **Técnico visitante** ou **Árbitro**. Há uma vaga para cada papel. Esses participantes ficam fora do elenco da física e não chutam nem colidem com a bola.
+Antes de iniciar, o dono da sala usa **Mover** para atribuir **Técnico mandante**, **Técnico visitante** ou **Árbitro**. Há uma vaga para cada papel. Esses participantes ficam fora do elenco da física e não chutam nem colidem com a bola. O árbitro é um organizador da sala, sem personagem correndo dentro do campo. Antes de iniciar, ele pode mover jogadores entre times/espectadores e alterar regras, duração, dificuldade, formato e equipes. Somente o anfitrião pode atribuir ou trocar o posto de árbitro.
 
 Os técnicos têm **Chat dos técnicos**, disponível no lobby e durante a partida. O servidor restringe leitura e envio aos dois técnicos; o histórico comum não recebe essas mensagens.
 
@@ -40,6 +40,14 @@ Abra **http://127.0.0.1:5173** após `npm start` e pressione **Ctrl+F5**.
 
 A suíte cobre regras reais, permissões HTTP, chat isolado, congelamento da simulação, contagem, trajetória, colisões, rede e modos existentes. As cenas também foram examinadas no Edge com snapshots reais de partida. Testes locais não substituem testes entre aparelhos em uma conexão de internet.
 
-Validação desta versão: **118 testes passaram**, sem falhas; sintaxe verificada em **103 arquivos**. No Edge, foram conferidas as cenas em computador/celular e uma sala real com seis postos, botão do árbitro, pausa do relógio e retomada via HTTP/WebSocket.
+Validação desta versão: **126 testes passaram**, sem falhas; sintaxe verificada em **104 arquivos**. No Edge, foram conferidas as cenas em computador/celular e uma sala real com seis postos, botão do árbitro, pausa do relógio e retomada via HTTP/WebSocket.
 
 Carga WebSocket local: **16 conexões, 8 salas, 80 jogadores e 4 reconexões**, zero pacotes descartados. P95 de processamento: **9,93 ms**; pico: **34,02 ms**. O ensaio também confirmou matchmaking e persistência da desistência.
+
+## Ajuste de peso e ritmo
+
+Jogador: 165 → 130 unidades/s; chute: 460 → 320; passe: 340 → 250; limite da bola: 560 → 400. A massa relativa da bola passou de 1 para 1,8, com transferência gradual nos contatos e parte da correção aplicada ao jogador. Condução tem limite de 122 unidades/s e atrito maior; soltar o controle continua zerando a velocidade real do jogador.
+
+O gol é reconhecido ao cruzar completamente a linha, antes de contatos posteriores com jogadores fora do campo. A rede amortece a bola e a mantém dentro do gol. Contatos junto à trave continuam sendo colisões válidas. O replay exibe autor e assistência; gols contra e jogadas sem assistência são indicados explicitamente.
+
+Os bots calculam distâncias de passe e chute usando força, atributos e resistência ao rolamento. Foram verificados oito casos específicos dessa atualização, além da suíte existente: condução gradual, parada, chute/passe, retenção da bola nas redes, nomes e assistência, árbitro no lobby e decisão de avançar em vez de chutar de longe.

@@ -14,7 +14,10 @@
     // Players follow control input as kinematic bodies: bounce once at contact,
     // rather than retain velocity into an immovable body for repeated corrections.
     let impulse=-(1+config.contactRestitution)*relative,normalSpeed=ball.vx*n.x+ball.vy*n.y;
-    if(normalSpeed>=0)impulse=Math.min(impulse,Math.max(0,config.contactMaxPushSpeed-normalSpeed));
+    if(normalSpeed>=0){
+     const drive=p.vx*n.x+p.vy*n.y,transfer=1-Math.exp(-24*dt*config.playerMass/(config.playerMass+config.ballMass));
+     impulse=Math.min(impulse,Math.max(0,Math.min(drive,config.contactMaxPushSpeed)-normalSpeed))*transfer;
+    }
     impulseX+=impulse*n.x;impulseY+=impulse*n.y;
    }
   }
@@ -28,7 +31,7 @@
    const balanced=active>1&&Math.hypot(nx,ny)<.8;let dx=0,dy=0;
    for(let i=0;i<players.length;i++){
     const p=players[i],n=scratch[i];if(p.inactive||n.d>=distance-.001)continue;
-    const depth=distance-n.d,share=balanced?0:active===1?1:.6;
+    const depth=distance-n.d,share=balanced?0:active===1?(p.vx*n.x+p.vy*n.y>0?config.playerMass/(config.playerMass+config.ballMass):1):.6;
     dx+=n.x*depth*share;dy+=n.y*depth*share;p.x-=n.x*depth*(1-share);p.y-=n.y*depth*(1-share);
    }
    const x=ball.x,y=ball.y;ball.x+=dx/active;ball.y+=dy/active;

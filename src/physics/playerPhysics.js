@@ -19,7 +19,7 @@
    if(G.restarting){G.restarting=false;G.firstTouch=p.id;}
    effects.touch?.(p);
    const id=p.id??P.indexOf(p);
-   if(ball.lastPlayer!==id){ball.previousTouch={id:ball.lastPlayer,team:ball.last,time:ball.touchTime};ball.lastPlayer=id;ball.touchTime=G.elapsed||G.el||0;}ball.last=p.team;
+   if(ball.lastPlayer!==id){ball.previousTouch={id:ball.lastPlayer,team:ball.last,time:ball.touchTime};ball.lastPlayer=id;}ball.touchTime=G.elapsed||G.el||0;ball.last=p.team;
   }
   function kick(p,type,aim){
    if(G.kl>0||p.cd>0||G.restarting&&p.team!==G.ko||p.inactive)return false;
@@ -28,7 +28,7 @@
    let ax=aim?.x,ay=aim?.y;
    if(!aim){ax=type==='p'?p.fx:(length?dx/length:p.fx);ay=type==='p'?p.fy:(length?dy/length:p.fy);}
    const n=Math.hypot(ax,ay)||1;
-   const power=type==='s'?config.shotImpulse:aim?clamp(230+n*.45,config.passMinSpeed,config.passMaxSpeed):config.passImpulse;
+   const power=type==='s'?config.shotImpulse:aim?clamp(210+n*.25,config.passMinSpeed,config.passMaxSpeed):config.passImpulse;
    G.restarting=false;G.kl=.08;p.cd=config.kickCooldown;
    const ability=type==='s'?p.attributes?.shooting:p.attributes?.passing,factor=clamp((ability??70)/70,.8,1.2);
    const ux=ax/n,uy=ay/n,along=ball.vx*ux+ball.vy*uy;
@@ -64,7 +64,7 @@
     const blocked=G.restarting&&p.team!==G.ko;
     if(blocked){i.x=i.y=0;i.shoot=i.pass=false;}
     let l=Math.hypot(i.x,i.y);if(l>1){i.x/=l;i.y/=l;l=1;}
-    const sp=p.ctrl==='ai'?[145,157,165][G.cfg.diff]:config.playerMaxSpeed;
+    const sp=p.ctrl==='ai'?[114,123,130][G.cfg.diff]:config.playerMaxSpeed;
     movement.integrate(p,i,dt,sp);p.cd-=dt;p.st=1;
     for(const type of ['shoot','pass']){
      const edge=i[type]&&!p[type+'Held']||Number.isSafeInteger(i[type+'Seq'])&&i[type+'Seq']>(p[type+'Seq']||0);

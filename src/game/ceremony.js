@@ -18,9 +18,8 @@
    else {p.x=target.x;p.y=target.y;p.fx=p.team?-1:1;p.fy=0;}
   });return G.startRemaining===0;
  }
- function official(s,dt){const G=s.G;G.official??={x:s.W/2,y:s.H/2-120,mode:'PRE_MATCH'};const r=G.official;r.mode=G.pauseState||(['starting','intro'].includes(G.phase)?G.startStage:G.phase==='goal'?'GOAL':G.phase==='end'?'FULL_TIME':G.phase==='halftime'?'HALF_TIME':G.phase==='play'?'PLAY':G.phase.toUpperCase());if(G.pauseState)return;
-  let x=s.ball.x-60,y=s.ball.y+(s.ball.y<s.H/2?70:-70);if(G.phase!=='play'){x=s.W/2;y=s.H/2-120;}x=clamp(x,35,s.W-35);y=clamp(y,30,s.H-30);const dx=x-r.x,dy=y-r.y,d=Math.hypot(dx,dy),step=Math.min(d,95*dt);if(d){r.x+=dx/d*step;r.y+=dy/d*step;}
- }
+ // The referee is a room organizer; retain only the match-control status.
+ function official(s){const G=s.G;G.official??={mode:'PRE_MATCH'};G.official.mode=G.pauseState||(['starting','intro'].includes(G.phase)?G.startStage:G.phase==='goal'?'GOAL':G.phase==='end'?'FULL_TIME':G.phase==='halftime'?'HALF_TIME':G.phase==='play'?'PLAY':G.phase.toUpperCase());}
  function celebrate(s,dt){const scene=scenes.get(s.G)||{};if(!scene.goalTargets){const scorer=s.P.find(p=>p.id===s.G.scorerId)||s.P.find(p=>p.team===s.G.sc),x=clamp(scorer?.x??s.ball.x,60,s.W-60),y=clamp(scorer?.y??s.ball.y,55,s.H-55);scene.goalTargets=s.P.map((p,i)=>{const slot=p.slot??i,a=slot*Math.PI*2/Math.max(3,s.G.cfg.n),v=s.G.goalVariant||0,dx=p===scorer?0:v===0?Math.cos(a)*55:(slot%3-1)*48,dy=p===scorer?0:v===0?Math.sin(a)*55:v===1?48:slot*26-40;return p.team===s.G.sc?{x:clamp(x+dx,25,s.W-25),y:clamp(y+dy,25,s.H-25)}:{x:p.x,y:p.y};});scenes.set(s.G,scene);}
   for(let i=0;i<s.P.length;i++){const p=s.P[i],q=scene.goalTargets[i],dx=q.x-p.x,dy=q.y-p.y,d=Math.hypot(dx,dy),step=Math.min(d,75*dt);if(d){p.x+=dx/d*step;p.y+=dy/d*step;}p.hop=p.team===s.G.sc?Math.abs(Math.sin(s.G.pt*8+i))*10:0;} }
  function halftime(s,dt){let scene=scenes.get(s.G);if(!scene?.half){const target={...s,G:{...s.G,ko:1},P:s.P.map(p=>({...p}))};kickoff(target);scene={half:{from:s.P.map(p=>({x:p.x,y:p.y})),to:target.P.map(p=>({x:p.x,y:p.y}))}};scenes.set(s.G,scene);}const t=1-clamp(s.G.breakRemaining/6,0,1);for(let i=0;i<s.P.length;i++){const p=s.P[i],q=t<.5?scene.half.from[i]:scene.half.to[i],f=Math.sin(t*Math.PI);p.x=mix(q.x,s.W/2+(p.team?30:-30)+(i%5)*43,f);p.y=mix(q.y,s.H+55,f);p.vx=p.vy=0;p.hid=false;}}

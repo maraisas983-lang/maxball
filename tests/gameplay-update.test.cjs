@@ -13,7 +13,7 @@ test('contact remains gentler than a pass, and stationary overlaps add no energy
 });
 test('manual pass follows facing and recontact cannot immediately reverse it',()=>{
  const {m,p}=practice();p.fx=0;p.fy=-1;assert.ok(m.physics.kick(p,'p'));
- assert.equal(m.ball.vx,0);assert.equal(m.ball.vy,-340);
+ assert.equal(m.ball.vx,0);assert.equal(m.ball.vy,-250);
  p.x=m.ball.x;p.y=m.ball.y-30;p.vy=205;const before=m.ball.vy;resolveContacts([p],m.ball,11,1/60);assert.equal(m.ball.vy,before);
 });
 test('held shoot fires once; a new action sequence survives a short released tap',()=>{

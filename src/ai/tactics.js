@@ -3,7 +3,7 @@
  const field=typeof module!=='undefined'?require('../game/field.js'):root.MaxballField;
  const ballPhysics=typeof module!=='undefined'?require('../physics/ballPhysics.js'):root.MaxballBall;
  const interaction=typeof module!=='undefined'?require('../physics/interaction.js'):root.MaxballInteraction;
- const CONFIG=(typeof module!=='undefined'?require('../core/config.js'):root.MaxballConfig).ai;
+ const GAME_CONFIG=typeof module!=='undefined'?require('../core/config.js'):root.MaxballConfig,CONFIG=GAME_CONFIG.ai,PHYSICS=GAME_CONFIG.physics,rollingResistance=-Math.log(PHYSICS.ballFriction);
  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v)),distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
  const ROLES=['ATACANTE_CENTRAL','APOIO_DIREITO','MEIA_ESQUERDO','VOLANTE_CENTRAL','GOLEIRO'];
  class Tactics {
@@ -52,9 +52,9 @@
      if(p===chaser){
       state='PRESSING';scores.press=90;
       const targetY=enemy&&enemy.y>H/2?GY0+28:GY1-28;
-      let aim={x:goal,y:targetY},passTarget=null;
+      let aim={x:goal,y:targetY},passTarget=null;const passRange=PHYSICS.passMaxSpeed*clamp((p.attributes.passing??70)/70,.8,1.2)/rollingResistance*.85;
       for(const ally of players){
-       if(ally===p)continue;const range=distance(ally,ball);if(range<55||range>500)continue;
+       if(ally===p)continue;const range=distance(ally,ball);if(range<55||range>passRange)continue;
        const clear=this.clearLane(ball,ally,opponents,28),free=Math.min(160,...opponents.map(q=>distance(q,ally)));
        const score=(clear?28:-35)+free*.17+clamp((forward(ally.x)-forward(p.x))*.12,-20,25)-range*.03;
        if(score>scores.pass){scores.pass=score;passTarget=ally;}
@@ -62,7 +62,7 @@
       const request=G.cfg.career&&G.teamRequests?.[team],requester=request&&players.find(q=>q.id===request.playerId);
       const requested=requester&&request.until>(G.elapsed||G.el||this.time)&&requester!==p;
       const range=Math.abs(goal-ball.x),laneClear=this.clearLane(ball,aim,opponents,24),angle=Math.abs(ball.y-H/2);
-      scores.shoot=range<Math.min(600,W*.55)?(laneClear?122:70)-range*.055-angle*.055:-20;
+      scores.shoot=range<Math.min(W*.55,PHYSICS.shotImpulse*clamp((p.attributes.shooting??70)/70,.8,1.2)/rollingResistance*.85)?(laneClear?122:70)-range*.055-angle*.055:-20;
       scores.shoot*=p.attributes.aggression??(.8+(index%3)*.12);
       if(pressure<75)scores.pass+=22;
       if(requested&&request.type==='PASS'){passTarget=requester;scores.pass=150;}
