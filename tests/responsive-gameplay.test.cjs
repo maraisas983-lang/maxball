@@ -3,13 +3,13 @@ const {Match}=require('../server/online/match.cjs'),movement=require('../src/phy
 const cfg=require('../src/core/config.js');
 function practice(n=1){const m=new Match({id:'responsive',players:[{id:'human',team:0,slot:0}],cfg:{n,time:600}});m.G.restarting=false;for(const p of m.P){p.ctrl='remote';p.x=100+p.team*400+p.slot*50;p.y=100;}m.ball={x:350,y:250,vx:0,vy:0,rot:0};return m;}
 test('release stops real movement within one tick in every direction and after turning',()=>{
- for(let a=0;a<8;a++){const p={x:100,y:100,vx:0,vy:0,fx:1,fy:0},i={x:Math.cos(a*Math.PI/4),y:Math.sin(a*Math.PI/4)};for(let n=0;n<30;n++)movement.integrate(p,i,1/60);assert.ok(Math.hypot(p.vx,p.vy)<=205.001);movement.integrate(p,{x:-i.x,y:-i.y},1/60);const {x,y}=p;movement.integrate(p,{x:0,y:0},1/60);assert.deepEqual([p.x,p.y,p.vx,p.vy],[x,y,0,0]);}
+ for(let a=0;a<8;a++){const p={x:100,y:100,vx:0,vy:0,fx:1,fy:0},i={x:Math.cos(a*Math.PI/4),y:Math.sin(a*Math.PI/4)};for(let n=0;n<30;n++)movement.integrate(p,i,1/60);assert.ok(Math.hypot(p.vx,p.vy)<=165.001);movement.integrate(p,{x:-i.x,y:-i.y},1/60);const {x,y}=p;movement.integrate(p,{x:0,y:0},1/60);assert.deepEqual([p.x,p.y,p.vx,p.vy],[x,y,0,0]);}
 });
 test('online authoritative release has zero velocity; stopping near ball adds no force',()=>{
  const m=practice(),p=m.P[0];m.setInput(p.id,{x:1,y:0});for(let i=0;i<20;i++)m.update(1/60);m.setInput(p.id,{x:0,y:0});const x=p.x;m.update(1/60);assert.deepEqual([p.x,p.vx,p.vy],[x,0,0]);m.ball.x=p.x+30;m.ball.y=p.y;m.ball.vx=m.ball.vy=0;m.update(1/60);assert.equal(Math.hypot(m.ball.vx,m.ball.vy),0);
 });
 test('interaction ring and kick detection agree at the exact boundary on all fields',()=>{
- let previous=0;for(let n=1;n<=5;n++){const m=practice(n),p=m.P[0],r=interaction.radius(m);assert.ok(r>=33&&r<=36);assert.ok(r>=previous);previous=r;m.ball.x=p.x+r-.000001;m.ball.y=p.y;assert.ok(interaction.contains(p,m.ball,m));assert.ok(m.physics.kick(p,'p'));p.cd=0;m.G.kl=0;m.ball.x=p.x+r+.01;assert.equal(interaction.contains(p,m.ball,m),false);assert.equal(m.physics.kick(p,'s'),false);}
+ let previous=0;for(let n=1;n<=5;n++){const m=practice(n),p=m.P[0],r=interaction.radius(m);assert.ok(r>=31.75&&r<=32.5);assert.ok(r>=previous);previous=r;m.ball.x=p.x+r-.000001;m.ball.y=p.y;assert.ok(interaction.contains(p,m.ball,m));assert.ok(m.physics.kick(p,'p'));p.cd=0;m.G.kl=0;m.ball.x=p.x+r+.01;assert.equal(interaction.contains(p,m.ball,m),false);assert.equal(m.physics.kick(p,'s'),false);}
 });
 test('fast ball cannot cross a stationary player between physics ticks',()=>{
  const m=practice(),p=m.P[0];m.P=[p];p.x=400;p.y=250;m.ball.x=362;m.ball.vx=560;for(let i=0;i<30;i++){m.update(1/60);assert.ok(m.ball.x<=p.x-30.99);assert.ok(Math.hypot(m.ball.vx,m.ball.vy)<=560.001);}assert.ok(m.ball.vx<=0.5);

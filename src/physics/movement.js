@@ -1,7 +1,7 @@
 (function(root){
  const config=typeof module!=='undefined'?require('../core/config.js').physics:root.MaxballConfig.physics;
  function integrate(p,input,dt,speed=config.playerMaxSpeed){
-  const factor=v=>Math.max(.8,Math.min(1.2,(v??70)/70));speed*=factor(p.attributes?.speed);
+  const factor=v=>Math.max(.85,Math.min(1.1,(v??70)/70));speed*=factor(p.attributes?.speed);
   const norm=Math.max(1,Math.hypot(input.x,input.y)),x=input.x/norm,y=input.y/norm,length=Math.hypot(x,y);
   if(length<.01){p.vx=p.vy=0;return p;}
   const turning=p.vx*x+p.vy*y<0,response=turning?config.playerTurnResponse:config.playerAcceleration,k=1-Math.exp(-response*factor(p.attributes?.acceleration)*dt);

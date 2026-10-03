@@ -3,7 +3,7 @@
  function update(state,userId){
   const node=document.querySelector('#versus');
   if(state.G.phase!=='starting'){node.hidden=true;current=null;return;}
-  node.hidden=false;
+  node.hidden=!['PREPARE','LINEUP','STADIUM'].includes(state.G.startStage)||state.cfg.career&&state.G.startStage==='LINEUP';
   node.dataset.stage=state.G.startStage||'PREPARE';
   if(current!==state.matchId){
    current=state.matchId;const {el}=root.MaxballUI;node.replaceChildren();
@@ -16,7 +16,7 @@
    }
    box=root.MaxballUI.el('div',{class:'vs-count'});label=root.MaxballUI.el('strong');progress=root.MaxballUI.el('progress',{max:root.MaxballConfig.match.introSeconds});box.append(label,progress);node.append(root.MaxballUI.el('div',{class:'vs-sign',text:'VS'}),box);
   }
-  const text=state.G.startStage==='LINEUP'?state.cfg.n+' × '+state.cfg.n+' · '+(state.cfg.career?'CARREIRA':state.cfg.ranked?'RANQUEADA':'SALA PERSONALIZADA'):state.G.startStage==='ENTRY'?'ENTRANDO EM CAMPO':state.G.startRemaining>3?'PREPARANDO A PARTIDA':state.G.startRemaining>.2?String(Math.ceil(state.G.startRemaining)):'GO!';if(label.textContent!==text)label.textContent=text;progress.value=root.MaxballConfig.match.introSeconds-state.G.startRemaining;
+  const text=state.G.startStage==='LINEUP'?state.cfg.n+' × '+state.cfg.n+' · '+(state.cfg.career?'CARREIRA':state.cfg.ranked?'RANQUEADA':'SALA PERSONALIZADA'):state.cfg.career?'TRANSMISSÃO MAXBALL · BRASILEIRÃO':'PREPARANDO A PARTIDA';if(label.textContent!==text)label.textContent=text;progress.max=state.G.startDuration||root.MaxballConfig.match.introSeconds;progress.value=progress.max-state.G.startRemaining;
  }
  root.MaxballPresentation={update};
 })(globalThis);

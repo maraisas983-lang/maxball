@@ -33,7 +33,7 @@
    if(version===generation)shell.scrollTop=0;
    if(pendingAwards.length&&next==='career'){celebrate(pendingAwards);pendingAwards=[];}
   },
-  play(room){returnPage=room.kind==='CAREER'?'career':room.cfg.ranked?'ranked':'online';portal.connection.connect();portal.connection.socket?.readyState===WebSocket.OPEN&&portal.connection.socket.send(JSON.stringify({type:'subscribe'}));portal.status('Conectando à partida…');}
+  play(room){root.MaxballOfficials?.room(room);returnPage=room.kind==='CAREER'?'career':room.cfg.ranked?'ranked':'online';portal.connection.connect();portal.connection.socket?.readyState===WebSocket.OPEN&&portal.connection.socket.send(JSON.stringify({type:'subscribe'}));portal.status('Conectando à partida…');}
  };
  root.MaxballPortal=portal;
  function cardUnavailable(error,link){return el('article',{class:'login-card'},[el('h2',{text:'Conecte ao MAXBALL'}),note(error.message),link]);}
@@ -65,7 +65,7 @@
     if(!message.room&&root.MaxballGame.remote){root.MaxballGame.leaveRemote();return;}
     if(!message.room&&roomListener&&page==='online'&&shell.classList.contains('on')){portal.open('online').catch(portal.error);return;}
    }
-   if(message.type==='room')roomListener?.(message.room);
+   if(message.type==='room'){root.MaxballOfficials?.room(message.room);roomListener?.(message.room);}
    if(message.type==='snapshot')root.MaxballGame.snapshot(message.state,account.user.id);
    if(message.type==='result'){root.MaxballResults.show(message);
     Promise.all([portal.refreshAccount(),api('/profile')]).then(([,profile])=>{

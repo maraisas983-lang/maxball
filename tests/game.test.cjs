@@ -33,7 +33,7 @@ test('valid central goal rewards once through normal lifecycle and restarts play
   const h=gameHarness({saved:stableSave});h.api.start('bot');
   const s=h.api.state;s.ball.x=s.W+s.BR-1;s.ball.y=s.H/2;s.ball.vx=100;
   h.api.moveBall(1/30);assert.deepEqual(plain(s.G.score),[1,0]);assert.equal(s.G.phase,'goal');assert.equal(s.save.coins,210);
-  for(let i=0;i<320;i++)h.api.update(1/60);
+  for(let i=0;i<400;i++)h.api.update(1/60);
   assert.equal(s.G.phase,'play');assert.deepEqual(plain(s.G.score),[1,0]);assert.equal(s.save.coins,210);
   h.api.draw();
 });

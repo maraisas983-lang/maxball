@@ -1,9 +1,10 @@
 (function(root){
  const config=(typeof module!=='undefined'?require('../core/config.js'):root.MaxballConfig).field;
- function geometry(s){const scale=Math.max(1,Math.min(s.W/1000,s.H/560)),large=s.G?.cfg?.n===4||s.cfg?.n===4?1.25:1;return {areaDepth:config.areaDepth*scale*large,areaPadding:config.areaPadding*scale*large,centerRadius:config.centerRadius*scale};}
+ const geometryCache=new Map();
+ function geometry(s){const n=s.G?.cfg?.n||s.cfg?.n||2,key=s.W+':'+s.H+':'+n+':'+s.GY0+':'+s.GY1;let f=geometryCache.get(key);if(!f){const large=n===4;f=Object.freeze({areaDepth:s.W*(large?.14:.105),areaPadding:Math.min(s.H*(large?.095:.055),(s.H-(s.GY1-s.GY0))*.2),centerRadius:Math.min(s.W,s.H)*.16});geometryCache.set(key,f);if(geometryCache.size>24)geometryCache.delete(geometryCache.keys().next().value);}return f;}
  function inArea(p,team,s){const f=geometry(s),depth=team?s.W-p.x:p.x;return depth>=-50&&depth<=f.areaDepth&&p.y>=s.GY0-f.areaPadding&&p.y<=s.GY1+f.areaPadding;}
  function limitDefense(s,previous=new Map()){
-  if((s.G.cfg?.n||s.cfg?.n)!==4||s.G.phase!=='play'){s.G.areaOccupancy=[0,0];return;}
+  if(s.G.phase!=='play'){s.G.areaOccupancy=[0,0];return;}
   const f=geometry(s),counts=[0,0];
   for(let team=0;team<2;team++){
    const players=s.P.filter(p=>!p.inactive&&p.team===team&&inArea(p,team,s));

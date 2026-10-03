@@ -14,7 +14,7 @@ Transferências preservam as opções; não é necessária outra migração SQL.
 - **Contatos rápidos:** a bola era testada contra jogadores antes de andar. Agora os subpassos de deslocamento também resolvem contatos. Uma seleção inicial de candidatos evita testar todos os jogadores em cada subpasso.
 - **Bola junto à parede:** a correção de penetração podia empurrar a bola para fora e causar correções repetidas. O deslocamento bloqueado pela parede passa aos corpos envolvidos. Contatos simultâneos usam uma única velocidade inicial e arbitragem estável.
 - **Reação ao jogador parado:** os jogadores seguem os comandos como corpos cinemáticos. A bola reflete sua velocidade relativa já no primeiro contato, sem continuar avançando contra o corpo e depender de correções sucessivas. O contato não introduz uma velocidade residual no jogador.
-- **Alcance visual diferente do chute:** `src/physics/interaction.js` calcula o alcance usado tanto pelos comandos quanto pelo círculo. O raio inclui a distância máxima entre os centros do jogador e da bola, com a parcela adicional limitada entre 2 e 5 unidades. O círculo só aparece nos jogadores humanos controlados naquela tela; no local com dois controles, aparecem dois círculos.
+- **Alcance visual diferente do chute:** `src/physics/interaction.js` calcula o alcance usado tanto pelos comandos quanto pelo círculo. O raio inclui a distância máxima entre os centros do jogador e da bola, com a parcela adicional limitada entre 0,75 e 1,5 unidades. O círculo só aparece nos jogadores humanos controlados naquela tela; no local com dois controles, aparecem dois círculos.
 - **Chutes dos elencos reais:** os atributos desses jogadores não incluíam `aggression`. Multiplicar pelo valor ausente gerava `NaN`. O cálculo agora usa um valor padrão explícito.
 - **Intercepções erradas:** bots extrapolavam em linha reta através das paredes. A previsão compartilhada considera atrito, paredes e traves, uma vez por decisão. As decisões permanecem espaçadas em 200, 130 ou 85 ms, conforme a dificuldade. Mantêm funções táticas, um perseguidor por time, cobertura, apoio e separação; o jogador com posse assume a ação sem esperar a troca do perseguidor.
 - **Disputa travada no canto:** a margem externa do campo também está disponível aos bots, para se colocarem atrás da bola junto à linha. Nessa situação, priorizam um passe ao companheiro ou ao espaço central; pedidos de passe e chute da carreira continuam tendo prioridade. Um teste reproduz dois bots no canto e verifica que a bola sai dali.
@@ -27,9 +27,9 @@ Transferências preservam as opções; não é necessária outra migração SQL.
 - Passe manual: 280 → **340** unidades/s; passes com mira: **300–390** antes dos atributos.
 - Chute: 460 unidades/s; limite da bola: 560 unidades/s. Há uma contribuição pequena do movimento do jogador e da velocidade tangencial anterior da bola, respeitando o limite.
 - Atrito da bola: fator por segundo 0,52 → **0,60**, preservando mais movimento. Velocidades abaixo de 0,5 são zeradas para encerrar o movimento residual.
-- Entrada local: 170 → **110** unidades/s. A opção de pular continua disponível.
-- Entrada online: 0,8 → **2,8 segundos**; apresentação total: **8 segundos**.
-- Bola: painéis projetados sobre uma esfera, sombra e iluminação fixa, com rotação em dois eixos derivada do deslocamento. Usa canvas 2D e até 96 imagens de 48×48, cerca de 0,85 MiB de pixels, além da memória do navegador.
+- Entrada local e online usam a mesma sequência com movimento suave e saídas escalonadas. A opção de pular a entrada local continua disponível.
+- Entrada online: 0,8 → **5 segundos**; apresentação comum: **10,2 segundos**, carreira: **21,8 segundos**.
+- Bola: painéis projetados sobre uma esfera, sombra e iluminação fixa, com rotação em dois eixos derivada do deslocamento. Usa canvas 2D e até 96 imagens de 96×96, cerca de 3,4 MiB de pixels, além da memória do navegador.
 
 ## Rede e limites da previsão
 
@@ -61,7 +61,9 @@ Reproduza com `node scripts/gameplay-benchmark.cjs`, `node scripts/physics-bench
 ## Ajuste visual e replay de gol
 
 - Bola com 12 gomos pentagonais e 20 hexagonais conectados, iluminação suave, rotação e sprites de 96 px em cache limitado.
-- Círculo mais discreto: raio de 33 a 36 unidades, compartilhado com o alcance real de chute e passe.
+- Círculo mais discreto: raio de 31,75 a 32,5 unidades, compartilhado com o alcance real de chute e passe.
 - Replay automático dos últimos 3 segundos, gravados a 20 Hz e exibidos a 0,8× após a comemoração inicial. O buffer guarda no máximo 66 amostras de posições.
-- Replay disponível nas partidas locais, treino, carreira e online. Não repete física, gols, estatísticas ou recompensas. O servidor mantém uma pausa de 5,2 segundos após o gol.
+- Replay disponível nas partidas locais, treino, carreira e online. Não repete física, gols, estatísticas ou recompensas. O servidor mantém uma pausa de 6,2 segundos após o gol.
 - Pular replay retoma imediatamente a saída de bola local; no online, pula a imagem e aguarda a mesma saída sincronizada dos demais jogadores.
+
+Veja [Imersão e desempenho](IMERSAO_E_DESEMPENHO.md) para as regras, papéis e medições da atualização atual.

@@ -1,6 +1,6 @@
 (function(root){
  'use strict';
- const fields=['x','y','vx','vy','fx','fy','st','cd','hop','inactive'];
+ const fields=['x','y','vx','vy','fx','fy','st','cd','hop','inactive','hid'];
  const round=v=>typeof v==='number'?Math.round(v*100)/100:v;
  function snapshot(match,tick=0){
   const state={matchId:match.id,cfg:match.cfg,G:{...match.G,cfg:undefined,teamRequests:undefined},P:match.P,ball:match.ball,W:match.W,H:match.H,GY0:match.GY0,GY1:match.GY1,BR:match.BR};

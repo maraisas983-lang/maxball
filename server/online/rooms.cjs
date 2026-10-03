@@ -17,9 +17,10 @@ function createRooms({db,auth,economy,career,origin,logger=console,syncResults=f
  let socialEvent=()=>{};
  const rooms=new Map(),membership=new Map(),connections=new Map(),seenConnections=new Set();
  const wss=new WebSocketServer({noServer:true,maxPayload:4096,perMessageDeflate:false});
- const all=room=>[...room.players,...(room.spectators||[])];
+ const rosters=new WeakMap();
+ const all=room=>{let cached=rosters.get(room);if(!cached||cached.players!==room.players||cached.spectators!==room.spectators||cached.coaches!==room.coaches||cached.referee!==room.referee||cached.count!==room.players.length+(room.spectators?.length||0)+(room.coaches?.length||0)){cached={players:room.players,spectators:room.spectators,coaches:room.coaches,referee:room.referee,count:room.players.length+(room.spectators?.length||0)+(room.coaches?.length||0),members:[...room.players,...(room.spectators||[]),...(room.coaches||[]),...(room.referee?[room.referee]:[])]};rosters.set(room,cached);}return cached.members;};
  const member=p=>({id:p.id,name:p.name,num:p.num,team:p.team,slot:p.slot,connected:connections.has(p.id)});
- const visible=room=>({id:room.id,name:room.name,owner:room.owner,hostId:room.owner,kind:room.kind,hasPassword:!!room.passwordHash,cfg:room.cfg,settings:room.cfg.settings||settings(),homeTeam:room.cfg.teams?.[0],awayTeam:room.cfg.teams?.[1],status:room.match?.G.phase||'waiting',roomStatus:!room.match?'LOBBY':({starting:'STARTING',end:'FINISHED',penalties:'PENALTIES'})[room.match.G.phase]||(room.match.G.ot?'EXTRA_TIME':'PLAYING'),players:room.players.map(member),homePlayers:room.players.filter(p=>p.team===0).map(member),awayPlayers:room.players.filter(p=>p.team===1).map(member),spectators:(room.spectators||[]).map(member),matchId:room.match?.id||null});
+ const visible=room=>({id:room.id,name:room.name,owner:room.owner,hostId:room.owner,kind:room.kind,hasPassword:!!room.passwordHash,cfg:room.cfg,settings:room.cfg.settings||settings(),homeTeam:room.cfg.teams?.[0],awayTeam:room.cfg.teams?.[1],status:room.match?.G.phase||'waiting',roomStatus:room.match?.G.pauseState||(!room.match?'LOBBY':({starting:'STARTING',end:'FINISHED',penalties:'PENALTIES'})[room.match.G.phase]||(room.match.G.ot?'EXTRA_TIME':'PLAYING')),players:room.players.map(member),homePlayers:room.players.filter(p=>p.team===0).map(member),awayPlayers:room.players.filter(p=>p.team===1).map(member),spectators:(room.spectators||[]).map(member),coaches:(room.coaches||[]).map(member),referee:room.referee?member(room.referee):null,matchId:room.match?.id||null});
  const processingSamples=[],metrics={packets:0,bytes:0,dropped:0,reconnects:0,ticks:0,processingMs:0,peakProcessingMs:0,packetsPerSecond:0,bytesPerSecond:0};
  const send=(ws,data)=>{if(ws?.readyState!==1)return;if(ws.bufferedAmount>=256000){metrics.dropped++;ws.close(1013,'Reconecte para atualizar o estado');return;}const payload=typeof data==='string'?data:JSON.stringify(data);ws.send(payload);metrics.packets++;metrics.bytes+=Buffer.byteLength(payload);};
  const broadcast=(room,data)=>{const payload=JSON.stringify(data);for(const p of all(room))if(membership.get(p.id)===room.id)send(connections.get(p.id)?.ws,payload);};
@@ -94,7 +95,8 @@ function createRooms({db,auth,economy,career,origin,logger=console,syncResults=f
  function start(user,roomId){
   const room=rooms.get(roomId);if(!room||room.owner!==user.id)fail('OWNER','Somente o anfitrião pode iniciar.',403);
   if(room.match)fail('MATCH','Partida já iniciada.',409);
-  room.originalPlayers=room.players.map(p=>({...p}));room.cfg.presentation=true;
+  if(!room.players.length)fail('PLAYERS','Mantenha pelo menos um jogador em campo antes de iniciar.',409);
+  room.originalPlayers=room.players.map(p=>({...p}));room.cfg.presentation=true;room.cfg.coaches=(room.coaches||[]).map(member);room.cfg.referee=room.referee?member(room.referee):null;
   if(room.cfg.teams)room.cfg.labels=room.cfg.teams.map(t=>t.name);
   const matchId=id();
   room.match=new Match({id:matchId,players:room.players,cfg:room.cfg,seed:randomInt(0,0x7fffffff)});
@@ -120,7 +122,8 @@ function createRooms({db,auth,economy,career,origin,logger=console,syncResults=f
    room.left=room.left||new Set();room.left.add(userId);
    if(room.players.every(p=>room.left.has(p.id))){room.match.finish('ABANDONED');persistResult(room);}
   }else room.players=room.players.filter(p=>p.id!==userId);
-  room.players=room.players.filter(p=>p.id!==userId);room.spectators=(room.spectators||[]).filter(p=>p.id!==userId);
+  room.players=room.players.filter(p=>p.id!==userId);room.spectators=(room.spectators||[]).filter(p=>p.id!==userId);room.coaches=(room.coaches||[]).filter(p=>p.id!==userId);if(room.referee?.id===userId){room.referee=null;if(room.match){room.match.cfg.referee=null;if(room.match.G.pauseState)room.match.resume();}}
+  if(room.match){room.match.cfg.coaches=(room.coaches||[]).map(member);room.sentBaseline=false;}
   if(room.owner===userId)room.owner=all(room)[0]?.id;
   if(!all(room).length){if(!room.match)rooms.delete(room.id);}else notify(room);
  }
@@ -142,13 +145,14 @@ function createRooms({db,auth,economy,career,origin,logger=console,syncResults=f
    nextTeams=[home,teamData.contrast(home,away)];
   }
   if(body.playerId!==undefined){
-   if(!['HOME','AWAY','SPECTATORS'].includes(body.destination))fail('DESTINATION','Destino inválido.');
+   if(!['HOME','AWAY','SPECTATORS','HOME_COACH','AWAY_COACH','REFEREE'].includes(body.destination))fail('DESTINATION','Destino inválido.');
    const p=all(room).find(p=>p.id===body.playerId);if(!p)fail('PLAYER','Jogador saiu da sala.',404);
-   const team=body.destination==='HOME'?0:body.destination==='AWAY'?1:null;
-   if(team!==null&&room.players.filter(q=>q.team===team&&q.id!==p.id).length>=room.cfg.n)fail('FULL','Time cheio.',409);
-   if(team===null&&(room.spectators||[]).filter(q=>q.id!==p.id).length>=12)fail('FULL','Espectadores lotados.',409);
-   room.players=room.players.filter(q=>q.id!==p.id);room.spectators=(room.spectators||[]).filter(q=>q.id!==p.id);
-   p.team=team;p.slot=team===null?null:Array.from({length:room.cfg.n},(_,i)=>i).find(i=>!room.players.some(q=>q.team===team&&q.slot===i));(team===null?room.spectators:room.players).push(p);
+   const coach=body.destination.endsWith('_COACH'),official=body.destination==='REFEREE',team=body.destination.startsWith('HOME')?0:body.destination.startsWith('AWAY')?1:null;
+   if(coach&&(room.coaches||[]).some(q=>q.team===team&&q.id!==p.id)||official&&room.referee&&room.referee.id!==p.id)fail('FULL','Esse posto já está ocupado.',409);
+   if(!coach&&team!==null&&room.players.filter(q=>q.team===team&&q.id!==p.id).length>=room.cfg.n)fail('FULL','Time cheio.',409);
+   if(!coach&&!official&&team===null&&(room.spectators||[]).filter(q=>q.id!==p.id).length>=12)fail('FULL','Espectadores lotados.',409);
+   room.players=room.players.filter(q=>q.id!==p.id);room.spectators=(room.spectators||[]).filter(q=>q.id!==p.id);room.coaches=(room.coaches||[]).filter(q=>q.id!==p.id);if(room.referee?.id===p.id)room.referee=null;
+   p.team=team;p.slot=coach||official||team===null?null:Array.from({length:room.cfg.n},(_,i)=>i).find(i=>!room.players.some(q=>q.team===team&&q.slot===i));if(official)room.referee=p;else if(coach)room.coaches.push(p);else (team===null?room.spectators:room.players).push(p);
   }
   room.cfg={...nextCfg,settings:nextSettings};
   if(body.awayTeamId!==undefined)room.awayBase=clubs.select(user.id,body.awayTeamId);
@@ -160,6 +164,11 @@ function createRooms({db,auth,economy,career,origin,logger=console,syncResults=f
   const open=[...rooms.values()].find(r=>r.quick&&!r.match&&r.players.length===1);
   if(open){await join(user,open.id);start({id:open.owner},open.id);return visible(open);}
   const result=await create(user,{name:'Partida rápida',n:1,time:180});rooms.get(result.id).quick=true;return result;
+ }
+ function pause(user,roomId,body){
+  object(body,['paused']);const room=rooms.get(roomId);if(!room||room.kind!=='ONLINE'||room.ranked||membership.get(user.id)!==room.id||room.referee?.id!==user.id)fail('REFEREE','Somente o árbitro designado pode controlar a pausa.',403);
+  if(typeof body.paused!=='boolean'||!room.match||room.match.G.phase==='end'||room.match.G.phase==='starting')fail('PAUSE','Pausa indisponível neste momento.',409);
+  if(body.paused)room.match.pause(user.id);else room.match.resume();audit(user,body.paused?'REFEREE_PAUSE':'REFEREE_RESUME',room.match.id);notify(room);return visible(room);
  }
  function forfeit(room,userId,reason){
   if(room.match.G.phase==='end')return;const loser=room.players.find(p=>p.id===userId).team;
@@ -248,7 +257,7 @@ function createRooms({db,auth,economy,career,origin,logger=console,syncResults=f
   }catch{socket.write('HTTP/1.1 401 Unauthorized\r\nConnection: close\r\n\r\n');socket.destroy();}
  }
  function socialBroadcast(scope,data,allow=()=>true){const payload=JSON.stringify(data);for(const [uid,c] of connections)if((membership.get(uid)||'lobby')===scope&&allow(uid))send(c.ws,payload);}
- return {setSocial:callback=>{socialEvent=callback;},socialBroadcast,edit,clubs,ranked,rankedStatus,rankedJoin,rankedCancel,pairRanked,forfeit,create,join,start,leave,current,careerMatch,matchmaking,upgrade,
+ return {setSocial:callback=>{socialEvent=callback;},socialBroadcast,pause,edit,clubs,ranked,rankedStatus,rankedJoin,rankedCancel,pairRanked,forfeit,create,join,start,leave,current,careerMatch,matchmaking,upgrade,
   list:()=>[...rooms.values()].filter(r=>r.kind==='ONLINE'&&!r.ranked&&r.match?.G.phase!=='end').map(visible),online:()=>connections.size,
   close(){clearInterval(timer);for(const c of connections.values())c.ws.terminate();wss.close();},
   // Server-side state only, useful to deterministic integration tests.

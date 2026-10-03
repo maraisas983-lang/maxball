@@ -19,14 +19,14 @@
    const target=now-this.delay;
    while(this.frames.length>2&&this.frames[1].time<=target)this.frames.shift();
    const a=this.frames[0],b=this.frames[1]||a,t=a===b?1:Math.max(0,Math.min(1,(target-a.time)/(b.time-a.time||1)));
-   const discontinuity=a.state.G?.phase!==b.state.G?.phase||a.state.G?.ko!==b.state.G?.ko;
+   const discontinuity=a.state.G?.phase!==b.state.G?.phase||a.state.G?.ko!==b.state.G?.ko||a.state.G?.pauseState!==b.state.G?.pauseState;
    const mix=(x,y)=>discontinuity||Math.hypot(y.x-x.x,y.y-x.y)>120?{...y}:{...y,x:x.x+(y.x-x.x)*t,y:x.y+(y.y-x.y)*t};
    const players=a.players;
    const ball=mix(a.state.ball,b.state.ball);
    // Unwrap rolling angles without changing authoritative coordinates or velocities.
    for(const key of ['rollX','rollY'])if(Number.isFinite(a.state.ball[key])&&Number.isFinite(b.state.ball[key])&&!discontinuity)ball[key]=a.state.ball[key]+(b.state.ball[key]-a.state.ball[key])*t;
    const P=b.state.P.map(p=>mix(players.get(p.id)||p,p)),gap=Math.min(50,Math.max(0,target-b.time))/1000;
-   if(gap>0&&Number.isFinite(b.state.W)&&b.state.G.phase==='play'&&!b.state.G.restarting){
+   if(gap>0&&Number.isFinite(b.state.W)&&b.state.G.phase==='play'&&!b.state.G.restarting&&!b.state.G.pauseState){
     // A short missing frame can continue in free space. Never predict a contact.
     if(P.every(p=>p.inactive||Math.hypot(p.x-ball.x,p.y-ball.y)>80))Object.assign(ball,physics.predictTrajectory({...b.state,ball},gap));
     for(const p of P)if(!p.inactive&&Math.hypot(p.x-ball.x,p.y-ball.y)>80&&!P.some(q=>q!==p&&!q.inactive&&Math.hypot(p.x-q.x,p.y-q.y)<80)){

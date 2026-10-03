@@ -16,8 +16,10 @@
  // Geometry is shared by every cached rotation; only projection changes.
  for(const face of faces){face.samples=[];for(let i=0;i<face.points.length;i++){const a=face.points[i],b=face.points[(i+1)%face.points.length];for(let j=0;j<5;j++)face.samples.push(unit(a.map((v,k)=>v+(b[k]-v)*j/5)));}}
  function sprite(x,y){
-  const key=x+':'+y;let canvas=cache.get(key);if(canvas)return canvas;
-  canvas=document.createElement('canvas');canvas.width=canvas.height=size;const g=canvas.getContext('2d'),ax=x*tau/steps,ay=y*tau/steps;
+  const key=x+':'+y;let canvas=cache.get(key);if(canvas){cache.delete(key);cache.set(key,canvas);return canvas;}
+  if(cache.size>=96){const oldest=cache.keys().next().value;canvas=cache.get(oldest);cache.delete(oldest);}else{canvas=document.createElement('canvas');canvas.width=canvas.height=size;}
+  const g=canvas.getContext('2d');if(g.reset)g.reset();else canvas.width=size;
+  const ax=x*tau/steps,ay=y*tau/steps;
   const sa=Math.sin(ax),ca=Math.cos(ax),sb=Math.sin(ay),cb=Math.cos(ay);
   const rotate=([x,y,z])=>{const qy=y*ca-z*sa,qz=y*sa+z*ca;return [x*cb+qz*sb,qy,-x*sb+qz*cb];};
   g.translate(size/2,size/2);g.beginPath();g.arc(0,0,R,0,tau);g.clip();g.fillStyle='#fafbf9';g.fillRect(-R,-R,R*2,R*2);

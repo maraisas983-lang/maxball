@@ -73,7 +73,7 @@ function createApp({databasePath='var/maxball.sqlite',origin='http://127.0.0.1:5
    if(pathname==='/api/party')return json(res,200,rooms.party.view(uid));
    if(pathname==='/api/party/players'){const q='%'+String(url.searchParams.get('q')||'').slice(0,40)+'%';return json(res,200,db.all('SELECT u.id,p.display_name name FROM users u JOIN profiles p ON p.user_id=u.id WHERE u.id<>? AND (p.display_name LIKE ? OR u.id=?) LIMIT 10',uid,q,String(url.searchParams.get('q')||'')));}
    if(pathname==='/api/profile')return json(res,200,{profile:auth.profile(uid),achievements:db.all('SELECT * FROM accolades WHERE user_id=? ORDER BY created_at DESC',uid)});
-   if(pathname==='/api/chat')return json(res,200,social.history(uid));
+   if(pathname==='/api/chat')return json(res,200,social.history(uid,url.searchParams.get('channel')||'players'));
    if(pathname==='/api/emotes')return json(res,200,social.slots(uid));
    if(pathname==='/api/shop')return json(res,200,economy.catalog());
    if(pathname==='/api/gems')return json(res,200,{...payments.publicConfig(),history:payments.history(uid)});
@@ -119,6 +119,7 @@ function createApp({databasePath='var/maxball.sqlite',origin='http://127.0.0.1:5
    const offer=pathname.match(/^\/api\/career\/offers\/([\w-]+)$/);if(offer)return json(res,200,career.transfer(uid,offer[1],data));
    if(pathname==='/api/clubs')return json(res,201,rooms.clubs.create(uid,data));
    const editRoom=pathname.match(/^\/api\/rooms\/([\w-]+)$/);if(editRoom&&method==='PATCH')return json(res,200,rooms.edit(user,editRoom[1],data));
+   const pauseRoom=pathname.match(/^\/api\/rooms\/([\w-]+)\/pause$/);if(pauseRoom&&method==='POST')return json(res,200,rooms.pause(user,pauseRoom[1],data));
    if(pathname==='/api/rooms')return json(res,201,await rooms.create(user,data));
    if(pathname==='/api/rooms/leave'){rooms.leave(uid);return json(res,200,{ok:true});}
    if(pathname==='/api/ranked/join'){cloudSync?.assertReady();if(cloud&&rooms.party.current(uid)?.members.length>1&&(await cloud.partyVersion().catch(()=>null))!==2)fail('GROUPS_UNAVAILABLE','A ranqueada em grupo aguarda ativação pelo administrador.',503);return json(res,200,rooms.rankedJoin(user,data));}

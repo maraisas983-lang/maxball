@@ -70,8 +70,8 @@ test('account UI creates career, purchases/equips, renders admin and plays a ser
  app.rooms.leave(portal.account.user.id);portal.connection.onMessage({type:'connected',room:null});
  await until(()=>button('Criar sala'),'stale lobby cleared after server lost the room');
  await portal.open('ranked');assert.equal(app.rooms.rankedStatus(portal.account.user).queued,false);button('Buscar partida').click();await until(()=>app.rooms.rankedStatus(portal.account.user).queued,'explicit ranked search');
- button('Cancelar busca').click();await until(()=>!app.rooms.rankedStatus(portal.account.user).queued,'cancel ranked queue');
- button('Buscar partida').click();await until(()=>app.rooms.rankedStatus(portal.account.user).queued,'join ranked queue again');
+ await until(()=>button('Cancelar busca')&&!button('Cancelar busca').disabled,'ranked cancel control ready');button('Cancelar busca').click();await until(()=>!app.rooms.rankedStatus(portal.account.user).queued,'cancel ranked queue');
+ await until(()=>button('Buscar partida')&&!button('Buscar partida').disabled,'ranked search control ready');button('Buscar partida').click();await until(()=>app.rooms.rankedStatus(portal.account.user).queued,'join ranked queue again');
  const opponent=await app.auth.register({username:'ranked_opponent',password:'opponent-password-123'});
  const ws=new WebSocket(base.replace('http','ws')+'/ws',{origin,headers:{Cookie:'maxball_session='+opponent.token}});t.after(()=>ws.terminate());await once(ws,'open');
  let opponentSnapshot=null;ws.on('message',data=>{const message=JSON.parse(data);if(message.type==='snapshot')opponentSnapshot=message.state;});

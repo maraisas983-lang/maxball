@@ -63,13 +63,13 @@ test('human penalty shooter and keeper receive input, spectators do not',()=>{
 test('presentation blocks play, then advances exactly once into the authoritative kickoff',()=>{
  const m=new Match({id:'intro',players:[{id:'a',team:0,slot:0}],cfg:{presentation:true}}),initial=m.P.map(p=>[p.x,p.y]);
  m.setInput('a',{x:1,y:0,shoot:true});for(let i=0;i<120;i++)m.update(1/60);assert.equal(m.G.phase,'starting');assert.deepEqual(m.P.map(p=>[p.x,p.y]),initial);assert.equal(m.stats.a.inputs,0);
- for(let i=0;i<361;i++)m.update(1/60);assert.equal(m.G.phase,'play');assert.equal(m.G.startRemaining,0);assert.ok(m.G.restarting);
+ for(let i=0;i<Math.ceil(require('../src/core/config.js').match.introSeconds*60)-120;i++)m.update(1/60);assert.equal(m.G.phase,'play');assert.equal(m.G.startRemaining,0);assert.ok(m.G.restarting);
 });
 test('catalog includes all 21 requested Mamoball teams and contrasting alternatives',()=>{
  assert.equal(teams.teams.filter(t=>t.category==='MAMOBALL').length,21);assert.equal(teams.kits.length,22);
  const t=teams.teams.find(t=>t.name==='Palestra'),alt=teams.contrast(t,t);assert.notEqual(alt.primaryColor,t.primaryColor);assert.equal(t.primaryColor,'#158447');assert.equal(alt.alternate,true);
- assert.ok(geometry({W:1000,H:560,GY0:210,GY1:350}).areaDepth>=200);
- assert.ok(geometry({W:760,H:440,GY0:170,GY1:270}).centerRadius>80);
+ assert.ok(geometry({W:1000,H:560,GY0:210,GY1:350}).areaDepth===105);
+ assert.ok(geometry({W:760,H:440,GY0:170,GY1:270}).centerRadius>60);
 });
 test('contact crossing the goal line scores, while contact beside the post remains bounded',()=>{
  const m=new Match({id:'goal-contact',cfg:{n:2}});m.ball.x=m.W+12;m.ball.y=m.H/2;m.ball.vx=100;m.ball.vy=0;m.ball.sweepStart={x:m.W+10,y:m.H/2};m.moveBall(1/60,t=>m.goal(t));assert.deepEqual(m.G.score,[1,0]);

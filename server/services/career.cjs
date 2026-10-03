@@ -71,7 +71,7 @@ function createCareer(db,economy){
   if(index<0)fail('FIXTURE','Temporada concluída.',409);
   const config=JSON.parse(career.config);
   const fixture=schedule[index],home=db.one('SELECT * FROM clubs WHERE id=?',career.club_id),away=db.one('SELECT * FROM clubs WHERE id=?',fixture.opponent);
-  return {career,current,fixture,index,cfg:{n:5,time:config.time??120,gold:fixture.competition==='league'?0:1,diff:config.diff??1,sk0:home.kit,sk1:away.kit,teams:[{...teamData.fromClub(home),squad:JSON.parse(career.roster)},{...teamData.contrast(teamData.fromClub(home),teamData.fromClub(away)),squad:rosters.forTeam(away.id)?.players}],labels:[home.name,away.name]}};
+  return {career,current,fixture,index,cfg:{n:5,halftime:true,time:config.time??120,gold:fixture.competition==='league'?0:1,diff:config.diff??1,sk0:home.kit,sk1:away.kit,teams:[{...teamData.fromClub(home),squad:JSON.parse(career.roster)},{...teamData.contrast(teamData.fromClub(home),teamData.fromClub(away)),squad:rosters.forTeam(away.id)?.players}],labels:[home.name,away.name]}};
  }
  function accolade(career,code,title,kind,details){
   db.run('INSERT OR IGNORE INTO accolades VALUES(?,?,?,?,?,?,?,?,?,?)',id(),career.user_id,career.id,career.season,career.club_id,kind,code,title,JSON.stringify(details),Date.now());

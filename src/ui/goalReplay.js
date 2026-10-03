@@ -1,5 +1,6 @@
 (function(root){
  'use strict';
+ const delay=(typeof module!=='undefined'?require('../core/config.js'):root.MaxballConfig).match.goalCelebrationSeconds;
  // Only visual positions are recorded. Playback never runs physics or match events.
  class GoalReplay{
   constructor(){this.reset();}
@@ -13,8 +14,8 @@
   skip(){this.clip=null;this.frames=[];}
   advance(dt){if(this.clip)this.age+=dt;}
   sample(){
-   const clip=this.clip;if(!clip||clip.length<2||this.age<.85)return null;
-   const first=clip[0],last=clip[clip.length-1],t=first.time+(this.age-.85)*.8;
+   const clip=this.clip;if(!clip||clip.length<2||this.age<delay)return null;
+   const first=clip[0],last=clip[clip.length-1],t=first.time+(this.age-delay)*.8;
    if(t>last.time+.18){this.skip();return null;}
    let i=1;while(i<clip.length-1&&clip[i].time<t)i++;const a=clip[i-1],b=clip[i],f=Math.max(0,Math.min(1,(t-a.time)/(b.time-a.time||1)));
    const mix=(x,y)=>x+(y-x)*f,ball={...b.ball};for(const k of ['x','y','rollX','rollY','rot'])ball[k]=mix(a.ball[k]||0,b.ball[k]||0);

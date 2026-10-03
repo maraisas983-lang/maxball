@@ -24,7 +24,7 @@ test('square roles, one chaser, human area reservation and hysteresis',()=>{
  const m=new Match({id:'ai',players:[{id:'human',team:0,slot:0}],cfg:{n:4}});m.G.restarting=false;m.P[0].x=80;m.P[0].y=m.H/2;m.ball.x=100;m.ball.y=m.H/2;
  const brain=new Tactics(()=>m,()=>.5);brain.update(.1);
  const team=m.P.filter(p=>p.team===0);assert.equal(new Set(team.map(p=>p.role)).size,4);assert.equal(team.filter(p=>p.primaryBallChaser).length,1);assert.ok(team.every(p=>p.defensiveAreaOwner==='human'));
- for(const p of team.filter(p=>p.ctrl==='ai'))assert.ok(p.targetPosition.x>=150||p.targetPosition.y<m.GY0-70||p.targetPosition.y>m.GY1+70);
+ assert.ok(team.every(p=>p.defensiveAreaOwners.includes('human')));assert.ok(team.every(p=>p.defensiveAreaOwners.length<=2));
  const chaser=team.find(p=>p.primaryBallChaser).id;m.ball.x+=2;brain.update(.1);assert.equal(team.find(p=>p.primaryBallChaser).id,chaser);
 });
 test('career pass request directs an actual kick toward the human; shot request aims at goal',()=>{
