@@ -2,12 +2,15 @@ services:
   - type: web
     name: maxball
     runtime: node
+    branch: develop/maxball
     plan: starter
     region: ohio
-    buildCommand: npm ci
+    buildCommand: npm ci --omit=dev
     startCommand: npm start
     healthCheckPath: /api/health
     envVars:
+      - key: NODE_VERSION
+        value: 24.19.0
       - key: NODE_ENV
         value: production
       - key: HOST
@@ -16,8 +19,6 @@ services:
         value: /opt/render/project/src/var/maxball.sqlite
       - key: AUTH_PROVIDER
         value: local
-      - key: PUBLIC_ORIGIN
-        value: https://maxball.onrender.com
       - key: ADMIN_EMAILS
         sync: false
       - key: SUPABASE_URL
