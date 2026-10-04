@@ -114,3 +114,9 @@ futura nos anexos, como clãs e passe de temporada, não foram ativados nesta en
 Concluídos: painel dos dois times e espectadores, rascunho com revisão e confirmação, trocas em lote com animações em sequência, personagem a 160 unidades/s, menor desaceleração da bola, rotação pelo deslocamento real e decisões dos bots online em worker separado. A suíte completa passou com 150 testes; o painel foi verificado no Edge em desktop e celular. Consulte [Substituições e bots](SUBSTITUICOES_E_BOTS.md).
 
 O processo local já aberto precisa ser reiniciado para carregar as alterações Node. A revisão automática rejeitou essa reinicialização em uma tentativa anterior, sem fornecer motivo detalhado; ela não foi contornada. As pendências de acesso Supabase e Render acima permanecem.
+
+## Estádios, skins e campeonatos
+
+Foram adicionados cinco estádios, escalação tática antes da partida, editor de skins com camadas, clubes públicos e privados com integrantes, chat da sala em popup, designação de árbitro durante a partida pelo dono e as oito patentes solicitadas. Campeonatos e elencos passam por aprovação no Command Center; taxas por clube têm cobrança e devolução registradas em transações.
+
+A migração SQLite `009_community.sql` é automática ao iniciar o servidor. O banco local recebeu backup. A suíte completa passou com 158 testes, e os fluxos foram verificados no Edge em desktop e telas pequenas. Consulte [Como usar](ESTADIOS_SKINS_E_CAMPEONATOS.md). O processo Node antigo precisa ser reiniciado para carregar estas rotas e a migração. A rejeição automática anterior à reinicialização não foi contornada; as limitações de acesso externo descritas neste documento permanecem.

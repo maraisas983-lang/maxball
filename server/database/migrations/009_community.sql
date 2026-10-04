@@ -1,0 +1,10 @@
+ALTER TABLE custom_clubs ADD COLUMN visibility TEXT NOT NULL DEFAULT 'PUBLIC' CHECK(visibility IN('PUBLIC','PRIVATE'));
+ALTER TABLE custom_clubs ADD COLUMN design TEXT;
+CREATE TABLE club_members(club_id TEXT NOT NULL REFERENCES custom_clubs(id),user_id TEXT NOT NULL REFERENCES users(id),status TEXT NOT NULL CHECK(status IN('PENDING','APPROVED')),created_at INTEGER NOT NULL,PRIMARY KEY(club_id,user_id));
+INSERT INTO club_members SELECT id,owner_id,'APPROVED',created_at FROM custom_clubs;
+CREATE INDEX member_clubs ON club_members(user_id,status);
+CREATE TABLE custom_skins(id TEXT PRIMARY KEY,owner_id TEXT NOT NULL REFERENCES users(id),name TEXT NOT NULL,design TEXT NOT NULL,created_at INTEGER NOT NULL,updated_at INTEGER NOT NULL);
+CREATE TABLE championships(id TEXT PRIMARY KEY,creator_id TEXT NOT NULL REFERENCES users(id),name TEXT NOT NULL,description TEXT NOT NULL,n INTEGER NOT NULL CHECK(n BETWEEN 1 AND 5),entry_fee INTEGER NOT NULL CHECK(entry_fee BETWEEN 0 AND 10000),max_teams INTEGER NOT NULL CHECK(max_teams BETWEEN 2 AND 64),starts_at INTEGER NOT NULL,status TEXT NOT NULL CHECK(status IN('PENDING','APPROVED','REJECTED','CANCELLED')),created_at INTEGER NOT NULL,updated_at INTEGER NOT NULL);
+CREATE TABLE championship_entries(id TEXT PRIMARY KEY,championship_id TEXT NOT NULL REFERENCES championships(id),club_id TEXT NOT NULL REFERENCES custom_clubs(id),captain_id TEXT NOT NULL REFERENCES users(id),status TEXT NOT NULL CHECK(status IN('PENDING','APPROVED','REJECTED','WITHDRAWN')),fee_paid INTEGER NOT NULL CHECK(fee_paid>=0),refunded INTEGER NOT NULL DEFAULT 0,created_at INTEGER NOT NULL,updated_at INTEGER NOT NULL);
+CREATE UNIQUE INDEX championship_active_club ON championship_entries(championship_id,club_id) WHERE status IN('PENDING','APPROVED');
+CREATE TABLE championship_players(entry_id TEXT NOT NULL REFERENCES championship_entries(id),user_id TEXT NOT NULL REFERENCES users(id),PRIMARY KEY(entry_id,user_id));

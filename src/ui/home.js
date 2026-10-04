@@ -15,7 +15,7 @@
  }
  for(const [id,direction] of [['#home-prev',-1],['#home-next',1]])$(id).onclick=async()=>{try{await cycle(direction);}catch(error){root.MaxballGame.toast(error.message);}};
  const chatLink=document.querySelector('[data-account-page=chat]');if(!chatLink){const chatButton=document.querySelector('#home-chat');if(chatButton)chatButton.onclick=()=>root.MaxballPortal.open('chat');}
- root.MaxballHome={refresh};refresh();
+ const footer=document.querySelector('.home-footer');if(footer){const buttons=root.MaxballUI.el('div',{class:'community-links'},[root.MaxballUI.button('Campeonatos',()=>root.MaxballPortal.open('championships'),'secondary'),root.MaxballUI.button('Criar skins',()=>root.MaxballPortal.open('skins'),'secondary')]);footer.prepend(buttons);}root.MaxballHome={refresh};refresh();
  async function announcement(){
   if(document.hidden||!$('#home').classList.contains('on')||location.protocol==='file:')return;
   try{const config=await root.MaxballAPI.request('/config'),welcome=document.querySelector('.home-footer>span');if(welcome)welcome.textContent=config.announcement||'Bem-vindo ao MAXBALL!';}catch{}

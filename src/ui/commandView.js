@@ -2,7 +2,7 @@
  const {el,card,note,button,field,form,table,metrics}=root.MaxballUI;
  root.MaxballViews.command=async portal=>{
   const layout=el('div',{class:'command-center'}),sidebar=el('aside',{class:'command-sidebar'},[el('h2',{text:'MAXBALL / OPS'})]),main=el('main',{class:'command-main'}),status=note('Conectando ao servidor…');
-  const pages=['Visão geral','Ao vivo','Jogadores','Partidas','Salas','Ranqueada','Carreira','Suporte','Denúncias','Moderação','Logs','Command Center','Configurações','Pagamentos'];let page='Visão geral',stopped=false,query='',timer;
+  const pages=['Visão geral','Ao vivo','Jogadores','Partidas','Salas','Ranqueada','Carreira','Suporte','Denúncias','Moderação','Logs','Command Center','Configurações','Pagamentos','Campeonatos'];let page='Visão geral',stopped=false,query='',timer;
   layout.append(sidebar,main);portal.content.append(layout);let data=await portal.api('/command');
   const capabilities=data.capabilities,can=c=>capabilities.includes(c);
   async function load(){data=await portal.api('/command?q='+encodeURIComponent(query));if(data.errors>=10)data.alerts.push({id:'errors',text:'Taxa elevada de erros: '+data.errors+' no último minuto'});if(data.network.p95ProcessingMs>16.67)data.alerts.push({id:'tick',text:'Processamento acima do orçamento de 16,67 ms'});if(data.network.queueWait>60)data.alerts.push({id:'queue',text:'Há jogadores aguardando há mais de um minuto'});if(stopped)return;status.textContent='Atualizado '+new Date().toLocaleTimeString('pt-BR')+' · '+data.network.connections+' online';}
@@ -15,6 +15,7 @@
    else if(page==='Salas')main.append(table(['Código','Nome','Jogadores','Estado'],data.rooms.map(r=>[r.id,r.name,r.players.length,r.roomStatus])));
    else if(['Partidas','Ranqueada','Carreira'].includes(page))main.append(table(['ID','Modo','Placar','Estado'],data.matches.filter(m=>page==='Carreira'?m.kind==='CAREER':page==='Ranqueada'?m.ranked:true).map(m=>[m.id,m.kind,m.score,m.status])));
    else if(page==='Logs')main.append(table(['Horário','Autor','Ação','Recurso','Resultado'],data.logs.map(l=>[new Date(l.created_at).toLocaleString(),l.actor_id||'Sistema',l.action,l.resource,l.result])));
+   else if(page==='Campeonatos'){if(!can('settings')){main.append(note('Seu papel não permite administrar campeonatos.'));return;}const target=el('div');main.append(target);await root.MaxballChampionships.admin({...portal,content:target});}
    else if(page==='Pagamentos'){
     if(!can('settings')){main.append(note('Seu papel não permite configurar pagamentos.'));return;}
     const c=await portal.api('/command/payments'),fields=[];

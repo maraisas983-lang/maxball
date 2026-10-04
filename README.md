@@ -58,3 +58,7 @@ O save offline mantém `maxball` e `maxball.backup`. Moedas e cosméticos locais
 Documentação: [revisão de todos os pedidos e estado atual](docs/REVISAO_FINAL.md), [configuração](docs/CONFIGURACAO.md), [deploy](docs/DEPLOY.md), [jogabilidade](docs/JOGABILIDADE_RESPONSIVA.md), [imersão e desempenho](docs/IMERSAO_E_DESEMPENHO.md), [auditoria histórica](docs/AUDITORIA.md).
 
 Para medir a física: `node scripts/physics-benchmark.cjs`. `npm.cmd run check:supabase` verifica a instalação externa sem imprimir credenciais. O teste local não publica o jogo no Render. Consulte a revisão final para o estado da migração dos grupos e da hospedagem.
+
+## Estádios e comunidade
+
+Escolha entre cinco estádios nas salas, na carreira e nos modos locais. A entrada apresenta a escalação com nomes e skins do time. **Criar skins** abre o editor de cores e camadas; aplique as skins aos clubes. Clubes públicos e privados recebem vários integrantes. **Campeonatos** permite propostas e inscrições por clube, com aprovação no Command Center e entrada grátis ou taxa em gemas. Veja [Como usar](docs/ESTADIOS_SKINS_E_CAMPEONATOS.md).

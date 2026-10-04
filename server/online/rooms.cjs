@@ -51,12 +51,12 @@ function createRooms({db,auth,economy,career,origin,logger=console,syncResults=f
   (spectator?room.spectators:room.players).push({id:user.id,name:profile.shirt_name,num:profile.shirt_number,team:spectator?null:team,slot:spectator?null:slot});room.disconnected??={};room.disconnected[user.id]=Date.now();membership.set(user.id,room.id);audit(user,'ROOM_JOIN',room.id,{spectator});socialEvent(room.id,profile.display_name+' entrou na sala.');notify(room);return visible(room);
  }
  async function create(user,body){
-  object(body,['name','password','n','time','gold','fs','diff','settings','ball','goalLimit','halftime']);
+  object(body,['name','password','n','time','gold','fs','diff','settings','ball','goalLimit','halftime','stadium']);
   if(ranked.queue.has(user.id))fail('QUEUE','Cancele a busca ranqueada primeiro.',409);
   if(membership.has(user.id))fail('ROOM','Saia da sala atual primeiro.',409);
   if(rooms.size>=100)fail('CAPACITY','Servidor cheio. Tente novamente.',503);
   const room={id:id(),owner:user.id,name:text(body.name||'Sala MAXBALL','Nome da sala',3,40),kind:'ONLINE',players:[],createdAt:Date.now(),cfg:{n:integer(body.n??2,'Formato',1,5),time:integer(body.time??180,'Tempo',60,600),gold:integer(body.gold??0,'Gol de ouro',0,1),fs:0,diff:integer(body.diff??1,'Dificuldade',0,2),ball:1,goalLimit:integer(body.goalLimit??0,'Limite de gols',0,20),halftime:body.halftime===true,sk0:auth.profile(user.id).kit,sk1:1}};
-  room.spectators=[];try{room.cfg.settings=settings(body.settings,!!room.cfg.gold);}catch(error){fail('RULES',error.message);}
+  if(body.stadium!==undefined&&!require('../../src/data/stadiums.js').valid(body.stadium))fail('STADIUM','Estádio inválido.');room.cfg.stadium=body.stadium||'max-arena';room.spectators=[];try{room.cfg.settings=settings(body.settings,!!room.cfg.gold);}catch(error){fail('RULES',error.message);}
   room.cfg.teams=[clubs.catalog(user.id).find(t=>t.legacyKit===room.cfg.sk0)||teamData.teams[1],teamData.teams[0]];room.awayBase=room.cfg.teams[1];room.cfg.teams[1]=teamData.contrast(room.cfg.teams[0],room.cfg.teams[1]);
   if(room.cfg.sk0===1)room.cfg.sk1=0;
   const password=text(body.password||'','Senha',0,64);
@@ -130,12 +130,19 @@ function createRooms({db,auth,economy,career,origin,logger=console,syncResults=f
   if(room.owner===userId)room.owner=all(room)[0]?.id;
   if(!all(room).length){if(!room.match)rooms.delete(room.id);}else notify(room);
  }
+ function assignReferee(user,roomId,body){
+  object(body,['playerId']);const room=rooms.get(roomId);if(!room||room.owner!==user.id||room.kind!=='ONLINE'||room.ranked||membership.get(user.id)!==roomId)fail('OWNER','Somente o dono da sala pode designar o árbitro.',403);
+  const candidate=body.playerId===null?null:all(room).find(p=>p.id===body.playerId);if(body.playerId!==null&&!candidate)fail('PLAYER','Jogador não está na sala.',404);if(candidate?.id===room.referee?.id)return visible(room);
+  if(room.match&&candidate&&room.players.some(p=>p.id===candidate.id)){if(room.match.G.pauseState!=='PAUSED'||room.match.G.phase!=='play'||room.match.G.substitution)fail('REFEREE_PLAYER','Pause a partida para designar um jogador em campo.',409);}
+  const old=room.referee;if(old&&old.id!==candidate?.id&&(room.spectators||[]).filter(p=>p.id!==candidate?.id).length>=12)fail('FULL','Espectadores lotados.',409);if(candidate){if(room.match&&room.players.some(p=>p.id===candidate.id)){const replacement=room.match.substitute(candidate.id,{id:'bot-ref-'+id(),name:'BOT substituto',num:candidate.num});replacement.ctrl='ai';room.players=room.players.filter(p=>p.id!==candidate.id);room.sentBaseline=false;}else room.players=room.players.filter(p=>p.id!==candidate.id);room.spectators=room.spectators.filter(p=>p.id!==candidate.id);room.coaches=(room.coaches||[]).filter(p=>p.id!==candidate.id);room.locker?.leave(candidate.id);candidate.team=candidate.slot=null;}
+  if(old&&old.id!==candidate?.id)room.spectators.push({...old,team:null,slot:null});room.referee=candidate;room.cfg.referee=candidate?member(candidate):null;room.cfg.coaches=(room.coaches||[]).map(member);if(room.match){room.match.cfg.coaches=room.cfg.coaches;room.match.cfg.referee=room.cfg.referee;room.match.inputs.delete(candidate?.id);broadcast(room,{type:'snapshot',state:protocol.snapshot(room.match,ticks)});}audit(user,'ROOM_REFEREE',room.id,{before:old?.id||null,after:candidate?.id||null});notify(room);return visible(room);
+ }
  function edit(user,roomId,body){
   const room=rooms.get(roomId);if(!room||room.owner!==user.id&&room.referee?.id!==user.id)fail('OWNER','Somente o anfitrião ou o árbitro designado pode alterar a sala.',403);
   if(room.match||room.ranked)fail('STARTED','A sala já iniciou.',409);
-  object(body,['settings','homeTeamId','awayTeamId','playerId','destination','n','time','fs','ball','goalLimit','halftime','diff']);
+  object(body,['settings','homeTeamId','awayTeamId','playerId','destination','n','time','fs','ball','goalLimit','halftime','diff','stadium']);
   const beforeCfg=structuredClone(room.cfg),nextCfg={...room.cfg};for(const [key,min,max] of [['n',1,5],['time',60,600],['fs',0,2],['ball',0,2],['goalLimit',0,20],['diff',0,2]])if(body[key]!==undefined)nextCfg[key]=integer(body[key],key,min,max);
-  nextCfg.fs=0;nextCfg.ball=1;
+  nextCfg.fs=0;nextCfg.ball=1;if(body.stadium!==undefined){if(!require('../../src/data/stadiums.js').valid(body.stadium))fail('STADIUM','Estádio inválido.');nextCfg.stadium=body.stadium;}
   if(body.halftime!==undefined){if(typeof body.halftime!=='boolean')fail('RULES','Intervalo inválido.');nextCfg.halftime=body.halftime;}
   if(room.players.some(p=>p.slot>=nextCfg.n))fail('FULL','Mova os jogadores das vagas removidas antes de diminuir o formato.',409);
   // Validate the complete request before changing any room state.
@@ -275,7 +282,7 @@ function createRooms({db,auth,economy,career,origin,logger=console,syncResults=f
   }catch{socket.write('HTTP/1.1 401 Unauthorized\r\nConnection: close\r\n\r\n');socket.destroy();}
  }
  function socialBroadcast(scope,data,allow=()=>true){const payload=JSON.stringify(data);for(const [uid,c] of connections)if((membership.get(uid)||'lobby')===scope&&allow(uid))send(c.ws,payload);}
- return {setSocial:callback=>{socialEvent=callback;},socialBroadcast,pause,substitute,substitutions,locker,edit,clubs,ranked,rankedStatus,rankedJoin,rankedCancel,pairRanked,forfeit,create,join,start,leave,current,careerMatch,matchmaking,upgrade,
+ return {setSocial:callback=>{socialEvent=callback;},socialBroadcast,pause,assignReferee,substitute,substitutions,locker,edit,clubs,ranked,rankedStatus,rankedJoin,rankedCancel,pairRanked,forfeit,create,join,start,leave,current,careerMatch,matchmaking,upgrade,
   list:()=>[...rooms.values()].filter(r=>r.kind==='ONLINE'&&!r.ranked&&r.match?.G.phase!=='end').map(visible),online:()=>connections.size,
   close(){bots.close();clearInterval(timer);for(const c of connections.values())c.ws.terminate();wss.close();},
   // Server-side state only, useful to deterministic integration tests.

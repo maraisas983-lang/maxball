@@ -11,6 +11,7 @@ const {createRooms}=require('./online/rooms.cjs');
 const {createOperations,permit}=require('./services/operations.cjs');
 const {createSocial}=require('./services/social.cjs');
 const {createPayments}=require('./services/payments.cjs');
+const {createSkins}=require('./services/skins.cjs'),{createChampionships}=require('./services/championships.cjs');
 const {AppError,fail,object}=require('./lib/validation.cjs');
 const ROOT=path.resolve(__dirname,'..');
 
@@ -22,7 +23,7 @@ function createApp({databasePath='var/maxball.sqlite',origin='http://127.0.0.1:5
  db.run("UPDATE matches SET status='ABANDONED',finished_at=? WHERE status='RUNNING'",Date.now());
  db.run("UPDATE ranked_matches SET reason='SERVER_RESTART',home_after=home_before,away_after=away_before,finished_at=? WHERE finished_at IS NULL",Date.now());
  const rooms=createRooms({db,auth,economy,career,origin,logger,syncResults:!!cloud,canRank:()=>{const s=operations.settings();return !s.maintenance&&s.ranked_enabled;},audit:(actor,action,resource,metadata)=>operations.audit(actor,action,resource,'OK',metadata)}),limits=new Map();
- const social=createSocial(db,rooms,auth);
+ const social=createSocial(db,rooms,auth),skins=createSkins(db),championships=createChampionships(db,economy,{permit,audit:operations.audit});
  const token=req=>(req.headers.cookie||'').split(';').map(x=>x.trim()).find(x=>x.startsWith('maxball_session='))?.slice(16);
  const json=(res,status,data)=>{res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'});res.end(JSON.stringify(data));};
  function cookie(res,value,maxAge=7*86400){res.setHeader('Set-Cookie',`maxball_session=${value}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${maxAge}${production?'; Secure':''}`);}
@@ -52,7 +53,8 @@ function createApp({databasePath='var/maxball.sqlite',origin='http://127.0.0.1:5
   if(pathname==='/api/health'&&method==='GET')return json(res,200,{ok:true});
   if(['/api/auth/register','/api/auth/login'].includes(pathname)&&method==='POST'){
    limit('auth:'+req.socket.remoteAddress,12,15*60000);
-   const data=await body(req);limit('username:'+String(data.username).toLowerCase().slice(0,24),8,15*60000);
+   const data=await body(req);
+limit('username:'+String(data.username).toLowerCase().slice(0,24),8,15*60000);
    operations.consent(data);const credentials={username:data.username,password:data.password};
    const result=pathname.endsWith('register')?await auth.register(credentials):await auth.login(credentials);
    if(result.confirmationRequired){operations.pendingConsent(data.username);return json(res,200,{confirmationRequired:true});}
@@ -82,6 +84,11 @@ function createApp({databasePath='var/maxball.sqlite',origin='http://127.0.0.1:5
    if(pathname==='/api/wallet')return json(res,200,economy.wallet(uid));
    if(pathname==='/api/career')return json(res,200,career.view(uid));
    if(pathname==='/api/career/saves')return json(res,200,{saves:career.saves(uid)});
+   if(pathname==='/api/skins')return json(res,200,skins.list(uid));
+   if(pathname==='/api/championships')return json(res,200,championships.list(user));
+   if(pathname==='/api/command/championships')return json(res,200,championships.list(user,true));
+   if(pathname==='/api/clubs/directory')return json(res,200,rooms.clubs.directory(uid));
+   const clubDetail=pathname.match(/^\/api\/clubs\/([\w-]+)$/);if(clubDetail)return json(res,200,rooms.clubs.detail(uid,clubDetail[1]));
    if(pathname==='/api/clubs')return json(res,200,rooms.clubs.list(uid));
    if(pathname==='/api/teams')return json(res,200,rooms.clubs.catalog(uid));
    if(pathname==='/api/rooms')return json(res,200,{rooms:rooms.list(),current:rooms.current(uid)});
@@ -92,6 +99,17 @@ function createApp({databasePath='var/maxball.sqlite',origin='http://127.0.0.1:5
   }
   if(method==='POST'||method==='PATCH'||method==='DELETE'){
    const data=await body(req);
+   if(pathname==='/api/skins'&&method==='POST')return json(res,201,skins.save(uid,data));
+   const skinPath=pathname.match(/^\/api\/skins\/([\w-]+)$/);if(skinPath&&method==='PATCH')return json(res,200,skins.save(uid,data,skinPath[1]));
+   if(pathname==='/api/championships'&&method==='POST')return json(res,201,championships.save(user,data));
+   if(pathname==='/api/command/championships'&&method==='POST')return json(res,201,championships.save(user,data,null,true));
+   const champAdmin=pathname.match(/^\/api\/command\/championships\/([\w-]+)(?:\/(status))?$/);
+   if(champAdmin){if(method==='DELETE')return json(res,200,championships.moderate(user,champAdmin[1],'CANCELLED'));if(champAdmin[2]&&method==='POST'){object(data,['status']);return json(res,200,championships.moderate(user,champAdmin[1],data.status));}if(method==='PATCH')return json(res,200,championships.save(user,data,champAdmin[1],true));}
+   const entryReview=pathname.match(/^\/api\/command\/championship-entries\/([\w-]+)$/);if(entryReview&&method==='POST'){object(data,['status']);return json(res,200,championships.review(user,entryReview[1],data.status));}
+   const champEnter=pathname.match(/^\/api\/championships\/([\w-]+)\/enter$/);if(champEnter&&method==='POST')return json(res,200,championships.register(user,champEnter[1],data));
+   const champLeave=pathname.match(/^\/api\/championship-entries\/([\w-]+)\/withdraw$/);if(champLeave&&method==='POST'){object(data,[]);return json(res,200,championships.withdraw(user,champLeave[1]));}
+   const clubPath=pathname.match(/^\/api\/clubs\/([\w-]+)(?:\/(join|leave|members))?$/);if(clubPath){if(!clubPath[2]&&method==='PATCH')return json(res,200,rooms.clubs.create(uid,data,clubPath[1]));if(method==='POST'){if(clubPath[2]==='join'){object(data,[]);return json(res,200,rooms.clubs.join(uid,clubPath[1]));}if(clubPath[2]==='leave'){object(data,[]);return json(res,200,rooms.clubs.leave(uid,clubPath[1]));}if(clubPath[2]==='members'){object(data,['playerId','approved']);if(typeof data.approved!=='boolean')fail('MEMBER','Aprovação inválida.');return json(res,200,rooms.clubs.member(uid,clubPath[1],data.playerId,data.approved));}}}
+   const refereePath=pathname.match(/^\/api\/rooms\/([\w-]+)\/referee$/);if(refereePath&&method==='POST')return json(res,200,rooms.assignReferee(user,refereePath[1],data));
    if(pathname==='/api/support'){limit('ticket:'+uid,15,60000);return json(res,201,operations.create(user,data));}
    if(pathname==='/api/command/settings')return json(res,200,operations.set(user,data));
    if(pathname==='/api/command/execute')return json(res,200,operations.command(user,data,rooms,admin));
@@ -153,7 +171,7 @@ function createApp({databasePath='var/maxball.sqlite',origin='http://127.0.0.1:5
  server.requestTimeout=15000;server.headersTimeout=10000;
  server.on('upgrade',(req,socket,head)=>rooms.upgrade(req,socket,head));
  async function close(){rooms.close();await cloudSync?.close();await new Promise(resolve=>{server.close(resolve);server.closeAllConnections();});db.close();}
- return {server,db,auth,economy,career,admin,operations,rooms,payments,cloudSync,close};
+ return {server,db,auth,economy,career,admin,operations,rooms,payments,skins,championships,cloudSync,close};
 }
 async function staticFile(req,res,pathname){
  if(!['GET','HEAD'].includes(req.method)){res.writeHead(405,{Allow:'GET, HEAD'}).end();return;}

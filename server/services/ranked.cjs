@@ -7,7 +7,7 @@ function createRanked(db,{syncResults=false}={}){
  const queue=new Map();
  function join(user,{members=[user],partyId=user.id,n=4}={}){if(!queue.has(user.id)){const ratings=members.map(u=>db.one('SELECT rating FROM profiles WHERE user_id=?',u.id).rating),q={user,members,n,partyId,rating:ratings.reduce((a,b)=>a+b,0)/ratings.length,since:Date.now(),seen:Date.now()};for(const u of members)queue.set(u.id,q);}return status(user.id);}
  function cancel(uid){const q=queue.get(uid);if(q)for(const u of q.members)queue.delete(u.id);}
- function status(uid){const q=queue.get(uid);if(q)q.seen=Date.now();return {queued:!!q,wait:q?Math.floor((Date.now()-q.since)/1000):0,range:q?range((Date.now()-q.since)/1000):100,rating:db.one('SELECT rating FROM profiles WHERE user_id=?',uid).rating};}
+ function status(uid){const q=queue.get(uid);if(q)q.seen=Date.now();return {queued:!!q,wait:q?Math.floor((Date.now()-q.since)/1000):0,range:q?range((Date.now()-q.since)/1000):100,rating:db.one('SELECT rating FROM profiles WHERE user_id=?',uid).rating,patent:require('../../src/data/ranks.js').rank(db.one('SELECT rating FROM profiles WHERE user_id=?',uid).rating).name};}
  function pair(now=Date.now()){
   for(const [uid,q] of queue)if(now-q.seen>15000)cancel(uid);
   const candidates=[...new Set(queue.values())].sort((a,b)=>a.since-b.since);

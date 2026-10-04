@@ -10,6 +10,8 @@
   online:['Salas personalizadas','PONTO DE ENCONTRO','Seu grupo. Suas regras.','Crie uma sala, escolha os times e convide seus amigos.','+'],
   quick:['Partida rápida','CAMPO CASUAL','Encontre alguém para jogar.','Um duelo online casual para entrar em campo sem disputar Elo.','VS'],
   support:['Suporte','CENTRAL DE ATENDIMENTO','Como podemos ajudar?','Abra um chamado ou acompanhe suas conversas com a equipe MAXBALL.','?'],
+  championships:['Campeonatos','DISPUTA ENTRE CLUBES','Seu clube na competição.','Eventos e elencos passam por aprovação da equipe MAXBALL.','★'],
+  skins:['Skins','ESTÚDIO MAXBALL','Crie o visual do seu time.','Personalize cores, ícones e camadas para usar no seu clube.','✦'],
   clubs:['Clubes','SEDE DO CLUBE','Jogue com a sua comunidade.','Gerencie seu clube e encontre seu time.','C'],
   shop:['Loja','ESTILO EM CAMPO','Escolha sua identidade.','Explore os cosméticos disponíveis para o seu jogador.','◇'],
   inventory:['Inventário','SEU ARMÁRIO','Prepare seu visual.','Equipe os itens da sua coleção.','◇'],
