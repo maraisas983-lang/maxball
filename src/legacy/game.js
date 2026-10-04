@@ -128,7 +128,7 @@ applyCtl();
 /* ---------- áudio ---------- */
 const crowd=new MaxballCrowd.Crowd();
 let AC;function aud(){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();AC.resume?.();crowd.start(AC)}catch(e){}}
-function beep(f,d,t='square',v=.06,s=0){if(!AC)return;const o=AC.createOscillator(),g=AC.createGain();o.type=t;o.frequency.setValueAtTime(f,AC.currentTime);
+function beep(f,d,t='square',v=.06,s=0){if(!AC||window.MaxballPreferences?.get().sound===false)return;const o=AC.createOscillator(),g=AC.createGain();o.type=t;o.frequency.setValueAtTime(f,AC.currentTime);
  if(s)o.frequency.exponentialRampToValueAtTime(s,AC.currentTime+d);g.gain.setValueAtTime(v,AC.currentTime);g.gain.exponentialRampToValueAtTime(.001,AC.currentTime+d);o.connect(g).connect(AC.destination);o.start();o.stop(AC.currentTime+d)}
 
 /* ---------- entrada ---------- */
@@ -199,7 +199,7 @@ $('#lgo').onclick=()=>{aud();start('bot',Object.assign({},save.room,{intro:1}))}
 /* ---------- jogo ---------- */
 let G=null,P=[],ball,PA=[],c0,c1='#ff2d87',cam={x:W/2,y:H/2},Z=1.5,baseZoom=1.5,VH=427;
 const simulationState=()=>({G,P,ball,W,H,GY0,GY1,BR});
-const physics=MaxballPhysics.createPhysics({state:simulationState,input:inputOf,effects:{burst,beep,particle:p=>PA.push(p),touch:p=>{if(G.stats)MaxballPerformance.touch(simulationState(),p,G.stats);},kick:(p,type)=>{if(G.stats)MaxballPerformance.kick(simulationState(),p,type,G.stats);}}});
+const physics=MaxballPhysics.createPhysics({state:simulationState,input:inputOf,effects:{burst,beep,particle:p=>{if(window.MaxballPreferences?.get().effects!==false)PA.push(p);},touch:p=>{if(G.stats)MaxballPerformance.touch(simulationState(),p,G.stats);},kick:(p,type)=>{if(G.stats)MaxballPerformance.kick(simulationState(),p,type,G.stats);}}});
 const events=MaxballCore.createEvents(),matchTimers=MaxballCore.createTimers();
 const goalReplay=new MaxballReplay.GoalReplay();
 const replaySkip=document.createElement('button');replaySkip.id='replay-skip';replaySkip.className='replay-skip';replaySkip.textContent='Pular replay';replaySkip.hidden=true;const replayCredits=document.createElement('section'),replayScorer=document.createElement('strong'),replayAssist=document.createElement('span');replayCredits.id='replay-credits';replayCredits.hidden=true;replayCredits.append(replayScorer,replayAssist);$('#game').append(replaySkip,replayCredits);
@@ -237,9 +237,9 @@ function ai(p){return physics.ai(p)}
 /* Chute: a bola sai na direção jogador → bola (como no MamoBall), não para onde o analógico aponta.
    Bots ainda usam 'aim' (mira deles). No passe, se houver companheiro perto dessa linha, a bola é guiada até ele. */
 function kick(...args){return physics.kick(...args)}
-function burst(x,y,n,cols,sp,life,type,g){for(let i=0;i<n;i++){const a=Math.random()*6.283,s=rnd(.3,1)*sp;
+function burst(x,y,n,cols,sp,life,type,g){if(window.MaxballPreferences?.get().effects===false)return;for(let i=0;i<n;i++){const a=Math.random()*6.283,s=rnd(.3,1)*sp;
  PA.push({t:type||'c',x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,l:life*rnd(.6,1.2),m:life,c:cols[i%cols.length],s:rnd(2,5),r:rnd(0,6),g:g||0})}}
-function trail(){const sp=Math.hypot(ball.vx,ball.vy);if(sp<320)return;const f=ball.last==HT?save.fx:1,o={x:ball.x,y:ball.y,vx:rnd(-20,20),vy:rnd(-20,20),g:0,s:rnd(3,6),r:0};
+function trail(){if(window.MaxballPreferences?.get().effects===false)return;const sp=Math.hypot(ball.vx,ball.vy);if(sp<320)return;const f=ball.last==HT?save.fx:1,o={x:ball.x,y:ball.y,vx:rnd(-20,20),vy:rnd(-20,20),g:0,s:rnd(3,6),r:0};
  if(f==0)PA.push({...o,t:'c',c:'#fff',l:.2,m:.2,s:3});
  else if(f==1)PA.push({...o,t:'c',c:Math.random()<.5?'#22d6ff':'#ff2d87',l:.4,m:.4});
  else if(f==2)PA.push({...o,t:'c',c:['#ff5a1f','#ffb020','#ffe066'][Math.random()*3|0],l:.5,m:.5,vy:-50,s:rnd(4,8)});
@@ -262,13 +262,13 @@ function wh(v){if(Math.abs(v)>240){burst(ball.x,ball.y,5,['#fff','#c8ff2e'],150,
 function moveBall(dt){MaxballBall.moveBall(simulationState(),dt,goal,wh)}
 function goal(t){if(!G||G.phase!=='play')return;goalReplay.start(simulationState());resetInputs();const scorer=P.find(p=>p.id===ball.lastPlayer),previous=ball.previousTouch;let assist=null;if(scorer&&scorer.team===t&&G.stats){G.stats[scorer.id].goals++;if(previous?.id&&previous.id!==scorer.id&&previous.team===t&&(G.el||0)-previous.time<8){G.stats[previous.id].assists++;assist=previous.id;}}events.emit('GOAL_SCORED',{team:t});crowd.goal();showGoal(t);G.ko=1-t;G.phase='goal';G.pt=0;G.sc=t;G.scorerId=scorer?.id||null;G.scorerName=scorer?.displayName||scorer?.name||'Gol da equipe';G.assistId=assist;G.assistName=P.find(p=>p.id===assist)?.displayName||P.find(p=>p.id===assist)?.name||null;G.ownGoal=!!scorer&&scorer.team!==t;G.goalVariant=(G.score[0]+G.score[1]+1)%3;G.score[t]++;goalReplay.remember(simulationState());G.flash=1;G.shake=18;G.fw=0;
  const gx=t?0:W;burst(gx,ball.y,60,[c0,c1,'#fff','#c8ff2e'],420,1,'c',300);
- if(t==HT&&G.cfg.side!=2&&G.mode!='local'){const e=G.mode=='train'?3:10;save.coins+=e;G.earn+=e;save.st.g++;persist()}
+ if(t==HT&&G.cfg.side!=2&&G.mode!='local'){save.st.g++;persist()}
  beep(523,.15,'square',.07);matchTimers.after(()=>beep(659,.15,'square',.07),130);matchTimers.after(()=>beep(784,.35,'square',.07),260)}
 function endMatch(){if(!G||G.phase==='end')return;G.phase='end';events.emit('MATCH_ENDED',{score:G.score.slice()});const a=G.score[0],b=G.score[1],L=G.mode=='local',sp=G.cfg.side==2,me=HT?b:a,ot=HT?a:b;
  const t=a==b?'EMPATE':L?(a>b?'J1 VENCEU':'J2 VENCEU'):sp?(a>b?'MANDANTE VENCEU':'VISITANTE VENCEU'):me>ot?'VITÓRIA':'DERROTA';let bonus=0;if(!L&&!sp){save.st.p++;if(me>ot)save.st.w++;persist()}
- if(!L&&!sp&&me>ot){bonus=20;save.coins+=20;persist()}
+
  if(G.stats){const result=MaxballPerformance.finalize(P,G.stats,a===b?null:a>b?0:1);window.MaxballResults?.show({...result,matchId:'local',stats:G.stats[P.find(p=>p.ctrl==='p1')?.id]});}
- $('#rt').textContent=t;$('#rs').textContent=a+' x '+b+(L||sp?'':' · +'+(G.earn+bonus)+' moedas');matchTimers.after(()=>$('#res').classList.add('on'),1600)}
+ $('#rt').textContent=t;$('#rs').textContent=a+' × '+b;if(!window.MaxballEndPresentation?.play(simulationState(),()=>$('#res').classList.add('on')))matchTimers.after(()=>$('#res').classList.add('on'),1600)}
 $('#again').onclick=()=>{if(G.remote){leaveRemote();return}start(G.mode,G.cfg)};$('#menu').onclick=()=>{if(G?.remote){leaveRemote();return}matchTimers.clear();G=null;show('home')};
 $('#exit').onclick=()=>{if(G?.remote){leaveRemote();return}matchTimers.clear();G=null;show('home')};
 
@@ -279,7 +279,7 @@ function update(dt){if(G.pauseState){if(G.pauseState==='RESUMING'){G.resumeRemai
 if(G.mode!='train'){if(!G.ot){G.time-=dt;if(G.cfg.halftime&&!G.halfPlayed&&G.time<=G.cfg.time/2&&G.time>0){G.halfPlayed=true;G.sidesSwapped=!G.sidesSwapped;G.phase='halftime';G.breakRemaining=6;resetInputs();}if(G.time<=0){G.time=0;if(G.cfg.gold&&G.score[0]==G.score[1]){G.ot=true;G.otT=0;burst(ball.x,ball.y,20,['#d8e52a','#fff'],260,.6)}else endMatch()}}else G.otT+=dt}}
  else if(G.phase==='halftime'){G.breakRemaining-=dt;MaxballCeremony.halftime(simulationState(),dt);if(G.breakRemaining<=1e-6){G.phase='play';G.ko=1;kickoff();}}else if(G.phase=='intro')introStep(dt);else if(G.phase=='count')countStep(dt);else if(G.phase=='goal'){MaxballCeremony.celebrate(simulationState(),dt);
   if(G.pt<MaxballConfig.match.goalCelebrationSeconds){G.fw-=dt;if(G.fw<=0){G.fw=.3;burst(rnd(W*.2,W*.8),rnd(H*.15,H*.6),36,[['#c8ff2e','#fff'],['#ff2d87','#ffc400'],['#22d6ff','#fff']][Math.random()*3|0],220,.9,'c',120)}
-  for(let i=0;i<2;i++)PA.push({t:'k',x:rnd(0,W),y:-10,vx:rnd(-30,30),vy:rnd(60,140),g:60,l:3,m:3,c:[c0,c1,'#fff','#ffc400'][Math.random()*4|0],s:rnd(5,9),r:rnd(0,6)});}
+  for(let i=0;i<(window.MaxballPreferences?.get().effects===false?0:2);i++)PA.push({t:'k',x:rnd(0,W),y:-10,vx:rnd(-30,30),vy:rnd(60,140),g:60,l:3,m:3,c:[c0,c1,'#fff','#ffc400'][Math.random()*4|0],s:rnd(5,9),r:rnd(0,6)});}
   if(G.pt>MaxballConfig.match.goalPauseSeconds){const dn=G.mode!='train'&&(G.ot||G.time<=0&&!(G.cfg.gold&&G.score[0]==G.score[1]));if(dn)endMatch();else{if(G.mode!='train'&&G.time<=0&&!G.ot){G.ot=true;G.otT=0}G.phase='play';kickoff()}}}
  moveBall(d);trail();netUpd(dt);camUpdate(dt);
  let alive=0;for(const q of PA){q.l-=dt;q.x+=q.vx*dt;q.y+=q.vy*dt;q.vy+=q.g*dt;q.r+=dt*8;if(q.t=='r')q.s+=dt*260;if(q.l>0)PA[alive++]=q;}PA.length=alive;
@@ -301,12 +301,12 @@ function drawWithReplay(dt){
  try{
   const positions=new Map(frame.P.map(p=>[p.id,p]));P=(highlightIndex>=0?highlightData.players:P).map(p=>({...p,...positions.get(p.id)}));ball=frame.ball;G={...G,sidesSwapped:highlightIndex>=0?highlightData.sidesSwapped:G.sidesSwapped,phase:'replay',flash:0,shake:0};PA=[];
   const vw=cv.width/Z,vh=cv.height/Z,cc=(v,a,b)=>a>b?(a+b)/2:clamp(v,a,b);cam={x:cc(ball.x,vw/2-CM,W+CM-vw/2),y:cc(ball.y,vh/2-CM,H+CM-vh/2)};
-  draw();cx.setTransform(1,0,0,1,0,0);const scale=Math.min(2,devicePixelRatio||1);cx.save();cx.scale(scale,scale);cx.fillStyle='rgba(8,15,35,.85)';cx.fillRect(18,70,164,42);cx.fillStyle='#ff535e';cx.beginPath();cx.arc(33,91,4,0,Math.PI*2);cx.fill();cx.fillStyle='#fff';cx.font='700 14px Rubik,sans-serif';cx.textAlign='left';cx.textBaseline='middle';cx.fillText('REPLAY · 0,8×',46,91);cx.fillStyle='rgba(255,255,255,.2)';cx.fillRect(18,112,164,3);cx.fillStyle='#c8ff2e';cx.fillRect(18,112,164*frame.progress,3);cx.restore();
+  draw();cx.setTransform(1,0,0,1,0,0);const scale=window.MaxballPreferences?.pixelRatio()||Math.min(2,devicePixelRatio||1);cx.save();cx.scale(scale,scale);cx.fillStyle='rgba(8,15,35,.85)';cx.fillRect(18,70,164,42);cx.fillStyle='#ff535e';cx.beginPath();cx.arc(33,91,4,0,Math.PI*2);cx.fill();cx.fillStyle='#fff';cx.font='700 14px Rubik,sans-serif';cx.textAlign='left';cx.textBaseline='middle';cx.fillText('REPLAY · 0,8×',46,91);cx.fillStyle='rgba(255,255,255,.2)';cx.fillRect(18,112,164,3);cx.fillStyle='#c8ff2e';cx.fillRect(18,112,164*frame.progress,3);cx.restore();
  }finally{P=live.P;ball=live.ball;G=live.G;cam=live.cam;PA=live.PA;}
 }
 function draw(){cx.setTransform(1,0,0,1,0,0);cx.fillStyle='#0a0f2c';cx.fillRect(0,0,cv.width,cv.height);
- const sh=RM||save.ns?0:G.shake;cx.translate(cv.width/2+rnd(-sh,sh),cv.height/2+rnd(-sh,sh));cx.scale(Z,Z);cx.translate(-cam.x,-cam.y);
- if(!STAD)STAD=buildStadium();cx.drawImage(STAD,-E,-E);if(G.cfg.n>=3){const f=MaxballField.geometry(simulationState());for(let team=0;team<2;team++)if(G.areaOccupancy?.[team]>=2){cx.fillStyle='rgba(255,221,80,.08)';cx.fillRect(MaxballField.side(simulationState(),team)?W-f.areaDepth:0,GY0-f.areaPadding,f.areaDepth,GY1-GY0+f.areaPadding*2);}}window.MaxballOfficials?.draw(cx,simulationState());crowd.draw(cx,simulationState(),RM,{left:cam.x-cv.width/Z/2,right:cam.x+cv.width/Z/2,top:cam.y-cv.height/Z/2,bottom:cam.y+cv.height/Z/2});netBack(0);netBack(1);
+ const sh=RM||save.ns||window.MaxballPreferences?.get().effects===false?0:G.shake;cx.translate(cv.width/2+rnd(-sh,sh),cv.height/2+rnd(-sh,sh));cx.scale(Z,Z);cx.translate(-cam.x,-cam.y);
+ if(!STAD)STAD=buildStadium();cx.drawImage(STAD,-E,-E);if(G.cfg.n>=3){const f=MaxballField.geometry(simulationState());for(let team=0;team<2;team++)if(G.areaOccupancy?.[team]>=2){cx.fillStyle='rgba(255,221,80,.08)';cx.fillRect(MaxballField.side(simulationState(),team)?W-f.areaDepth:0,GY0-f.areaPadding,f.areaDepth,GY1-GY0+f.areaPadding*2);}}window.MaxballOfficials?.draw(cx,simulationState());crowd.draw(cx,simulationState(),RM||window.MaxballPreferences?.get().effects===false||window.MaxballPreferences?.get().graphics==='low',{left:cam.x-cv.width/Z/2,right:cam.x+cv.width/Z/2,top:cam.y-cv.height/Z/2,bottom:cam.y+cv.height/Z/2});netBack(0);netBack(1);
  for(const q of PA)if(q.t!='k')dq(q);
  P.forEach(p=>{if(p.hid||p.inactive||!visiblePlayer(p))return;cx.fillStyle='rgba(0,0,0,.3)';cx.beginPath();cx.ellipse(p.x,p.y+PR*.75,PR,PR*.5,0,0,7);cx.fill()});
  P.forEach((p,i)=>{if(p.hid||p.inactive||!visiblePlayer(p))return;const hop=G.phase==='end'&&G.score[p.team]>G.score[1-p.team]?Math.abs(Math.sin((typeof performance==='undefined'?G.pt:performance.now()/1000)*7+p.num))*7:p.hop,y=p.y-hop,col=p.team?c1:c0;
@@ -318,7 +318,7 @@ function draw(){cx.setTransform(1,0,0,1,0,0);cx.fillStyle='#0a0f2c';cx.fillRect(
    }});
  window.MaxballSocial?.draw(cx,P);drawBall();
  netFront(0);netFront(1);for(const q of PA)if(q.t=='k')dq(q);
- if(G.phase=='goal'){cx.fillStyle='#fff';for(let q=0;q<40;q++){const fx=rnd(-E+10,W+E-10),fy=rnd(-E+10,H+E-10);if(fx>-MG-16&&fx<W+MG+16&&fy>-MG-16&&fy<H+MG+16)continue;cx.globalAlpha=Math.random();cx.fillRect(fx,fy,4,4)}cx.globalAlpha=1}
+ if(G.phase=='goal'&&window.MaxballPreferences?.get().effects!==false){cx.fillStyle='#fff';for(let q=0;q<40;q++){const fx=rnd(-E+10,W+E-10),fy=rnd(-E+10,H+E-10);if(fx>-MG-16&&fx<W+MG+16&&fy>-MG-16&&fy<H+MG+16)continue;cx.globalAlpha=Math.random();cx.fillRect(fx,fy,4,4)}cx.globalAlpha=1}
  if(G.phase=='goal'){const k=Math.min(1,G.pt/.35),sc=k<1?.3+.9*k:1.2-.2*Math.min(1,(G.pt-.35)*3);
   cx.save();cx.translate(cam.x,cam.y-30);cx.rotate(-.07);cx.scale(sc*.8,sc*.8);cx.font='110px Bungee,Impact';cx.textAlign='center';cx.lineWidth=12;cx.strokeStyle='#0a0f2c';cx.strokeText('GOOOL!',0,0);
   const g=cx.createLinearGradient(0,-90,0,20);g.addColorStop(0,'#fff');g.addColorStop(.5,'#c8ff2e');g.addColorStop(1,'#22d6ff');cx.fillStyle=g;cx.fillText('GOOOL!',0,0);
@@ -397,10 +397,10 @@ function buildStadium(){const theme=MaxballStadiums.get(G.cfg.stadium);const c=d
  g.fillStyle='#fff';g.font='12px Bungee,Impact';g.textAlign='center';g.fillText('MAXBALL',W/2,ty+th-14)}
  [[-E+70,-E+70],[W+E-70,-E+70],[-E+70,H+E-70],[W+E-70,H+E-70]].forEach(([x,y])=>{const r=g.createRadialGradient(x,y,3,x,y,120);r.addColorStop(0,'rgba(255,255,230,.95)');r.addColorStop(1,'rgba(255,255,230,0)');g.fillStyle=r;g.fillRect(x-120,y-120,240,240)});
  return c}
-let last=0;function loop(t){requestAnimationFrame(loop);const dt=Math.min(.25,(t-last)/1000||0);last=t;
- if(!G||G.renderError||!$('#game').classList.contains('on'))return;try{if(postWalk)walkout(dt);else if(window.MaxballExperience?.isOpen)fixedClock.reset();else if(G.remote&&highlightIndex<0)remoteRender(dt,t);else if(!G.remote&&!G.paused)fixedClock.advance(dt);else fixedClock.reset();crowd.update(dt,simulationState());if(!G.remote)window.MaxballPresentation?.update({...simulationState(),cfg:G.cfg,G:G.phase==='intro'?{...G,phase:'starting'}:G});window.MaxballOfficials?.update(simulationState());window.MaxballExperience?.update(simulationState());drawWithReplay(dt)}catch(e){G.renderError=true;crowd.quiet();console.error(e);toast('Não foi possível continuar a partida. Volte ao menu.')}}
-function rsz(){const d=Math.min(2,devicePixelRatio||1);cv.width=Math.round(innerWidth*d);cv.height=Math.round(innerHeight*d);Z=baseZoom=cv.height/VH*(save.zoom||100)/100}
-addEventListener('resize',rsz);rsz();
+let last=0,lastDraw=0,renderElapsed=0;function loop(t){requestAnimationFrame(loop);const dt=Math.min(.25,(t-last)/1000||0);last=t;
+ if(!G||G.renderError||!$('#game').classList.contains('on'))return;try{if(postWalk)walkout(dt);else if(window.MaxballExperience?.isOpen)fixedClock.reset();else if(G.remote&&highlightIndex<0)remoteRender(dt,t);else if(!G.remote&&!G.paused)fixedClock.advance(dt);else fixedClock.reset();crowd.update(dt,simulationState());if(!G.remote)window.MaxballPresentation?.update({...simulationState(),cfg:G.cfg,G:G.phase==='intro'?{...G,phase:'starting'}:G});window.MaxballOfficials?.update(simulationState());window.MaxballExperience?.update(simulationState());renderElapsed+=dt;const interval=1000/(window.MaxballPreferences?.get().fps||60);if(t-lastDraw>=interval-.5){lastDraw=t-(t-lastDraw)%interval;drawWithReplay(renderElapsed);renderElapsed=0;}}catch(e){G.renderError=true;crowd.quiet();console.error(e);toast('Não foi possível continuar a partida. Volte ao menu.')}}
+function rsz(){const d=window.MaxballPreferences?.pixelRatio()||Math.min(2,devicePixelRatio||1);cv.width=Math.round(innerWidth*d);cv.height=Math.round(innerHeight*d);Z=baseZoom=cv.height/VH*(save.zoom||100)/100}
+addEventListener('resize',rsz);addEventListener('maxball-preferences',()=>{PA=[];rsz();});rsz();
 const ljs={x:0,y:0},lj=$('#ljoy'),lkn=lj.firstElementChild;
 const lockerJoystick=MaxballPointers.bindJoystick(lj,lkn,ljs);
 function resetInputs(){
@@ -445,8 +445,9 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-legal]');i
 const careerButtons={pass:false,shot:false};
 for(const [id,key] of [['request-pass','pass'],['request-shot','shot']]){const b=$('#'+id);b.addEventListener('pointerdown',e=>{e.preventDefault();careerButtons[key]=true;});for(const type of ['pointerup','pointercancel','pointerleave'])b.addEventListener(type,()=>careerButtons[key]=false);}
 addEventListener('blur',()=>{careerButtons.pass=careerButtons.shot=false;crowd.quiet();});document.addEventListener('visibilitychange',()=>{if(document.hidden)crowd.quiet();});
-function leaveRemote(){postWalk=false;highlightIndex=-1;window.MaxballExperience?.close();goalReplay.reset();replaySkip.hidden=true;replayCredits.hidden=true;matchTimers.clear();remoteMatch=null;remoteFrames.clear();G=null;show('home');events.emit('REMOTE_EXIT',{});}
+function leaveRemote(){window.MaxballEndPresentation?.close();postWalk=false;highlightIndex=-1;window.MaxballExperience?.close();goalReplay.reset();replaySkip.hidden=true;replayCredits.hidden=true;matchTimers.clear();remoteMatch=null;remoteFrames.clear();G=null;show('home');events.emit('REMOTE_EXIT',{});}
 function receiveRemote(snapshot,userId){
+ if(snapshot.cfg.intermissionLobby&&snapshot.G.phase==='halftime'){if($('#game').classList.contains('on'))window.MaxballPortal?.open('online');return;}
  if(remoteMatch!==snapshot.matchId){
   const room=window.MaxballOfficials?.currentRoom;start('bot',snapshot.cfg);window.MaxballOfficials?.room(room);remoteUser=userId;remoteMatch=snapshot.matchId;remoteScore=snapshot.G.score.slice();
   $('#keys').textContent=keyboardHint(false,snapshot.cfg.career);$('#career-commands').hidden=!snapshot.cfg.career;
@@ -471,13 +472,13 @@ function remoteRender(dt,time){
  let alive=0;for(const p of PA){p.l-=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;if(p.l>0)PA[alive++]=p;}PA.length=alive;
  if(G.phase==='end'&&previousPhase!=='end'){
   $('#rt').textContent=G.reason==='ABANDONED'?'ENCERRADA':G.winner==null?'EMPATE':G.winner===HT?'VITÓRIA':'DERROTA';
-  $('#rs').textContent=G.score.join(' x ')+(G.penalties?' · Pênaltis '+G.penalties.score.join(' × '):'');matchTimers.after(()=>$('#res').classList.add('on'),1600);
+  $('#rs').textContent=G.score.join(' x ')+(G.penalties?' · Pênaltis '+G.penalties.score.join(' × '):'');if(!window.MaxballEndPresentation?.play(simulationState(),()=>$('#res').classList.add('on')))matchTimers.after(()=>$('#res').classList.add('on'),1600);
  }
 }
 window.MaxballGame=Object.freeze({
  show,toast,resetInputs,on:events.on,startLocal:start,
  walkInput(){if(window.MaxballSocial?.isOpen)return {x:0,y:0};return {x:(keys.KeyD||keys.ArrowRight?1:0)-(keys.KeyA||keys.ArrowLeft?1:0),y:(keys.KeyS||keys.ArrowDown?1:0)-(keys.KeyW||keys.ArrowUp?1:0)};},state(){return simulationState();},
- watchHighlights(){if(!goalReplay.highlights.length)return false;postWalk=false;highlightIndex=0;highlightData=goalReplay.play(0);$('#res').classList.remove('on');return true;},highlightCount(){return goalReplay.highlights.length;},
+ watchHighlights(){window.MaxballEndPresentation?.close();if(!goalReplay.highlights.length)return false;postWalk=false;highlightIndex=0;highlightData=goalReplay.play(0);$('#res').classList.remove('on');return true;},highlightCount(){return goalReplay.highlights.length;},
  walkToLocker(){if(G?.phase!=='end')return false;matchTimers.clear();$('#res').classList.remove('on');highlightIndex=-1;goalReplay.skip();postWalk=true;P=P.map(p=>({...p}));if(!P.some(p=>p.ctrl==='p1')&&P[0]){const profile=window.MaxballPortal?.account?.profile;Object.assign(P[0],{ctrl:'p1',id:remoteUser||'walk-user',name:profile?.display_name||save.name,displayName:profile?.display_name||save.name,num:profile?.shirt_number||save.num});}G={...G,phase:'walkout',pauseState:null,paused:0};resetInputs();return true;},
  pauseLocal(paused){if(G?.remote)return false;if(paused){G.pauseState='PAUSED';resetInputs();}else if(G.pauseState==='PAUSED'){G.pauseState='RESUMING';G.resumeRemaining=3;resetInputs();}return true;},
  keyboardBindings(){return MaxballKeyboard.normalize(save.keyboard);},keyboardHelp:keyboardHint,

@@ -5,7 +5,7 @@ const {createPayments}=require('../server/services/payments.cjs');
 const {permit}=require('../server/services/operations.cjs');
 const {createParty}=require('../server/services/party.cjs');
 const {roundRobin}=require('../server/services/career.cjs');
-async function fixture(t){const app=createApp({databasePath:':memory:',logger:{warn(){},error:console.error}});t.after(()=>app.close());const a=(await app.auth.register({username:'pending_a',password:'long-password-123'})).user,b=(await app.auth.register({username:'pending_b',password:'long-password-123'})).user;return {app,a,b};}
+async function fixture(t){const app=createApp({databasePath:':memory:',logger:{warn(){},error:console.error}});t.after(()=>app.close());const a=(await app.auth.register({username:'pending_a',password:'long-password-123'})).user,b=(await app.auth.register({username:'pending_b',password:'long-password-123'})).user;for(const u of [a,b])app.db.transaction(()=>app.economy.change(u.id,200,'ADMIN_GRANT','test-fixture','test-fixture'));return {app,a,b};}
 test('Cakto admin configuration, verified checkout, authenticated amounts, duplicate and refund debt',async t=>{
  const {app,a,b}=await fixture(t),admin={...a,role:'ADMIN'},payments=createPayments(app.db,app.economy,{permit,audit(){}}),secret='test-webhook-secret-123456';
  const config={enabled:true,secret,packs:[50,120,500,1200].map(gems=>({gems,offerId:'offer'+gems,checkoutUrl:'https://pay.cakto.com.br/offer'+gems,priceCents:gems*10}))};

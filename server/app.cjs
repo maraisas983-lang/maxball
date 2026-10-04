@@ -73,7 +73,9 @@ limit('username:'+String(data.username).toLowerCase().slice(0,24),8,15*60000);
    const ticket=pathname.match(/^\/api\/(support|command\/tickets)\/([\w-]+)$/);if(ticket)return json(res,200,operations.ticket(user,ticket[2],ticket[1]!=='support'));
 
    if(pathname==='/api/auth/me')return json(res,200,{user:auth.publicUser(user),csrf:session.csrf,profile:auth.profile(uid),wallet:economy.wallet(uid),room:rooms.current(uid)});
+   if(pathname==='/api/leaderboard')return json(res,200,rooms.progression.leaderboard(uid));
    if(pathname==='/api/ranked')return json(res,200,rooms.rankedStatus(user));
+   if(pathname==='/api/friendlies')return json(res,200,{...rooms.friendlies.view(uid),room:rooms.current(uid)});
    if(pathname==='/api/party')return json(res,200,rooms.party.view(uid));
    if(pathname==='/api/party/players'){const q='%'+String(url.searchParams.get('q')||'').slice(0,40)+'%';return json(res,200,db.all('SELECT u.id,p.display_name name FROM users u JOIN profiles p ON p.user_id=u.id WHERE u.id<>? AND (p.display_name LIKE ? OR u.id=?) LIMIT 10',uid,q,String(url.searchParams.get('q')||'')));}
    if(pathname==='/api/profile')return json(res,200,{profile:auth.profile(uid),achievements:db.all('SELECT a.*,c.player_name,c.save_name,club.name club_name FROM accolades a LEFT JOIN careers c ON c.id=a.career_id LEFT JOIN clubs club ON club.id=a.club_id WHERE a.user_id=? ORDER BY a.created_at DESC',uid)});
@@ -101,6 +103,9 @@ limit('username:'+String(data.username).toLowerCase().slice(0,24),8,15*60000);
   }
   if(method==='POST'||method==='PATCH'||method==='DELETE'){
    const data=await body(req);
+   if(pathname==='/api/friendlies/search'&&method==='POST'){if(operations.settings().maintenance)fail('MAINTENANCE','Novas partidas estão pausadas.',503);return json(res,200,rooms.friendlies.search(user,data));}
+   if(pathname==='/api/friendlies/accept'&&method==='POST')return json(res,200,rooms.friendlies.accept(user,data));
+   if(pathname==='/api/friendlies/cancel'&&method==='POST'){object(data,[]);rooms.friendlies.cancel(uid);return json(res,200,rooms.friendlies.view(uid));}
    if(pathname==='/api/skins'&&method==='POST')return json(res,201,skins.save(uid,data));
    const skinPath=pathname.match(/^\/api\/skins\/([\w-]+)$/);if(skinPath&&method==='PATCH')return json(res,200,skins.save(uid,data,skinPath[1]));
    if(pathname==='/api/championships'&&method==='POST')return json(res,201,championships.save(user,data));

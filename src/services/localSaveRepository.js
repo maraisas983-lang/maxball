@@ -29,9 +29,9 @@
     const kits = owned(source.k, kitCount, [0, 1]);
     const effects = owned(source.f, effectCount, [0]);
     const kit = member(source.kit, kits, 0);
-    const balance = integer(source.coins, 0, Number.MAX_SAFE_INTEGER, 50);
-    // Preserve the original v2 bonus, without removing acquired cosmetics.
-    const bonus = source.v === VERSION ? 0 : 150;
+    const balance = integer(source.coins, 0, Number.MAX_SAFE_INTEGER, 0);
+    // Preserve stored balances and cosmetics; new accounts receive no free currency.
+    const bonus = 0;
     const result = {
       v: VERSION,
       coins: Math.min(Number.MAX_SAFE_INTEGER, balance + bonus),

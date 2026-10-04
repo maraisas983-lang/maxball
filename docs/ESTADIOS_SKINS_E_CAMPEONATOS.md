@@ -28,20 +28,21 @@ Somente o dono da sala pode atribuir, substituir ou retirar o árbitro. Durante 
 
 ## Patentes
 
-O Elo e o cálculo de resultados continuam existentes. As faixas de apresentação são:
+O Elo continua sendo usado no matchmaking. As patentes agora usam troféus:
 
-| Patente | Elo mínimo |
+| Patente | Troféus mínimos |
 | --- | ---: |
 | MiniBall | 0 |
-| Ballista | 1.150 |
-| MaxPlayer | 1.300 |
-| MaxCraque | 1.500 |
-| MaxElite | 1.750 |
-| BallMaster | 2.000 |
-| MaxLenda | 2.300 |
-| MaxImortal | 2.600 |
+| Ballista | 100 |
+| MaxPlayer | 250 |
+| MaxCraque | 500 |
+| MaxElite | 850 |
+| BallMaster | 1.300 |
+| MaxLenda | 1.900 |
+| MaxImortal | 2.700 |
 
-O Elo inicial de 1.000 corresponde a MiniBall. As faixas ficam em `src/data/ranks.js`.
+Contas começam com zero troféus em MiniBall. As faixas ficam em `src/data/ranks.js`.
+Veja as [regras de progressão e gemas](COMPETICAO_E_CONFIGURACOES.md).
 
 ## Campeonatos e inscrições
 

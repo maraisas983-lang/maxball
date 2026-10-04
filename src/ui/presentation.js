@@ -16,7 +16,7 @@
    }
    box=root.MaxballUI.el('div',{class:'vs-count'});label=root.MaxballUI.el('strong');progress=root.MaxballUI.el('progress',{max:root.MaxballConfig.match.introSeconds});box.append(label,progress);node.append(root.MaxballUI.el('div',{class:'vs-sign',text:'VS'}),box);
   }
-  const text=state.G.startStage==='LINEUP'?state.cfg.n+' × '+state.cfg.n+' · '+(state.cfg.career?'CARREIRA':state.cfg.ranked?'RANQUEADA':'SALA PERSONALIZADA'):state.cfg.career?'TRANSMISSÃO MAXBALL · BRASILEIRÃO':root.MaxballStadiums.get(state.cfg.stadium).name+' · PREPARANDO A PARTIDA';if(label.textContent!==text)label.textContent=text;progress.max=state.G.startDuration||root.MaxballConfig.match.introSeconds;progress.value=progress.max-state.G.startRemaining;
+  const text=state.G.startStage==='LINEUP'?state.cfg.n+' × '+state.cfg.n+' · '+(state.cfg.final?'GRANDE FINAL':state.cfg.friendly?'AMISTOSO':state.cfg.career?'CARREIRA':state.cfg.ranked?'RANQUEADA':'SALA PERSONALIZADA'):state.cfg.career?'TRANSMISSÃO MAXBALL · BRASILEIRÃO':root.MaxballStadiums.get(state.cfg.stadium).name+' · PREPARANDO A PARTIDA';if(label.textContent!==text)label.textContent=text;progress.max=state.G.startDuration||root.MaxballConfig.match.introSeconds;progress.value=progress.max-state.G.startRemaining;
  }
  root.MaxballPresentation={update};
 })(globalThis);

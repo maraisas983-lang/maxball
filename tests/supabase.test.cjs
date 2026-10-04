@@ -63,8 +63,8 @@ test('Supabase BFF registration, verified identity, refresh, profile and local l
  try{
   const credentials={username:'cloud@example.com',password:'cloud-password-123'};
   assert.equal((await app.auth.register(credentials)).confirmationRequired,true);
-  const result=await app.auth.login(credentials);assert.equal(result.user.id,uid);assert.equal(app.auth.profile(uid).rating,1020);assert.equal(app.economy.wallet(uid).balance,200);
-  assert.equal(app.auth.authenticate(result.token).user.id,uid);const next=await app.auth.refresh(result.token);assert.throws(()=>app.auth.authenticate(result.token));assert.equal(app.auth.authenticate(next.token).user.id,uid);assert.equal(app.economy.wallet(uid).balance,200);
+  const result=await app.auth.login(credentials);assert.equal(result.user.id,uid);assert.equal(app.auth.profile(uid).rating,1020);assert.equal(app.economy.wallet(uid).balance,0);
+  assert.equal(app.auth.authenticate(result.token).user.id,uid);const next=await app.auth.refresh(result.token);assert.throws(()=>app.auth.authenticate(result.token));assert.equal(app.auth.authenticate(next.token).user.id,uid);assert.equal(app.economy.wallet(uid).balance,0);
   await app.auth.updateProfile(uid,{displayName:'Novo nome',shirtName:'Novo',shirtNumber:7});assert.equal(profile.display_name,'Novo nome');await app.auth.logout(next.token);assert.throws(()=>app.auth.authenticate(next.token));assert.equal(app.db.one('select count(*) n from external_sessions').n,0);
  }finally{await app.close();}
 });

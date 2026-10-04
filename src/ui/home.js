@@ -2,6 +2,7 @@
  const $=selector=>document.querySelector(selector);
  function refresh(){
   const account=root.MaxballPortal.account,local=root.MaxballGame.localProfile(),profile=account?.profile;
+  let patent=$('#home-patent');if(!patent){patent=document.createElement('small');patent.id='home-patent';$('#home-name').after(patent);}patent.textContent=(profile?.patent||'MiniBall')+' · '+(profile?.trophies||0)+' troféus';
   $('#home-name').textContent=profile?.display_name||local.name;$('#home-shirt-name').textContent=profile?.shirt_name||local.name;
   $('#home-level').textContent=profile?.level||1;$('#home-xp').value=(profile?.xp||0)%250;$('#home-xp-label').textContent=profile?profile.xp%250+' / 250':'Offline';$('#home-balance').textContent=account?.wallet.balance??local.coins;
   const canvas=$('#home-avatar');canvas.getContext('2d').clearRect(0,0,canvas.width,canvas.height);root.MaxballGame.skin(canvas,profile?.kit??local.kit);

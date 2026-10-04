@@ -4,10 +4,10 @@ const { storageApi, memoryStorage, plain } = require('./helpers.cjs');
 const api = storageApi();
 const options = storage => ({ getStorage: () => storage, kitCount: 22, effectCount: 4, random: () => .25 });
 
-test('new profile persists completely and v2 bonus is granted once', () => {
+test('new profile persists completely without free gems', () => {
   const storage = memoryStorage();
   const first = api.createLocalSaveRepository(options(storage)).load();
-  assert.equal(first.coins, 200);
+  assert.equal(first.coins, 0);
   const second = api.createLocalSaveRepository(options(storage)).load();
   assert.deepEqual(plain(second), plain(first));
   assert.ok(second.fid); assert.ok(second.name); assert.equal(second.st.p, 0);
@@ -23,14 +23,14 @@ test('old version migration preserves paid cosmetics and original backup', () =>
   const raw = JSON.stringify({v:1,coins:30,k:[0,1,6],kit:6,f:[0,3],fx:3});
   const storage = memoryStorage(raw);
   const result = api.createLocalSaveRepository(options(storage)).load();
-  assert.equal(result.coins,180); assert.equal(result.kit,6); assert.equal(result.fx,3);
+  assert.equal(result.coins,30); assert.equal(result.kit,6); assert.equal(result.fx,3);
   api.createLocalSaveRepository(options(storage)).load();
-  assert.equal(JSON.parse(storage.getItem('maxball')).coins,180);
+  assert.equal(JSON.parse(storage.getItem('maxball')).coins,30);
   assert.equal(storage.getItem('maxball.backup'),raw);
 });
 test('invalid nested fields recover without indexing outside catalogs', () => {
   const result = api.normalizeSave({v:2,coins:-2,k:null,f:[99,'2'],kit:999,fx:99,num:100,ctl:{j:{x:Infinity,s:0}},st:{p:'8',g:-1},room:{n:100,fs:-1,sk0:999,time:7},name:'<img onerror=x>',fr:[null,4,'Ana']},22,4,()=>.25);
-  assert.equal(result.coins,50); assert.deepEqual(plain(result.k),[0,1]); assert.equal(result.kit,0);
+  assert.equal(result.coins,0); assert.deepEqual(plain(result.k),[0,1]); assert.equal(result.kit,0);
   assert.equal(result.ctl.j.x,.13); assert.equal(result.room.n,2); assert.equal(result.room.sk0,0);
   assert.equal(result.st.p,0); assert.equal(result.num,10); assert.equal(result.name,'Jogador3250');
   assert.deepEqual(plain(result.fr),['Ana']);

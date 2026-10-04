@@ -2,6 +2,10 @@
  'use strict';
  const {el,button}=root.MaxballUI;
  const identities={
+  settings:['Configurações','DO SEU JEITO','Prepare sua experiência.','Áudio, controles, gráficos e desempenho.','⚙'],
+  leaderboard:['Ranking','OS MELHORES DO MAXBALL','Cada troféu conta.','Os 100 jogadores com mais troféus e sua posição na disputa.','★'],
+  friendly:['Amistosos','ENCONTRO ENTRE CLUBES','Quatro jogadores. Um clube.','Dois tempos de 10 minutos, aceite dos capitães e intervalo na sala.','4'],
+  final:['Final','A NOITE DA CONQUISTA','Escreva seu nome na taça.','Uma grande decisão com cerimônia, torcida e entrega do troféu.','🏆'],
   play:['Jogar','SEU PRÓXIMO DESTINO','Escolha onde entrar em campo.','Cada modo tem seu próprio espaço, regras e preparação.','M'],
   ranked:['Ranqueada','ARENA COMPETITIVA','Entre para disputar seu lugar.','1 × 1 a 4 × 4 · grupos de até quatro · partidas que valem Elo.','★'],
   career:['Carreira','VESTIÁRIO DO CLUBE','Sua história começa no clube.','Prepare a próxima rodada, acompanhe a temporada e conquiste seu espaço.','10'],

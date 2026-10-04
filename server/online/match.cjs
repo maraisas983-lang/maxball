@@ -31,6 +31,7 @@ class Match {
  record(type,payload){const event={type,time:this.G.elapsed,...payload};this.log.push(event);this.events.emit(type,event);}
  kickoff(){this.botRevision=(this.botRevision||0)+1;this.botController?.invalidate(this);ceremony.reset(this);kickoff(this);this.offside.candidates.clear();this.offside.pending=null;}
  pause(userId){if(this.G.pauseState==='PAUSED')return;this.G.pauseState='PAUSED';this.G.pausedBy=userId;this.G.resumeRemaining=0;this.G.official.mode='PAUSED';this.inputs.clear();this.record('REFEREE_PAUSED',{userId});}
+ resumeHalf(){if(this.G.phase!=='halftime'||!this.cfg.intermissionLobby)return;this.G.phase='play';this.G.ko=1;this.kickoff();this.G.pauseState='PAUSED';this.resume();this.record('SECOND_HALF_STARTED',{score:this.G.score.slice()});}
  resume(){if(this.G.pauseState!=='PAUSED')return;this.G.pauseState='RESUMING';this.G.resumeRemaining=3;this.G.official.mode='RESUMING';this.inputs.clear();this.record('REFEREE_RESUMING',{});}
  substitute(outId,incoming){
   const index=this.P.findIndex(p=>p.id===outId),out=this.P[index];if(!out||this.P.some(p=>p.id===incoming.id))throw new Error('Substituição inválida.');
@@ -84,13 +85,13 @@ class Match {
    if(ceremony.advance(this,dt)){this.G.phase='play';this.inputs.clear();this.kickoff();}return;
   }
   if(this.G.phase==='penalties'){this.G.elapsed+=dt;this.penalties.update(dt);return;}
-  if(this.G.phase==='halftime'){this.G.breakRemaining-=dt;ceremony.halftime(this,dt);if(this.G.breakRemaining<=1e-6){this.G.phase='play';this.G.ko=1;this.kickoff();}return;}
+  if(this.G.phase==='halftime'){if(this.cfg.intermissionLobby)return;this.G.breakRemaining-=dt;ceremony.halftime(this,dt);if(this.G.breakRemaining<=1e-6){this.G.phase='play';this.G.ko=1;this.kickoff();}return;}
   this.G.pt+=dt;
-  if(this.G.phase==='goal'){ceremony.celebrate(this,dt);moveBall(this,dt*.4);if(this.G.pt>=timing.goalPauseSeconds){if(this.cfg.goalLimit&&Math.max(...this.G.score)>=this.cfg.goalLimit){this.finish('GOAL_LIMIT');return;}if(this.G.time<=0)this.nextPeriod();else{this.G.phase='play';this.kickoff();}}return;}
+  if(this.G.phase==='goal'){ceremony.celebrate(this,dt);moveBall(this,dt*.4);if(this.G.pt>=timing.goalPauseSeconds){if(this.cfg.goldenSecondHalf&&this.G.halfPlayed){this.G.winner=this.G.sc;this.finish('GOLDEN_GOAL');return;}if(this.cfg.goalLimit&&Math.max(...this.G.score)>=this.cfg.goalLimit){this.finish('GOAL_LIMIT');return;}if(this.G.time<=0)this.nextPeriod();else{this.G.phase='play';this.kickoff();}}return;}
   this.G.elapsed+=dt;this.physics.step(dt);if(this.applyFoul())return;if(!this.offside.apply())moveBall(this,dt,team=>this.goal(team));
   if(this.G.ot)this.G.otT=(this.G.otT||0)+dt;
   this.G.time=Math.max(0,this.G.time-dt);
-  if(this.cfg.halftime&&!this.G.halfPlayed&&!this.G.ot&&this.G.time<=this.cfg.time/2&&this.G.phase==='play'){this.G.halfPlayed=true;this.G.sidesSwapped=!this.G.sidesSwapped;this.G.phase='halftime';this.G.breakRemaining=6;this.inputs.clear();this.record('HALFTIME',{});}
+  if(this.cfg.halftime&&!this.G.halfPlayed&&!this.G.ot&&this.G.time<=this.cfg.time/2&&this.G.phase==='play'){this.G.halfPlayed=true;this.G.sidesSwapped=!this.G.sidesSwapped;this.G.phase='halftime';this.G.breakRemaining=6;if(this.cfg.intermissionLobby)this.G.time=this.cfg.time/2;this.inputs.clear();this.record('HALFTIME',{});}
   if(this.G.time===0&&this.G.phase==='play')this.nextPeriod();
  }
  snapshot(){return {matchId:this.id,cfg:this.cfg,G:{...this.G,cfg:undefined},P:this.P.map(p=>({...p})),ball:{...this.ball},W:this.W,H:this.H,GY0:this.GY0,GY1:this.GY1,BR:this.BR};}

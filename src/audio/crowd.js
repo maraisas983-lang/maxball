@@ -15,12 +15,12 @@
   update(dt,s){
    this.celebration=Math.max(0,this.celebration-dt);
    if(!this.gain)return;const danger=s.G.phase==='play'&&Math.min(s.ball.x,s.W-s.ball.x)<200;
-   const volume=s.G.paused?0:this.celebration>0?.4*(.6+.4*this.celebration/3):s.G.phase==='end'?.08:danger?.07:.025;
-   this.gain.gain.setTargetAtTime(volume,this.context.currentTime,.18);
+   const volume=root.MaxballPreferences?.get().sound===false||s.G.paused?0:this.celebration>0?.4*(.6+.4*this.celebration/3):s.G.phase==='end'?.08:danger?.07:.025;
+   this.gain.gain.setTargetAtTime(volume*(s.G.cfg.final?1.4:1),this.context.currentTime,.18);
   }
   draw(g,s,reduced=false,viewport){
-   const {W,H,G}=s,key=W+':'+H;
-   if(this.key!==key){this.key=key;this.points=[];for(let i=0;i<96;i++)this.points.push({x:20+(i%48)*(W-40)/47,y:i<48?-110:H+110,phase:i*2.4,flag:i%8===0});}
+   const {W,H,G}=s,key=W+':'+H+':'+!!G.cfg.final;
+   if(this.key!==key){this.key=key;this.points=[];for(let i=0;i<(G.cfg.final?192:96);i++)this.points.push({x:20+(i%48)*(W-40)/47,y:i%96<48?-110-Math.floor(i/96)*22:H+110+Math.floor(i/96)*22,phase:i*2.4,flag:i%8===0});}
    const t=Math.floor((G.elapsed||G.el||0)*12)/12+(G.phase==='goal'?G.pt:0),goal=G.phase==='goal';
    for(const p of this.points){if(viewport&&(p.x<viewport.left-30||p.x>viewport.right+30||p.y<viewport.top-30||p.y>viewport.bottom+30))continue;const jump=reduced?0:Math.abs(Math.sin(t*(goal?9:2)+p.phase))*(goal?12:2),y=p.y-jump;
     g.fillStyle=p.x<W/2?'#c8ff2e':'#ff2d87';g.fillRect(p.x-3,y,6,8);g.fillStyle='#e8c7a2';g.fillRect(p.x-2,y-4,4,4);

@@ -61,4 +61,10 @@ Para medir a física: `node scripts/physics-benchmark.cjs`. `npm.cmd run check:s
 
 ## Estádios e comunidade
 
+A tela de carregamento concentra o login. O lobby inclui preferências de áudio,
+controles, gráficos e FPS, além do Top 100 por troféus. Amistosos reúnem dois grupos
+de quatro integrantes de clubes, com aceite dos capitães e intervalo na sala.
+O modo Final tem cerimônia e entrega da taça. Veja as
+[regras de gemas, patentes e modos](docs/COMPETICAO_E_CONFIGURACOES.md).
+
 Escolha entre cinco estádios nas salas, na carreira e nos modos locais. A entrada apresenta a escalação com nomes e skins do time. **Criar skins** abre o editor de cores e camadas; aplique as skins aos clubes. Clubes públicos e privados recebem vários integrantes. **Campeonatos** permite propostas e inscrições por clube, com aprovação no Command Center e entrada grátis ou taxa em gemas. Veja [Como usar](docs/ESTADIOS_SKINS_E_CAMPEONATOS.md).

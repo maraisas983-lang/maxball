@@ -29,12 +29,12 @@ test('all team sizes and field sizes start, simulate and render with finite coor
     for(const body of [...h.api.state.P,h.api.state.ball])for(const key of ['x','y','vx','vy'])assert.ok(Number.isFinite(body[key]),`${n}v${n} fs=${fs} ${key}`);
   }
 });
-test('valid central goal rewards once through normal lifecycle and restarts play',()=>{
+test('valid central goal scores once without casual gems and restarts play',()=>{
   const h=gameHarness({saved:stableSave});h.api.start('bot');
   const s=h.api.state;s.ball.x=s.W+s.BR-1;s.ball.y=s.H/2;s.ball.vx=100;
-  h.api.moveBall(1/30);assert.deepEqual(plain(s.G.score),[1,0]);assert.equal(s.G.phase,'goal');assert.equal(s.save.coins,210);
+  h.api.moveBall(1/30);assert.deepEqual(plain(s.G.score),[1,0]);assert.equal(s.G.phase,'goal');assert.equal(s.save.coins,200);
   for(let i=0;i<400;i++)h.api.update(1/60);
-  assert.equal(s.G.phase,'play');assert.deepEqual(plain(s.G.score),[1,0]);assert.equal(s.save.coins,210);
+  assert.equal(s.G.phase,'play');assert.deepEqual(plain(s.G.score),[1,0]);assert.equal(s.save.coins,200);
   h.api.draw();
 });
 test('shirt number, profile, friends and local purchases remain usable',()=>{
@@ -65,7 +65,7 @@ test('player name is inserted as literal text in the room',()=>{
 });
 test('match result persists and returning home/restarting works',()=>{
   const h=gameHarness({saved:stableSave});h.api.start('bot');h.api.state.G.score=[2,1];h.api.endMatch();
-  assert.equal(h.api.state.save.st.p,1);assert.equal(h.api.state.save.st.w,1);assert.equal(h.api.state.save.coins,220);
+  assert.equal(h.api.state.save.st.p,1);assert.equal(h.api.state.save.st.w,1);assert.equal(h.api.state.save.coins,200);
   h.elements.get('again').onclick();assert.deepEqual(plain(h.api.state.G.score),[0,0]);
   h.elements.get('exit').onclick();assert.equal(h.api.state.G,null);assert.ok(h.elements.get('home').classList.contains('on'));
 });

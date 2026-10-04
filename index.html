@@ -8,18 +8,20 @@
 <link rel="stylesheet" href="styles/experience.css">
 <link rel="stylesheet" href="styles/substitutions.css">
 <link rel="stylesheet" href="styles/community.css">
+<link rel="stylesheet" href="styles/competition.css">
 <link rel="stylesheet" href="styles/keyboard.css">
 <link rel="stylesheet" href="styles/broadcast.css">
 <link rel="stylesheet" href="styles/portal.css">
 <link rel="stylesheet" href="styles/lobby.css"><link rel="stylesheet" href="styles/command.css"><link rel="stylesheet" href="styles/modeLobbies.css"><link rel="stylesheet" href="styles/social.css">
 </head><body>
+<section id="boot-screen" aria-label="Carregamento do MAXBALL"><strong>MAXBALL</strong><p>Carregando o jogo…</p><progress aria-label="Carregamento dos arquivos"></progress><noscript>Ative o JavaScript para jogar.</noscript></section>
 
 <section class="scr on" id="home">
  <svg class="home-stadium" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><defs><linearGradient id="sky" x2="0" y2="1"><stop stop-color="#ecf4fa"/><stop offset="1" stop-color="#fff"/></linearGradient><linearGradient id="grass" x2="0" y2="1"><stop stop-color="#aaca77"/><stop offset="1" stop-color="#429968"/></linearGradient><pattern id="seats" width="32" height="32" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="6" fill="#9bb3ca" opacity=".35"/></pattern></defs><path fill="url(#sky)" d="M0 0h1600v900H0z"/><path d="M0 125Q800 645 1600 125V540H0Z" fill="#c8d8e3"/><path d="M0 190Q800 690 1600 190V500H0Z" fill="url(#seats)"/><path d="M0 85Q800 625 1600 85" fill="none" stroke="#70b580" stroke-width="26"/><path d="M0 345Q800 660 1600 345" fill="none" stroke="#f4d66b" stroke-width="15"/><path d="M0 470Q800 710 1600 470V900H0Z" fill="url(#grass)"/><path d="M0 650 1600 820M1600 650 0 820M800 585v315" stroke="#e7f4d5" stroke-width="6" fill="none"/><ellipse cx="800" cy="740" rx="270" ry="36" fill="none" stroke="#e7f4d5" stroke-width="5"/><path d="M0 840Q800 780 1600 840v60H0Z" fill="#fff" opacity=".85"/></svg>
  <div hidden><div class="coins" id="c0"></div><button id="pchip"></button></div>
  <header class="home-top"><button class="home-profile" data-account-page="profile"><span class="level-badge" id="home-level">1</span><span><strong id="home-name">Jogador</strong><span class="xp-line"><progress id="home-xp" max="250" value="0"></progress><small id="home-xp-label">0 / 250</small></span></span></button><div class="home-wallet"><button data-account-page="shop"><span class="gem-symbol">◆</span><strong id="home-balance">0</strong><span class="wallet-plus">+</span></button><button data-go="ctl" aria-label="Configurações">⚙</button></div></header>
  <div class="home-brand"><svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="48" fill="#10254a"/><path d="M50 14 82 34 75 72 50 88 20 70 18 33Z" fill="white"/><path d="M30 66V35l20 17 20-17v31H58V55l-8 8-8-8v11Z" fill="#10254a"/></svg><h1>MAXBALL</h1></div>
- <nav class="home-side" aria-label="Atalhos"><button data-account-page="ranked"><span>♜</span> RANKING <b>›</b></button><button data-account-page="support"><span>♟</span> SUPORTE <b>›</b></button><button data-go="ctl"><span>☷</span> CONTROLES <b>›</b></button><button data-account-page="gallery"><span>★</span> GALERIA <b>›</b></button></nav>
+ <nav class="home-side" aria-label="Atalhos"><button data-account-page="leaderboard"><span>♜</span> RANKING <b>›</b></button><button data-account-page="support"><span>♟</span> SUPORTE <b>›</b></button><button data-go="ctl"><span>☷</span> CONTROLES <b>›</b></button><button data-account-page="gallery"><span>★</span> GALERIA <b>›</b></button></nav>
  <div class="home-player"><button id="home-prev" aria-label="Uniforme anterior">‹</button><div><canvas id="home-avatar" width="240" height="240"></canvas><strong id="home-shirt-name">MAXBALL</strong></div><button id="home-next" aria-label="Próximo uniforme">›</button></div>
  <nav class="home-bottom" aria-label="Jogar e personalizar"><button data-account-page="shop"><span>▰</span>LOJA</button><button data-account-page="inventory"><span>▣</span>INVENTÁRIO</button><button data-account-page="clubs"><span>⬡</span>CLUBES</button><button data-account-page="career"><span>▥</span>MODO CARREIRA</button><button data-account-page="online"><span>♟</span>SALA PERSONALIZADA</button><button class="home-rank" data-account-page="play"><span>▶</span>JOGAR <b>›</b></button></nav>
  <footer class="home-footer"><button class="link" data-account-page="chat">Chat</button><details><summary>Modos locais</summary><div><button data-account-page="training">Treino</button><button data-account-page="local">Local</button><button data-account-page="ranked">Ranqueada</button><button data-go="custom">Inventário local</button><button data-go="shop">Loja local</button></div></details><span>Bem-vindo ao <strong>MAXBALL!</strong></span><button class="link" data-legal="priv">Privacidade</button><button class="link" data-legal="terms">Termos</button></footer>
@@ -93,7 +95,7 @@
  <div id="keys">Mover: WASD/setas · Chute: F/Espaço · Passe: G/E</div>
  <div id="rot">Gire o celular para o modo horizontal</div>
  <div id="career-commands" hidden><button id="request-pass">Pedir passe (Q)</button><button id="request-shot">Pedir chute (R)</button></div>
- <div id="res"><h2 id="rt"></h2><div id="rs" class="sub"></div><button class="btn b1" id="again">Jogar de novo</button><button class="btn b2" id="menu">Menu</button></div>
+ <div id="res"><h2 id="rt"></h2><div id="rs" class="sub"></div><button class="btn b1" id="again" hidden>Jogar de novo</button><button class="btn b2" id="menu">Menu</button></div>
 </section>
 <section class="scr" id="portal"><header class="portal-header"><div class="portal-brand">MAXBALL<small>ESCREVA SUA HISTORIA</small></div><span id="account-label"></span><button class="action secondary" id="portal-home">Menu principal</button></header><nav id="portal-nav" aria-label="Conta e modos"></nav><div id="portal-status" role="status" aria-live="polite"></div><main id="portal-content"></main></section>
 <div id="toast"></div>
@@ -103,6 +105,7 @@
 <script src="src/input/inputLifecycle.js"></script>
 <script src="src/core/runtime.js"></script>
 <script src="src/core/config.js"></script>
+<script src="src/services/preferences.js"></script>
 <script src="src/data/skinDesign.js"></script>
 <script src="src/data/stadiums.js"></script>
 <script src="src/data/ranks.js"></script>
@@ -149,6 +152,7 @@
 <script src="src/ui/officials.js"></script>
 <script src="src/ui/onlineView.js"></script>
 <script src="src/ui/rankedView.js"></script>
+<script src="src/ui/competitionView.js"></script>
 <script src="src/ui/adminView.js"></script>
 <script src="src/data/legal.js"></script>
 <script src="src/ui/supportView.js"></script>
@@ -162,4 +166,7 @@
 <script src="src/ui/matchExperience.js"></script>
 <script src="src/ui/debugView.js"></script>
 <script src="src/ui/home.js"></script>
+<script src="src/ui/settingsView.js"></script>
+<script src="src/ui/endPresentation.js"></script>
+<script src="src/ui/entryView.js"></script>
 </body></html>

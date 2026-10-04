@@ -21,7 +21,7 @@ test('server accounts, economy, career, RBAC and authoritative networking',async
  async function register(username){const r=await request('/api/auth/register',{method:'POST',body:{username,password:'a-long-password-123'}});assert.equal(r.status,200,JSON.stringify(r.body));return {cookie:r.cookie.split(';')[0],csrf:r.body.csrf,user:r.body.user};}
  const a=await register('player_a'),b=await register('player_b');
  await t.test('credentials and sessions',async()=>{
-  const me=await request('/api/auth/me',{session:a});assert.equal(me.status,200);assert.equal(me.body.wallet.balance,200);assert.equal(me.body.user.password_hash,undefined);assert.equal(me.body.user.role,'PLAYER');
+  const me=await request('/api/auth/me',{session:a});assert.equal(me.status,200);assert.equal(me.body.wallet.balance,0);assert.equal(me.body.user.password_hash,undefined);assert.equal(me.body.user.role,'PLAYER');
   const stored=app.db.one('SELECT password_hash FROM users WHERE id=?',a.user.id);assert.match(stored.password_hash,/^scrypt\$/);assert.ok(!stored.password_hash.includes('a-long-password'));
   assert.equal((await request('/api/auth/login',{method:'POST',body:{username:'player_a',password:'wrong'}})).status,401);
   assert.equal((await request('/api/wallet')).status,401);
@@ -60,7 +60,7 @@ test('server accounts, economy, career, RBAC and authoritative networking',async
   assert.ok(messagesA.some(m=>m.type==='snapshot'));assert.ok(messagesB.some(m=>m.type==='snapshot'));
   const room=app.rooms.rooms.get(roomId);assert.equal(room.match.G.phase,'starting');for(let i=0;i<Math.ceil(require('../src/core/config.js').match.introSeconds*60)+2;i++)room.match.update(1/60);room.match.setInput(a.user.id,{x:1,y:0});assert.equal(room.match.P.find(p=>p.id===a.user.id).ctrl,'remote');
   room.match.G.score=[1,0];room.match.finish();app.rooms.persistResult(room);app.rooms.persistResult(room);
-  assert.equal(app.db.one("SELECT count(*) n FROM gem_transactions WHERE user_id=? AND source=?",a.user.id,room.match.id).n,1);
+  assert.equal(app.db.one("SELECT count(*) n FROM gem_transactions WHERE user_id=? AND source=?",a.user.id,room.match.id).n,0);
   assert.equal((await request('/api/matches',{session:a})).body[0].status,'COMPLETED');
   wb.send(JSON.stringify({type:'input',seq:2,x:999,y:0,shoot:false,pass:false}));await once(wb,'close');
   await request('/api/rooms/leave',{method:'POST',session:a,body:{}});await request('/api/rooms/leave',{method:'POST',session:b,body:{}});

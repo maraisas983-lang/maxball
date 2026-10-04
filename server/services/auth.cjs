@@ -39,7 +39,7 @@ function createAuth(db,economy,{sessionMs=7*86400000}={}){
    db.run('INSERT INTO wallets VALUES(?,?,?)',userId,0,now);
    for(const item of ['kit-0','kit-1','effect-0','emote-0'])db.run('INSERT INTO inventory VALUES(?,?,?)',userId,item,now);
    db.run("INSERT OR IGNORE INTO emote_slots VALUES(?,0,'emote-0')",userId);
-   economy.change(userId,200,'REWARD','WELCOME','welcome');
+   // Gem rewards are earned exclusively in ranked matches; purchases use Cakto.
    return {...session(userId),user:publicUser(db.one('SELECT * FROM users WHERE id=?',userId))};
   });
  }
@@ -56,12 +56,14 @@ function createAuth(db,economy,{sessionMs=7*86400000}={}){
   if(!row)fail('SESSION','Sessão expirada. Entre novamente.',401);
   return {user:allowed(db.one('SELECT * FROM users WHERE id=?',row.user_id)),session:row};
  }
- function profile(userId){return db.one('SELECT * FROM profiles WHERE user_id=?',userId);}
+ function profile(userId){const p=db.one('SELECT * FROM profiles WHERE user_id=?',userId);return {...p,positions:JSON.parse(p.positions),patent:require('../../src/data/ranks.js').rank(p.trophies).name};}
  function updateProfile(userId,body){
-  object(body,['displayName','shirtName','shirtNumber','avatar']);
+  object(body,['displayName','shirtName','shirtNumber','avatar','positions']);
+  const positions=body.positions??profile(userId).positions;
+  if(!Array.isArray(positions)||positions.length>4||new Set(positions).size!==positions.length||positions.some(p=>!['GK','MC','VL','PV','TEC'].includes(p)))fail('POSITIONS','Escolha até quatro posições diferentes: GK, MC, VL, PV ou TEC.');
   const display=name(body.displayName),shirt=name(body.shirtName),num=integer(body.shirtNumber,'Número',1,99),avatar=text(body.avatar||'ball','Avatar',1,20,/^(ball|star|bolt)$/);
   db.run('UPDATE profiles SET display_name=?,shirt_name=?,shirt_number=?,avatar=? WHERE user_id=?',display,shirt,num,avatar,userId);
-  return profile(userId);
+  db.run('UPDATE profiles SET positions=? WHERE user_id=?',JSON.stringify(positions),userId);return profile(userId);
  }
  return {session,provider:"local",register,login,authenticate,publicUser,profile,updateProfile,allowed,
   logout:token=>db.run('DELETE FROM sessions WHERE token_hash=?',hash(token)),

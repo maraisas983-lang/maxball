@@ -6,7 +6,7 @@ Abra **http://127.0.0.1:5173** neste computador e pressione **Ctrl+F5** após at
 Para desenvolver e testar, execute `npm.cmd run dev` na pasta do projeto. Esse comando recarrega o servidor quando os módulos usados pela API mudam. **Jogar → Treino/Local**
 funciona sem conta; os demais modos pedem login e aceite dos documentos.
 
-As migrações SQLite até `009_community.sql` rodam automaticamente no início.
+As migrações SQLite até `010_competitive_progress.sql` rodam automaticamente no início.
 Preserve o banco local: ele contém carreira, economia, suporte e auditoria.
 No Supabase, depois do `001_ranked.sql` já executado, abra SQL Editor → New query,
 cole o arquivo completo `server/database/supabase/002_ranked_parties.sql` e clique
@@ -18,6 +18,8 @@ SUPER_ADMIN permanece compatível. `npm.cmd run admin -- usuário_ou_uuid` cria 
 primeiro OWNER a partir de uma conta existente; depois, entre novamente.
 
 Veja o [relatório e roteiro de testes](REESTRUTURACAO_2026.md).
+As regras atuais de gemas, troféus, amistosos, Final e preferências estão em
+[Competição e configurações](COMPETICAO_E_CONFIGURACOES.md).
 
 ### “Recurso não encontrado” após atualizar
 
