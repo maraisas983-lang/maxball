@@ -120,6 +120,8 @@ function createApp({databasePath='var/maxball.sqlite',origin='http://127.0.0.1:5
    if(pathname==='/api/clubs')return json(res,201,rooms.clubs.create(uid,data));
    const editRoom=pathname.match(/^\/api\/rooms\/([\w-]+)$/);if(editRoom&&method==='PATCH')return json(res,200,rooms.edit(user,editRoom[1],data));
    const pauseRoom=pathname.match(/^\/api\/rooms\/([\w-]+)\/pause$/);if(pauseRoom&&method==='POST')return json(res,200,rooms.pause(user,pauseRoom[1],data));
+   const substituteRoom=pathname.match(/^\/api\/rooms\/([\w-]+)\/substitute$/);if(substituteRoom&&method==='POST')return json(res,200,rooms.substitute(user,substituteRoom[1],data));
+   const lockerRoom=pathname.match(/^\/api\/rooms\/([\w-]+)\/locker$/);if(lockerRoom&&method==='POST')return json(res,200,rooms.locker(user,lockerRoom[1],data));
    if(pathname==='/api/rooms')return json(res,201,await rooms.create(user,data));
    if(pathname==='/api/rooms/leave'){rooms.leave(uid);return json(res,200,{ok:true});}
    if(pathname==='/api/ranked/join'){cloudSync?.assertReady();if(cloud&&rooms.party.current(uid)?.members.length>1&&(await cloud.partyVersion().catch(()=>null))!==2)fail('GROUPS_UNAVAILABLE','A ranqueada em grupo aguarda ativação pelo administrador.',503);return json(res,200,rooms.rankedJoin(user,data));}

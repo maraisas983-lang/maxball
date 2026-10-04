@@ -16,7 +16,7 @@
    const predicted=Math.hypot(ball.vx,ball.vy)>80?ballPhysics.predictTrajectory(s,[.15,.25,.35][G.cfg.diff??1]):ball,region=field.geometry(s);
    for(const team of [0,1]){
     const players=P.filter(p=>!p.inactive&&p.team===team),opponents=P.filter(p=>!p.inactive&&p.team!==team);if(!players.length)continue;
-    const tactical=this.teams[team],direction=team?-1:1,home=team?W:0,goal=team?0:W;
+    const side=field.side(s,team),tactical=this.teams[team],direction=side?-1:1,home=side?W:0,goal=side?0:W;
     const forward=x=>(x-home)*direction;
     const inArea=p=>field.inArea(p,team,s);
     players.forEach((p,index)=>{p.id??=`local-${team}-${index}`;p.role=players.length>=4?ROLES[index]:players.length===3?(index===2?'VOLANTE_CENTRAL':ROLES[index]):index?'VOLANTE_CENTRAL':'ATACANTE_CENTRAL';});

@@ -19,7 +19,8 @@
    const target=now-this.delay;
    while(this.frames.length>2&&this.frames[1].time<=target)this.frames.shift();
    const a=this.frames[0],b=this.frames[1]||a,t=a===b?1:Math.max(0,Math.min(1,(target-a.time)/(b.time-a.time||1)));
-   const discontinuity=a.state.G?.phase!==b.state.G?.phase||a.state.G?.ko!==b.state.G?.ko||a.state.G?.pauseState!==b.state.G?.pauseState;
+   const cinematic=['starting','intro','halftime'].includes(b.state.G?.phase);
+   const discontinuity=(!cinematic&&a.state.G?.phase!==b.state.G?.phase)||a.state.G?.ko!==b.state.G?.ko||a.state.G?.pauseState!==b.state.G?.pauseState||a.state.G?.sidesSwapped!==b.state.G?.sidesSwapped;
    const mix=(x,y)=>discontinuity||Math.hypot(y.x-x.x,y.y-x.y)>120?{...y}:{...y,x:x.x+(y.x-x.x)*t,y:x.y+(y.y-x.y)*t};
    const players=a.players;
    const ball=mix(a.state.ball,b.state.ball);

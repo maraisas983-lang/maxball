@@ -49,6 +49,7 @@
      if(iteration===0)effects.playerContact?.(A,B);
      const nx=d?(B.x-A.x)/d:String(A.id)<String(B.id)?1:-1,ny=d?(B.y-A.y)/d:0,depth=(PR*2-d)*.5;
      corrections[a].x-=nx*depth;corrections[a].y-=ny*depth;corrections[b].x+=nx*depth;corrections[b].y+=ny*depth;
+     if(iteration===0){const closing=(B.vx-A.vx)*nx+(B.vy-A.vy)*ny;if(closing<0){const impulse=closing*.5;A.vx+=nx*impulse;A.vy+=ny*impulse;B.vx-=nx*impulse;B.vy-=ny*impulse;}}
     }
     if(!overlaps)break;
     active.forEach((p,i)=>{p.x+=corrections[i].x;p.y+=corrections[i].y;});

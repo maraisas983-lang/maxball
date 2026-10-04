@@ -60,7 +60,7 @@
  portal.connection=new root.MaxballOnline.Connection({
   input:()=>root.MaxballGame.input(),onStatus:message=>{root.MaxballSocial?.status(message);document.querySelector('#network-status').textContent=message;},
   onMessage:message=>{
-   if(!account)return;root.MaxballSocial?.receive(message);
+   if(!account)return;root.MaxballSocial?.receive(message);root.MaxballExperience?.receive(message);
    if(message.type==='connected'){
     if(!message.room&&root.MaxballGame.remote){root.MaxballGame.leaveRemote();return;}
     if(!message.room&&roomListener&&page==='online'&&shell.classList.contains('on')){portal.open('online').catch(portal.error);return;}

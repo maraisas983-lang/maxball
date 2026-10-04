@@ -104,6 +104,7 @@ Preços e links foram deixados no painel por escolha explícita do usuário.
 Compras reais ficam desativadas até preencher os dados e ativar a integração.
 Não são usados preços ou ofertas inventados.
 
-Substituições manuais, clima, controle por gamepad e upload de evidências foram
+Substituições manuais e vestiário foram implementados na rodada descrita em
+[Vestiário e substituições](VESTIARIO_E_SUBSTITUICOES.md). Clima, controle por gamepad e upload de evidências foram
 pedidos somente se já houvesse suporte na base. Os itens descritos como visão
 futura nos anexos, como clãs e passe de temporada, não foram ativados nesta entrega.

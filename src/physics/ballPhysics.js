@@ -28,7 +28,7 @@
       if (side ? previous.x <= line && ball.x > line : previous.x >= line && ball.x < line) {
         const t = (line - previous.x) / (ball.x - previous.x);
         const y = previous.y + (ball.y - previous.y) * t;
-        if (y - BR > GY0 + CONFIG.postRadius && y + BR < GY1 - CONFIG.postRadius) return side ? 0 : 1;
+        if (y - BR > GY0 + CONFIG.postRadius && y + BR < GY1 - CONFIG.postRadius) return (side ? 0 : 1)^(field.G?.sidesSwapped&&field.G.phase!=='penalties'?1:0);
       }
     }
     return null;

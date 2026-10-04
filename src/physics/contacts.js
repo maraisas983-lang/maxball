@@ -17,6 +17,9 @@
     if(normalSpeed>=0){
      const drive=p.vx*n.x+p.vy*n.y,transfer=1-Math.exp(-24*dt*config.playerMass/(config.playerMass+config.ballMass));
      impulse=Math.min(impulse,Math.max(0,Math.min(drive,config.contactMaxPushSpeed)-normalSpeed))*transfer;
+    }else{
+     const motion=p.vx*n.x+p.vy*n.y,drive=Math.max(0,Math.min(motion,config.contactMaxPushSpeed)),transfer=1-Math.exp(-24*dt*config.playerMass/(config.playerMass+config.ballMass));
+     impulse=-(1+config.contactRestitution)*(normalSpeed-Math.min(0,motion))+drive*transfer;
     }
     impulseX+=impulse*n.x;impulseY+=impulse*n.y;
    }
