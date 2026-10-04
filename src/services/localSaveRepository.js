@@ -39,6 +39,7 @@
       fx: member(source.fx, effects, 0),
       num: integer(source.num, 1, 99, 10),
       ctl: { op: number(controls.op, .3, 1, DEFAULT_CONTROLS.op) },
+      keyboard: root.MaxballKeyboard.normalize(source.keyboard),
       zoom: number(source.zoom, 60, 160, 100),
       ns: source.ns === true,
       name: typeof source.name === 'string' && /^[\p{L}\p{N} _.-]{3,14}$/u.test(source.name)

@@ -5,6 +5,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Rubik:wght@500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles/game.css">
 <link rel="stylesheet" href="styles/replay.css">
+<link rel="stylesheet" href="styles/keyboard.css">
 <link rel="stylesheet" href="styles/broadcast.css">
 <link rel="stylesheet" href="styles/portal.css">
 <link rel="stylesheet" href="styles/lobby.css"><link rel="stylesheet" href="styles/command.css"><link rel="stylesheet" href="styles/modeLobbies.css"><link rel="stylesheet" href="styles/social.css">
@@ -86,7 +87,7 @@
  <div id="gbar"><div class="ga" id="ga">MAX</div><canvas id="gsk" width="64" height="64"></canvas><div class="gt" id="gtx">GOL!</div></div>
  <div id="joy"><div id="knob"></div></div>
  <div class="act" id="bP">PASSE</div><div class="act" id="bS">CHUTE</div>
- <div id="keys">Mover: WASD/setas · Chute: F/Espaço · Passe: G</div>
+ <div id="keys">Mover: WASD/setas · Chute: F/Espaço · Passe: G/E</div>
  <div id="rot">Gire o celular para o modo horizontal</div>
  <div id="career-commands" hidden><button id="request-pass">Pedir passe (Q)</button><button id="request-shot">Pedir chute (R)</button></div>
  <div id="res"><h2 id="rt"></h2><div id="rs" class="sub"></div><button class="btn b1" id="again">Jogar de novo</button><button class="btn b2" id="menu">Menu</button></div>
@@ -94,6 +95,7 @@
 <section class="scr" id="portal"><header class="portal-header"><div class="portal-brand">MAXBALL<small>ESCREVA SUA HISTORIA</small></div><span id="account-label"></span><button class="action secondary" id="portal-home">Menu principal</button></header><nav id="portal-nav" aria-label="Conta e modos"></nav><div id="portal-status" role="status" aria-live="polite"></div><main id="portal-content"></main></section>
 <div id="toast"></div>
 
+<script src="src/input/keyboardBindings.js"></script>
 <script src="src/services/localSaveRepository.js"></script>
 <script src="src/input/inputLifecycle.js"></script>
 <script src="src/core/runtime.js"></script>
@@ -126,6 +128,7 @@
 <script src="src/online/prediction.js"></script>
 <script src="src/online/connection.js"></script>
 <script src="src/ui/components.js"></script>
+<script src="src/ui/keyboardView.js"></script>
 <script src="src/ui/lobbyShell.js"></script>
 <script src="src/ui/careerView.js"></script>
 <script src="src/ui/economyView.js"></script>

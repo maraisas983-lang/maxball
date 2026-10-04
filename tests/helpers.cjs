@@ -1,4 +1,4 @@
-﻿const fs = require('node:fs');
+const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 const root = path.resolve(__dirname, '..');
@@ -10,6 +10,7 @@ function memoryStorage(value) {
 }
 function storageApi() {
   const context = vm.createContext({});
+  vm.runInContext(read('src/input/keyboardBindings.js'), context);
   vm.runInContext(read('src/services/localSaveRepository.js'), context);
   return context.MaxballStorage;
 }
@@ -75,7 +76,7 @@ function gameHarness({ original = false, saved } = {}) {
   const math = Object.create(Math);
   math.random = () => ((seed = seed * 16807 % 2147483647) - 1) / 2147483646;
   const context = vm.createContext({
-    document, localStorage: storage, Math: math, innerWidth: 1000, innerHeight: 560, devicePixelRatio: 1,
+    document, localStorage: storage, Math: math, performance:{now:()=>0}, innerWidth: 1000, innerHeight: 560, devicePixelRatio: 1,
     matchMedia: () => ({ matches: false }),
     navigator: { clipboard: { writeText: async () => {} } }, location: { href: 'http://localhost/' },
     console: { warn: message => warnings.push(message), error: error => errors.push(error) },
@@ -87,7 +88,7 @@ function gameHarness({ original = false, saved } = {}) {
   // Test-only access inside the legacy closure; no debug API is shipped in the game.
   const probe = `globalThis.gameProbe = {
     start, show, update, draw, kick, moveBall, kickoff, endMatch, lockStart, lkStep, lkDraw, netUpd,
-    ${original?'':'drawWithReplay, goalReplay, replaySkip, replayCredits,'}
+    ${original?'':'drawWithReplay, goalReplay, replaySkip, replayCredits, inputOf, remoteRender, get controls(){return window.MaxballGame;},'}
     get state(){return {G,P,ball,save,keys,tj,tb,ljs,inv,NET,LK,W,H,GY0,GY1,BR};}
   };`;
   if (original) vm.runInContext(html.match(/<script>\r?\n([\s\S]*?)<\/script>/)[1] + '\n' + probe, context);

@@ -134,7 +134,7 @@ function beep(f,d,t='square',v=.06,s=0){if(!AC)return;const o=AC.createOscillato
 /* ---------- entrada ---------- */
 addEventListener('contextmenu',e=>e.preventDefault());
 const actionSeq={shoot:0,pass:0},keys={},tj={x:0,y:0},tb={s:0,p:0,r:0};
-addEventListener('keydown',e=>{if(window.MaxballSocial?.isOpen)return;if(e.target.isContentEditable||/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName))return;if(!e.repeat&&!keys[e.code]){if(['KeyF','Space'].includes(e.code))actionSeq.shoot++;if(['KeyG','KeyE'].includes(e.code))actionSeq.pass++;}keys[e.code]=1;if(G&&(G.phase=='intro'||G.phase=='count')&&/Enter|Space|KeyF|KeyG/.test(e.code))skipIntro();if(G&&/Arrow|Space/.test(e.code))e.preventDefault()});
+addEventListener('keydown',e=>{if(window.MaxballSocial?.isOpen)return;if(e.target.isContentEditable||/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName))return;if(!e.repeat&&!keys[e.code]){if(MaxballKeyboard.codes(save.keyboard,'shoot',G?.mode==='local').includes(e.code))actionSeq.shoot++;if(MaxballKeyboard.codes(save.keyboard,'pass',G?.mode==='local').includes(e.code))actionSeq.pass++;}keys[e.code]=1;if(G&&(G.phase=='intro'||G.phase=='count')&&(e.code==='Enter'||MaxballKeyboard.pressed(save.keyboard,'shoot',{[e.code]:1})||MaxballKeyboard.pressed(save.keyboard,'pass',{[e.code]:1})))skipIntro();if(G&&(/Arrow|Space/.test(e.code)||['shoot','pass','shoot2','pass2'].some(a=>MaxballKeyboard.codes(save.keyboard,a).includes(e.code))))e.preventDefault()});
 addEventListener('keyup',e=>keys[e.code]=0);
 const joy=$('#joy'),knob=$('#knob');
 let jid=null;
@@ -219,7 +219,7 @@ function start(mode,cfg){goalReplay.reset();replaySkip.hidden=true;replayCredits
  const L=mode=='local',T=mode=='train',tab=k=>{const c=SK[k].c;return 'linear-gradient(to bottom,'+c[0]+' 50%,'+(c[1]||c[0])+' 50%)'};
  $('#abA').textContent=AB(sk[0]);$('#abB').textContent=AB(sk[1]);$('#tabA').style.background=tab(sk[0]);$('#tabB').style.background=tab(sk[1]);
  ['#abB','#tabB','#s1'].forEach(q=>$(q).style.display=T?'none':'');$('#gbar').classList.remove('on');lastSc=[0,0];
- $('#keys').textContent=mode=='local'?'J1: WASD · F chute · G passe   |   J2: setas · Enter chute · / passe':'Mover: WASD/setas · Chute: F/Espaço · Passe: G';
+ $('#keys').textContent=keyboardHint(mode==='local',cfg.career);
  $('#res').classList.remove('on');$('#gpan').classList.remove('on');show('game');kickoff();const h0=P.find(q=>q.ctrl=='p1')||P[0];cam.x=h0.x;cam.y=h0.y;if(cfg.intro)intro0()}
 function kickoff(){MaxballCeremony.reset(simulationState());goalReplay.reset();replaySkip.hidden=true;replayCredits.hidden=true;resetInputs();ball=MaxballKickoff.kickoff(simulationState());if(G.mode==='train'){G.restarting=false;P[0].x=W*.3;}}
 function intro0(){G.phase='intro';G.it=0;G.ct=0;G.cn=-1;MaxballCeremony.begin(simulationState());cam.x=W/2;cam.y=H/2;toast('Toque para pular a entrada')}
@@ -227,10 +227,11 @@ function introStep(dt){G.it+=dt;if(MaxballCeremony.advance(simulationState(),dt)
 function countStep(dt){G.ct+=dt;const i=Math.floor(G.ct/.8);if(i!=G.cn){G.cn=i;if(i<3)beep(520,.12,'square',.07);else{beep(880,.3,'square',.08);burst(W/2,H/2,30,[c0,c1,'#fff','#c8ff2e'],300,.8,'c',0)}}if(G.ct>=3.2)G.phase='play'}
 function skipIntro(){if(!G||(G.phase!='intro'&&G.phase!='count'))return;P.forEach(q=>{q.x=q.tx;q.y=q.ty;q.hid=false;q.fx=q.team?-1:1;q.fy=0});G.phase='play'}
 cv.addEventListener('pointerdown',skipIntro);
+function keyboardHint(local=false,career=false){const name=a=>MaxballKeyboard.codes(save.keyboard,a,local).map(MaxballKeyboard.label).join('/');return local?'J1: WASD · '+name('shoot')+' chute · '+name('pass')+' passe | J2: setas · '+name('shoot2')+' chute · '+name('pass2')+' passe':'WASD / setas · '+name('shoot')+' chute · '+name('pass')+' passe'+(career?' · Q pedir passe · R pedir chute':'');}
 function inputOf(p){if(p.ctrl=='ai')return ai(p);if(window.MaxballSocial?.isOpen)return {x:0,y:0,shoot:false,pass:false,shootSeq:actionSeq.shoot,passSeq:actionSeq.pass};const k=keys,L=G.mode=='local';let i;
  if(p.ctrl=='p1'){i={x:(k.KeyD||!L&&k.ArrowRight?1:0)-(k.KeyA||!L&&k.ArrowLeft?1:0)+tj.x,y:(k.KeyS||!L&&k.ArrowDown?1:0)-(k.KeyW||!L&&k.ArrowUp?1:0)+tj.y,
-  shootSeq:actionSeq.shoot,passSeq:actionSeq.pass,shoot:k.KeyF||!L&&k.Space||tb.s,requestPass:k.KeyQ||careerButtons.pass,requestShot:k.KeyR||careerButtons.shot,pass:k.KeyG||!L&&k.KeyE||tb.p,press:k.KeyQ||!L&&k.ShiftLeft||tb.r}}
- else i={x:(k.ArrowRight?1:0)-(k.ArrowLeft?1:0),y:(k.ArrowDown?1:0)-(k.ArrowUp?1:0),shoot:k.Enter,pass:k.Slash,press:k.Period};return i}
+  shootSeq:actionSeq.shoot,passSeq:actionSeq.pass,shoot:MaxballKeyboard.pressed(save.keyboard,'shoot',k,L)||tb.s,requestPass:k.KeyQ||careerButtons.pass,requestShot:k.KeyR||careerButtons.shot,pass:MaxballKeyboard.pressed(save.keyboard,'pass',k,L)||tb.p,press:k.KeyQ||!L&&k.ShiftLeft||tb.r}}
+ else i={x:(k.ArrowRight?1:0)-(k.ArrowLeft?1:0),y:(k.ArrowDown?1:0)-(k.ArrowUp?1:0),shoot:MaxballKeyboard.pressed(save.keyboard,'shoot2',k),pass:MaxballKeyboard.pressed(save.keyboard,'pass2',k),press:k.Period};return i}
 function ai(p){return physics.ai(p)}
 /* Chute: a bola sai na direção jogador → bola (como no MamoBall), não para onde o analógico aponta.
    Bots ainda usam 'aim' (mira deles). No passe, se houver companheiro perto dessa linha, a bola é guiada até ele. */
@@ -445,7 +446,7 @@ function leaveRemote(){goalReplay.reset();replaySkip.hidden=true;replayCredits.h
 function receiveRemote(snapshot,userId){
  if(remoteMatch!==snapshot.matchId){
   start('bot',snapshot.cfg);remoteUser=userId;remoteMatch=snapshot.matchId;remoteScore=snapshot.G.score.slice();
-  $('#keys').textContent='WASD / setas · F chute · G passe'+(snapshot.cfg.career?' · Q pedir passe · R pedir chute':'');$('#career-commands').hidden=!snapshot.cfg.career;
+  $('#keys').textContent=keyboardHint(false,snapshot.cfg.career);$('#career-commands').hidden=!snapshot.cfg.career;
  }
  window.MaxballPresentation?.update(snapshot,userId);remoteFrames.push(snapshot,performance.now());G.remote=true;if(!$('#game').classList.contains('on'))show('game');
 }
@@ -472,6 +473,9 @@ function remoteRender(dt,time){
 }
 window.MaxballGame=Object.freeze({
  show,toast,resetInputs,on:events.on,startLocal:start,
+ keyboardBindings(){return MaxballKeyboard.normalize(save.keyboard);},keyboardHelp:keyboardHint,
+ setKeyboardBinding(action,code){const next=MaxballKeyboard.assign(save.keyboard,action,code);resetInputs();save.keyboard=next;$('#keys').textContent=keyboardHint(G?.mode==='local',G?.cfg.career);return persist();},
+ restoreKeyboard(){resetInputs();save.keyboard=MaxballKeyboard.fresh();$('#keys').textContent=keyboardHint(G?.mode==='local',G?.cfg.career);return persist();},
  get remote(){return !!G?.remote;},
  snapshot:receiveRemote,
  localProfile(){return {name:save.name,num:save.num,kit:save.kit,coins:save.coins};},

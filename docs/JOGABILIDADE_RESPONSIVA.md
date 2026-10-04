@@ -67,3 +67,7 @@ Reproduza com `node scripts/gameplay-benchmark.cjs`, `node scripts/physics-bench
 - Pular replay retoma imediatamente a saída de bola local; no online, pula a imagem e aguarda a mesma saída sincronizada dos demais jogadores.
 
 Veja [Imersão e desempenho](IMERSAO_E_DESEMPENHO.md) para as regras, papéis e medições da atualização atual.
+
+## Escolher teclas no PC
+
+Abra **Controles → Teclas no PC** no menu principal, ou a engrenagem durante a partida. Clique no botão de chute/passe e pressione a tecla desejada. As quatro ações (chute e passe de J1 e J2 local) são configuráveis. **Esc** cancela a captura; **Restaurar teclas padrão** recupera os atalhos originais. A escolha é salva automaticamente neste navegador e os lembretes da partida são atualizados. Teclas de movimento, pedidos da carreira, chat e ações já atribuídas são protegidas contra conflitos. Os botões de toque e a velocidade atual do jogador permanecem disponíveis.
