@@ -12,12 +12,12 @@ const {dimensions}=require('../../src/game/fieldConfig.js');
 const ceremony=require('../../src/game/ceremony.js');
 function seeded(seed){let n=seed>>>0;return()=>{n=(Math.imul(n,1664525)+1013904223)>>>0;return n/4294967296};}
 class Match {
- constructor({id,players=[],cfg={},seed=12345}){
-  this.id=id;this.cfg={n:2,time:180,gold:0,diff:1,fs:0,ball:1,sk0:0,sk1:1,...cfg};
+ constructor({id,players=[],cfg={},seed=12345,botController=null}){
+  this.id=id;this.seed=seed;this.botController=botController;this.cfg={n:2,time:180,gold:0,diff:1,fs:0,ball:1,sk0:0,sk1:1,...cfg};
   this.cfg.settings=rules.settings(cfg.settings,!!cfg.gold);
   Object.assign(this,dimensions(this.cfg.n,this.cfg.fs));this.BR=11;
   this.G={cfg:this.cfg,period:'REGULATION',phase:this.cfg.presentation?'starting':'play',startRemaining:this.cfg.presentation?timing.introSeconds:0,score:[0,0],time:this.cfg.time,elapsed:0,pt:0,shake:0,ko:0};
-  this.random=seeded(seed);this.events=createEvents();this.log=[];this.inputs=new Map();this.stats={};this.P=[];this.retiredPlayers=[];
+  this.random=seeded(seed);this.events=createEvents();this.log=[];this.inputs=new Map();this.stats={};this.P=[];this.retiredPlayers=[];this.substitutionQueue=[];
   for(let team=0;team<2;team++)for(let slot=0;slot<this.cfg.n;slot++){
    const human=players.find(p=>p.team===team&&p.slot===slot);
    const player={id:human?.id||`bot-${team}-${slot}`,name:human?.name||['Caio','Breno','Davi','Rui','Leo','Nico','Vini','João','Ivo','Theo'][team*5+slot],displayName:human?.name||['Caio','Breno','Davi','Rui','Leo','Nico','Vini','João','Ivo','Theo'][team*5+slot],team,num:human?.num||7+slot,ctrl:human?'remote':'ai',slot,x:0,y:0,vx:0,vy:0,fx:team?-1:1,fy:0,st:1,cd:0,hop:0};
@@ -25,11 +25,11 @@ class Match {
    this.P.push(player);this.stats[player.id]=performanceStats.empty();
   }
   this.offside=new Offside(this);
-  this.physics=createPhysics({state:()=>this,input:p=>this.penalties?this.penalties.input(p):this.inputs.get(p.id)||{x:0,y:0},random:this.random,effects:{playerContact:(a,b)=>this.contact(a,b),touch:p=>{this.offside.touch(p);if(!this.penalties)performanceStats.touch(this,p,this.stats);},kick:(p,type)=>{if(this.penalties){this.penalties.kicked(p);return;}performanceStats.kick(this,p,type,this.stats);this.offside.kick(p);}}});
+  this.physics=createPhysics({state:()=>this,externalAI:botController?{command:p=>botController.command(this,p)}:null,input:p=>this.penalties?this.penalties.input(p):this.inputs.get(p.id)||{x:0,y:0},random:this.random,effects:{playerContact:(a,b)=>this.contact(a,b),touch:p=>{this.offside.touch(p);if(!this.penalties)performanceStats.touch(this,p,this.stats);},kick:(p,type)=>{if(this.penalties){this.penalties.kicked(p);return;}performanceStats.kick(this,p,type,this.stats);this.offside.kick(p);}}});
   this.kickoff();if(this.cfg.presentation)ceremony.begin(this);ceremony.official(this,0);this.record('MATCH_STARTED',{});
  }
  record(type,payload){const event={type,time:this.G.elapsed,...payload};this.log.push(event);this.events.emit(type,event);}
- kickoff(){ceremony.reset(this);kickoff(this);this.offside.candidates.clear();this.offside.pending=null;}
+ kickoff(){this.botRevision=(this.botRevision||0)+1;this.botController?.invalidate(this);ceremony.reset(this);kickoff(this);this.offside.candidates.clear();this.offside.pending=null;}
  pause(userId){if(this.G.pauseState==='PAUSED')return;this.G.pauseState='PAUSED';this.G.pausedBy=userId;this.G.resumeRemaining=0;this.G.official.mode='PAUSED';this.inputs.clear();this.record('REFEREE_PAUSED',{userId});}
  resume(){if(this.G.pauseState!=='PAUSED')return;this.G.pauseState='RESUMING';this.G.resumeRemaining=3;this.G.official.mode='RESUMING';this.inputs.clear();this.record('REFEREE_RESUMING',{});}
  substitute(outId,incoming){
@@ -37,8 +37,8 @@ class Match {
   this.retiredPlayers=this.retiredPlayers.filter(p=>p.id!==incoming.id&&p.id!==outId);this.retiredPlayers.push({...out});
   const next={...out,...incoming,team:out.team,slot:out.slot,displayName:incoming.name,ctrl:'remote',attributes:undefined,vx:0,vy:0,cd:0,shootHeld:false,passHeld:false,shootSeq:0,passSeq:0,shootBuffer:0,passBuffer:0};
   this.P[index]=next;this.stats[next.id]??=performanceStats.empty();this.inputs.delete(outId);this.inputs.delete(next.id);this.offside.candidates.clear();this.offside.pending=null;
-  this.G.substitution={out:{id:out.id,name:out.displayName||out.name,team:out.team,num:out.num,x:out.x,y:out.y},in:{id:next.id,name:next.name,num:next.num},target:{x:out.x,y:out.y},elapsed:0,duration:3};
-  next.x=this.W/2;next.y=this.H+55;this.record('SUBSTITUTION',{outId,inId:next.id,team:next.team});return next;
+  const animation={out:{id:out.id,name:out.displayName||out.name,team:out.team,num:out.num,x:out.x,y:out.y},in:{id:next.id,name:next.name,num:next.num},target:{x:out.x,y:out.y},elapsed:0,duration:3};
+  if(this.G.substitution)this.substitutionQueue.push(animation);else this.G.substitution=animation;this.G.pendingSubstitutions=this.substitutionQueue.length;this.botRevision=(this.botRevision||0)+1;this.botController?.invalidate(this);next.hid=this.G.substitution!==animation;next.x=this.W/2;next.y=this.H+55;this.record('SUBSTITUTION',{outId,inId:next.id,team:next.team});return next;
  }
  setInput(userId,input){
   if(this.G.pauseState||this.G.phase==='end')return;
@@ -61,7 +61,7 @@ class Match {
  }
  finish(reason='TIME'){
   if(this.G.phase==='end')return;
-  this.G.phase='end';this.G.period='FINISHED';this.G.reason=reason;this.G.pauseState=null;ceremony.official(this,0);if(this.G.winner===undefined)this.G.winner=this.G.score[0]===this.G.score[1]?null:this.G.score[0]>this.G.score[1]?0:1;
+  this.substitutionQueue=[];this.G.substitution=null;this.G.pendingSubstitutions=0;for(const p of this.P)p.hid=false;this.G.phase='end';this.G.period='FINISHED';this.G.reason=reason;this.G.pauseState=null;ceremony.official(this,0);if(this.G.winner===undefined)this.G.winner=this.G.score[0]===this.G.score[1]?null:this.G.score[0]>this.G.score[1]?0:1;
   this.performance=performanceStats.finalize([...this.retiredPlayers,...this.P],this.stats,this.G.winner);
   this.record('MATCH_ENDED',{score:this.G.score.slice(),reason});
  }
@@ -77,7 +77,7 @@ class Match {
  }
  update(dt){
   if(this.G.phase==='end')return;
-  if(this.G.substitution){const sub=this.G.substitution;sub.elapsed=Math.min(sub.duration,sub.elapsed+dt);const p=this.P.find(p=>p.id===sub.in.id),t=Math.max(0,(sub.elapsed/sub.duration-.5)*2),e=t*t*t*(t*(t*6-15)+10);p.x=this.W/2+(sub.target.x-this.W/2)*e;p.y=this.H+55+(sub.target.y-this.H-55)*e;if(t>=1)this.G.substitution=null;return;}
+  if(this.G.substitution){const sub=this.G.substitution;sub.elapsed=Math.min(sub.duration,sub.elapsed+dt);if(sub.duration-sub.elapsed<1e-6)sub.elapsed=sub.duration;const p=this.P.find(p=>p.id===sub.in.id),t=Math.max(0,(sub.elapsed/sub.duration-.5)*2),e=t*t*t*(t*(t*6-15)+10);p.hid=false;p.x=this.W/2+(sub.target.x-this.W/2)*e;p.y=this.H+55+(sub.target.y-this.H-55)*e;if(t>=1){this.G.substitution=this.substitutionQueue.shift()||null;this.G.pendingSubstitutions=this.substitutionQueue.length;}return;}
   if(this.G.pauseState){if(this.G.pauseState==='RESUMING'){this.G.resumeRemaining=Math.max(0,this.G.resumeRemaining-dt);if(this.G.resumeRemaining<1e-6){this.G.resumeRemaining=0;this.G.pauseState=null;this.inputs.clear();for(const p of this.P){p.shootBuffer=p.passBuffer=0;p.shootHeld=p.passHeld=false;}this.record('REFEREE_RESUMED',{});}}return;}
   ceremony.official(this,dt);
   if(this.G.phase==='starting'){

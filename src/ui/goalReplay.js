@@ -20,7 +20,7 @@
    const first=clip[0],last=clip[clip.length-1],t=first.time+(this.age-delay)*.8;
    if(t>last.time+.18){this.skip();return null;}
    let i=1;while(i<clip.length-1&&clip[i].time<t)i++;const a=clip[i-1],b=clip[i],f=Math.max(0,Math.min(1,(t-a.time)/(b.time-a.time||1)));
-   const mix=(x,y)=>x+(y-x)*f,ball={...b.ball};for(const k of ['x','y','rollX','rollY','rot'])ball[k]=mix(a.ball[k]||0,b.ball[k]||0);
+   const mix=(x,y)=>x+(y-x)*f,ball={...b.ball};(typeof module!=='undefined'?require('../physics/ballRotation.js'):root.MaxballBallRotation).blend(a.ball,b.ball,f,ball);for(const k of ['x','y','rollX','rollY','rot'])ball[k]=mix(a.ball[k]||0,b.ball[k]||0);
    const previous=new Map(a.P.map(p=>[p.id,p]));return {ball,P:b.P.map(p=>{const q=previous.get(p.id)||p;return {...p,x:mix(q.x,p.x),y:mix(q.y,p.y),hop:mix(q.hop,p.hop)};}),progress:Math.max(0,Math.min(1,(t-first.time)/(last.time-first.time||1)))};
   }
  }

@@ -2,6 +2,7 @@
   'use strict';
   const physics=(typeof module!=='undefined'?require('../core/config.js'):root.MaxballConfig).physics;
   const contacts=typeof module!=='undefined'?require('./contacts.js'):root.MaxballContacts;
+  const rotation=typeof module!=='undefined'?require('./ballRotation.js'):root.MaxballBallRotation;
   const contactContexts=new WeakMap();
   function prepareContacts(ball,players,touch){let context=contactContexts.get(ball);if(!context){context={players,touch,seen:new Set()};contactContexts.set(ball,context);}context.players=players;context.touch=touch;context.seen.clear();}
   const CONFIG = Object.freeze({maxSpeed:physics.ballMaxSpeed,friction:physics.ballFriction,wallBounce:physics.wallRestitution,postRadius:physics.postRadius,postBounce:physics.postRestitution});
@@ -59,12 +60,12 @@
         const impact = collideCircle(ball, x, y, BR + CONFIG.postRadius, CONFIG.postBounce);
         if (impact) onImpact(impact);
       }
-      if(!awarded&&(G.phase==='play'||G.phase==='penalties')){const scored=crossedGoal(previous,ball,state);if(scored!==null){awarded=true;onGoal(scored);if(G.phase==='goal'){ball.vx*=.12;ball.vy*=.12;return;}}}
+      if(!awarded&&(G.phase==='play'||G.phase==='penalties')){const scored=crossedGoal(previous,ball,state);if(scored!==null){awarded=true;onGoal(scored);if(G.phase==='goal'){rotation.roll(ball,ball.x-previous.x,ball.y-previous.y,BR);ball.vx*=.12;ball.vy*=.12;return;}}}
       if(candidates?.length&&(G.phase==='play'||G.phase==='penalties')&&contacts.resolveContacts(candidates,ball,BR,step,notify,state)){
        for(const x of [0,W])for(const y of [GY0,GY1]){const impact=collideCircle(ball,x,y,BR+CONFIG.postRadius,CONFIG.postBounce);if(impact)onImpact(impact);}
       }
       const dx=ball.x-previous.x,dy=ball.y-previous.y;
-      ball.rollX=(ball.rollX||0)+dy/BR;ball.rollY=(ball.rollY||0)-dx/BR;
+      rotation.roll(ball,dx,dy,BR);
       if (!awarded&&(G.phase === 'play'||G.phase==='penalties')) {
         const team = crossedGoal(previous, ball, state);
         if (team !== null) {awarded=true;onGoal(team);if(G.phase==='goal'){ball.vx*=.12;ball.vy*=.12;return;}}
@@ -84,7 +85,7 @@
     ball.rot=(ball.rot||0)+Math.hypot(ball.vx,ball.vy)*dt/BR;
   }
   function predictTrajectory(state,seconds,out={}){
-    const {ball,W,H,GY0,GY1,BR}=state;Object.assign(out,{x:ball.x,y:ball.y,vx:ball.vx,vy:ball.vy,rollX:ball.rollX||0,rollY:ball.rollY||0});
+    const {ball,W,H,GY0,GY1,BR}=state;Object.assign(out,{x:ball.x,y:ball.y,vx:ball.vx,vy:ball.vy,rollX:ball.rollX||0,rollY:ball.rollY||0,qx:ball.qx||0,qy:ball.qy||0,qz:ball.qz||0,qw:ball.qw??1});
     const count=Math.max(1,Math.ceil(seconds/.04)),dt=seconds/count,decay=Math.pow(CONFIG.friction,dt);
     for(let i=0;i<count;i++){
       const previousX=out.x,previousY=out.y;out.x+=out.vx*dt;out.y+=out.vy*dt;
@@ -92,7 +93,7 @@
       const mouth=out.y>GY0+BR+CONFIG.postRadius&&out.y<GY1-BR-CONFIG.postRadius;
       if(!mouth&&(out.x<BR||out.x>W-BR)){out.x=clamp(out.x,BR,W-BR);out.vx*=-CONFIG.wallBounce;}
       for(const x of [0,W])for(const y of [GY0,GY1])collideCircle(out,x,y,BR+CONFIG.postRadius,CONFIG.postBounce);
-      out.x=clamp(out.x,-46+BR,W+46-BR);out.rollX+=(out.y-previousY)/BR;out.rollY-=(out.x-previousX)/BR;out.vx*=decay;out.vy*=decay;
+      out.x=clamp(out.x,-46+BR,W+46-BR);rotation.roll(out,out.x-previousX,out.y-previousY,BR);out.vx*=decay;out.vy*=decay;
     }
     return out;
   }

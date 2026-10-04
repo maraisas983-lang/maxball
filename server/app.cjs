@@ -121,6 +121,7 @@ function createApp({databasePath='var/maxball.sqlite',origin='http://127.0.0.1:5
    const editRoom=pathname.match(/^\/api\/rooms\/([\w-]+)$/);if(editRoom&&method==='PATCH')return json(res,200,rooms.edit(user,editRoom[1],data));
    const pauseRoom=pathname.match(/^\/api\/rooms\/([\w-]+)\/pause$/);if(pauseRoom&&method==='POST')return json(res,200,rooms.pause(user,pauseRoom[1],data));
    const substituteRoom=pathname.match(/^\/api\/rooms\/([\w-]+)\/substitute$/);if(substituteRoom&&method==='POST')return json(res,200,rooms.substitute(user,substituteRoom[1],data));
+   const substitutionsRoom=pathname.match(/^\/api\/rooms\/([\w-]+)\/substitutions$/);if(substitutionsRoom&&method==='POST')return json(res,200,rooms.substitutions(user,substitutionsRoom[1],data));
    const lockerRoom=pathname.match(/^\/api\/rooms\/([\w-]+)\/locker$/);if(lockerRoom&&method==='POST')return json(res,200,rooms.locker(user,lockerRoom[1],data));
    if(pathname==='/api/rooms')return json(res,201,await rooms.create(user,data));
    if(pathname==='/api/rooms/leave'){rooms.leave(uid);return json(res,200,{ok:true});}

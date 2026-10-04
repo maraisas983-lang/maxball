@@ -1,6 +1,6 @@
 (function(root){
  'use strict';
- const cache=new Map(),steps=64,size=96,R=43,tau=Math.PI*2;
+ const cache=new Map(),size=96,R=43,tau=Math.PI*2;
  const phi=(1+Math.sqrt(5))/2,vertices=[];
  for(const a of [-1,1])for(const b of [-phi,phi])vertices.push([0,a,b],[a,b,0],[b,0,a]);
  const unit=v=>{const d=Math.hypot(...v);return v.map(x=>x/d);};
@@ -15,13 +15,11 @@
  }
  // Geometry is shared by every cached rotation; only projection changes.
  for(const face of faces){face.samples=[];for(let i=0;i<face.points.length;i++){const a=face.points[i],b=face.points[(i+1)%face.points.length];for(let j=0;j<5;j++)face.samples.push(unit(a.map((v,k)=>v+(b[k]-v)*j/5)));}}
- function sprite(x,y){
-  const key=x+':'+y;let canvas=cache.get(key);if(canvas){cache.delete(key);cache.set(key,canvas);return canvas;}
+ function sprite(q){
+  const sign=q[3]<0?-1:1,values=q.map(v=>Math.round(v*sign*64)/64),norm=Math.hypot(...values)||1; q=values.map(v=>v/norm);const key=values.join(':');let canvas=cache.get(key);if(canvas){cache.delete(key);cache.set(key,canvas);return canvas;}
   if(cache.size>=96){const oldest=cache.keys().next().value;canvas=cache.get(oldest);cache.delete(oldest);}else{canvas=document.createElement('canvas');canvas.width=canvas.height=size;}
   const g=canvas.getContext('2d');if(g.reset)g.reset();else canvas.width=size;
-  const ax=x*tau/steps,ay=y*tau/steps;
-  const sa=Math.sin(ax),ca=Math.cos(ax),sb=Math.sin(ay),cb=Math.cos(ay);
-  const rotate=([x,y,z])=>{const qy=y*ca-z*sa,qz=y*sa+z*ca;return [x*cb+qz*sb,qy,-x*sb+qz*cb];};
+  const [qx,qy,qz,qw]=q;const rotate=([x,y,z])=>{const tx=2*(qy*z-qz*y),ty=2*(qz*x-qx*z),tz=2*(qx*y-qy*x);return [x+qw*tx+qy*tz-qz*ty,y+qw*ty+qz*tx-qx*tz,z+qw*tz+qx*ty-qy*tx];};
   g.translate(size/2,size/2);g.beginPath();g.arc(0,0,R,0,tau);g.clip();g.fillStyle='#fafbf9';g.fillRect(-R,-R,R*2,R*2);
   for(const face of faces){
    // Sample spherical seams so adjoining panels meet, including at the rim.
@@ -35,9 +33,8 @@
   cache.set(key,canvas);if(cache.size>96)cache.delete(cache.keys().next().value);return canvas;
  }
  function draw(g,ball,radius){
-  const quantize=v=>((Math.round((v||0)/tau*steps)%steps)+steps)%steps;
   g.fillStyle='rgba(0,0,0,.22)';g.beginPath();g.ellipse(ball.x+radius*.12,ball.y+radius*.65,radius*.86,radius*.3,0,0,tau);g.fill();
-  const image=sprite(quantize(ball.rollX),quantize(ball.rollY??ball.rot));g.drawImage(image,ball.x-radius*size/(R*2),ball.y-radius*size/(R*2),radius*size/R,radius*size/R);
+  const ax=(ball.rollX||0)/2,ay=(ball.rollY||0)/2,q=Number.isFinite(ball.qw)?[ball.qx||0,ball.qy||0,ball.qz||0,ball.qw]:[Math.sin(ax)*Math.cos(ay),Math.cos(ax)*Math.sin(ay),-Math.sin(ax)*Math.sin(ay),Math.cos(ax)*Math.cos(ay)];const image=sprite(q);g.drawImage(image,ball.x-radius*size/(R*2),ball.y-radius*size/(R*2),radius*size/R,radius*size/R);
  }
  root.MaxballBallVisual={draw};
 })(globalThis);

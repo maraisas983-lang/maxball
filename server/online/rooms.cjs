@@ -1,4 +1,5 @@
 const {Locker}=require('./locker.cjs');
+const {Bots}=require('./bots.cjs');
 const {scrypt,randomBytes,timingSafeEqual}=require('node:crypto');
 const {settings}=require('../../src/game/rules.js');
 const {createClubs}=require('../services/clubs.cjs');
@@ -14,7 +15,7 @@ const scryptAsync=require('node:util').promisify(scrypt);let hashingRooms=0;
 async function derive(...args){if(hashingRooms>=4)fail('BUSY','Aguarde um instante para acessar a sala.',503);hashingRooms++;try{return await scryptAsync(...args);}finally{hashingRooms--;}}
 const protocol=require('../../src/online/protocol.js');
 function createRooms({db,auth,economy,career,origin,logger=console,syncResults=false,canRank=()=>true,audit=()=>{}}){
- const ranked=createRanked(db,{syncResults}),clubs=createClubs(db);
+ const ranked=createRanked(db,{syncResults}),clubs=createClubs(db),bots=new Bots(logger);
  let socialEvent=()=>{};
  const rooms=new Map(),membership=new Map(),connections=new Map(),seenConnections=new Set();
  const wss=new WebSocketServer({noServer:true,maxPayload:4096,perMessageDeflate:false});
@@ -100,7 +101,7 @@ function createRooms({db,auth,economy,career,origin,logger=console,syncResults=f
   room.locker?.players.clear();room.originalPlayers=room.players.map(p=>({...p}));room.cfg.presentation=true;room.cfg.coaches=(room.coaches||[]).map(member);room.cfg.referee=room.referee?member(room.referee):null;
   if(room.cfg.teams)room.cfg.labels=room.cfg.teams.map(t=>t.name);
   const matchId=id();
-  room.match=new Match({id:matchId,players:room.players,cfg:room.cfg,seed:randomInt(0,0x7fffffff)});
+  room.match=new Match({id:matchId,players:room.players,cfg:room.cfg,seed:randomInt(0,0x7fffffff),botController:bots});
   db.run('INSERT INTO matches(id,kind,career_id,season,fixture,participants,score,events,stats,duration,status,created_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)',matchId,room.kind,room.career?.career.id||null,room.career?.career.season||null,room.career?.index??null,JSON.stringify(room.players),'[0,0]','[]','{}',0,'RUNNING',Date.now());
   if(room.ranked)ranked.begin(room);
   room.match.events.on('GOAL_SCORED',event=>broadcast(room,{type:'event',event}));
@@ -173,13 +174,13 @@ function createRooms({db,auth,economy,career,origin,logger=console,syncResults=f
   if(body.entered&&room.match&&room.match.G.phase!=='end'&&room.players.some(p=>p.id===user.id))fail('LOCKER','A partida está em andamento.',409);
   room.locker??=new Locker();if(body.entered)room.locker.enter(member,body.team??0);else room.locker.leave(user.id);broadcast(room,room.locker.snapshot());return {room:visible(room),state:room.locker.snapshot()};
  }
- function substitute(user,roomId,body){
-  object(body,['outId','inId']);const room=rooms.get(roomId);if(!room||room.ranked||room.kind!=='ONLINE'||membership.get(user.id)!==roomId||room.owner!==user.id&&room.referee?.id!==user.id)fail('SUBSTITUTE','Somente o anfitrião ou árbitro pode substituir.',403);
+ function substitute(user,roomId,body){object(body,['outId','inId']);return substitutions(user,roomId,{changes:[body]});}
+ function substitutions(user,roomId,body){
+  object(body,['changes']);const room=rooms.get(roomId);if(!room||room.ranked||room.kind!=='ONLINE'||membership.get(user.id)!==roomId||room.owner!==user.id&&room.referee?.id!==user.id)fail('SUBSTITUTE','Somente o anfitrião ou árbitro pode substituir.',403);
   if(!room.match||room.match.G.phase!=='play'||room.match.G.pauseState!=='PAUSED'||room.match.G.substitution)fail('SUBSTITUTE','Pause a partida e aguarde a animação antes de substituir.',409);
-  const incoming=room.spectators?.find(p=>p.id===body.inId),out=room.match.P.find(p=>p.id===body.outId);if(!incoming||!out)fail('SUBSTITUTE','Escolha um espectador e um jogador em campo.');
-  const next=room.match.substitute(out.id,incoming);room.spectators=room.spectators.filter(p=>p.id!==incoming.id);const member=room.players.find(p=>p.id===out.id);room.players=room.players.filter(p=>p.id!==out.id);if(member)room.spectators.push({...member,team:null,slot:null});room.players.push({id:next.id,name:next.name,num:next.num,team:next.team,slot:next.slot});room.locker?.leave(next.id);
-  const original=room.originalPlayers.find(p=>p.id===next.id);if(original){original.team=next.team;original.slot=next.slot;}else room.originalPlayers.push({id:next.id,name:next.name,num:next.num,team:next.team,slot:next.slot});
-  db.run('UPDATE matches SET participants=? WHERE id=?',JSON.stringify(room.originalPlayers),room.match.id);room.sentBaseline=false;broadcast(room,{type:'snapshot',state:protocol.snapshot(room.match,ticks)});audit(user,'SUBSTITUTION',room.match.id,{outId:out.id,inId:next.id});socialEvent(room.id,next.name+' entra no lugar de '+(out.displayName||out.name));notify(room);return visible(room);
+  let pairs;try{pairs=require('../../src/game/substitutionPlan.js').validate(room.match.P,room.spectators||[],body.changes);}catch(error){fail('SUBSTITUTE',error.message,409);}
+  for(const {out,incoming} of pairs){const next=room.match.substitute(out.id,incoming);room.spectators=room.spectators.filter(p=>p.id!==incoming.id);const member=room.players.find(p=>p.id===out.id);room.players=room.players.filter(p=>p.id!==out.id);if(member)room.spectators.push({...member,team:null,slot:null});room.players.push({id:next.id,name:next.name,num:next.num,team:next.team,slot:next.slot});room.locker?.leave(next.id);const original=room.originalPlayers.find(p=>p.id===next.id);if(original){original.team=next.team;original.slot=next.slot;}else room.originalPlayers.push({id:next.id,name:next.name,num:next.num,team:next.team,slot:next.slot});socialEvent(room.id,next.name+' entra no lugar de '+(out.displayName||out.name));}
+  db.run('UPDATE matches SET participants=? WHERE id=?',JSON.stringify(room.originalPlayers),room.match.id);room.sentBaseline=false;broadcast(room,{type:'snapshot',state:protocol.snapshot(room.match,ticks)});audit(user,'SUBSTITUTIONS',room.match.id,{changes:body.changes});notify(room);return visible(room);
  }
  function pause(user,roomId,body){
   object(body,['paused']);const room=rooms.get(roomId);if(!room||room.ranked||membership.get(user.id)!==room.id||!(room.kind==='CAREER'&&room.owner===user.id||room.kind==='ONLINE'&&(room.referee?room.referee.id===user.id:room.owner===user.id)))fail('REFEREE','Somente o árbitro designado pode controlar a pausa.',403);
@@ -251,8 +252,8 @@ function createRooms({db,auth,economy,career,origin,logger=console,syncResults=f
     }
     room.lastPresent=all(room).some(p=>connections.has(p.id)&&membership.get(p.id)===room.id)?Date.now():(room.lastPresent||Date.now());
     if(Date.now()-room.lastPresent>30000&&room.match.G.phase!=='end')room.match.finish('ABANDONED');
-    room.match.update(1/60);
-    if(room.match.G.phase==='end')persistResult(room);
+    room.match.update(1/60);if(ticks%6===0)bots.submit(room.match);
+    if(room.match.G.phase==='end'){bots.remove(room.match.id);persistResult(room);}
     if(ticks%3===0&&!room.finalSent){const acks=Object.fromEntries(room.players.map(p=>[p.id,connections.get(p.id)?.sequence??-1]));
      if(!room.sentBaseline||room.match.G.phase==='end'){const state=protocol.snapshot(room.match,ticks);state.acks=acks;broadcast(room,{type:'snapshot',state});}
      else broadcast(room,protocol.frameFromMatch(room.match,ticks,acks));
@@ -274,10 +275,10 @@ function createRooms({db,auth,economy,career,origin,logger=console,syncResults=f
   }catch{socket.write('HTTP/1.1 401 Unauthorized\r\nConnection: close\r\n\r\n');socket.destroy();}
  }
  function socialBroadcast(scope,data,allow=()=>true){const payload=JSON.stringify(data);for(const [uid,c] of connections)if((membership.get(uid)||'lobby')===scope&&allow(uid))send(c.ws,payload);}
- return {setSocial:callback=>{socialEvent=callback;},socialBroadcast,pause,substitute,locker,edit,clubs,ranked,rankedStatus,rankedJoin,rankedCancel,pairRanked,forfeit,create,join,start,leave,current,careerMatch,matchmaking,upgrade,
+ return {setSocial:callback=>{socialEvent=callback;},socialBroadcast,pause,substitute,substitutions,locker,edit,clubs,ranked,rankedStatus,rankedJoin,rankedCancel,pairRanked,forfeit,create,join,start,leave,current,careerMatch,matchmaking,upgrade,
   list:()=>[...rooms.values()].filter(r=>r.kind==='ONLINE'&&!r.ranked&&r.match?.G.phase!=='end').map(visible),online:()=>connections.size,
-  close(){clearInterval(timer);for(const c of connections.values())c.ws.terminate();wss.close();},
+  close(){bots.close();clearInterval(timer);for(const c of connections.values())c.ws.terminate();wss.close();},
   // Server-side state only, useful to deterministic integration tests.
-  rooms,party,persistResult,disconnect:userId=>connections.get(userId)?.ws.close(1008,'Sessão encerrada pela moderação'),metrics:()=>({...metrics,p95ProcessingMs:processingSamples.slice().sort((a,b)=>a-b)[Math.floor(processingSamples.length*.95)]||0,ping:Math.round([...connections.values()].reduce((sum,c)=>sum+(c.ping||0),0)/Math.max(1,connections.size)),queued:ranked.queue.size,queueWait:Math.floor(Math.max(0,...[...ranked.queue.values()].map(q=>(Date.now()-q.since)/1000))),tickRate:60,updateRate:20,connections:connections.size,rooms:rooms.size,players:[...rooms.values()].reduce((sum,r)=>sum+(r.match?.G.phase!=='end'?r.match?.P.length||0:0),0)})};
+  rooms,bots,party,persistResult,disconnect:userId=>connections.get(userId)?.ws.close(1008,'Sessão encerrada pela moderação'),metrics:()=>({...metrics,p95ProcessingMs:processingSamples.slice().sort((a,b)=>a-b)[Math.floor(processingSamples.length*.95)]||0,ping:Math.round([...connections.values()].reduce((sum,c)=>sum+(c.ping||0),0)/Math.max(1,connections.size)),queued:ranked.queue.size,queueWait:Math.floor(Math.max(0,...[...ranked.queue.values()].map(q=>(Date.now()-q.since)/1000))),tickRate:60,updateRate:20,connections:connections.size,rooms:rooms.size,players:[...rooms.values()].reduce((sum,r)=>sum+(r.match?.G.phase!=='end'?r.match?.P.length||0:0),0)})};
 }
 module.exports={createRooms};

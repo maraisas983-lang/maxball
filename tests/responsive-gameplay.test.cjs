@@ -3,7 +3,7 @@ const {Match}=require('../server/online/match.cjs'),movement=require('../src/phy
 const cfg=require('../src/core/config.js');
 function practice(n=1){const m=new Match({id:'responsive',players:[{id:'human',team:0,slot:0}],cfg:{n,time:600}});m.G.restarting=false;for(const p of m.P){p.ctrl='remote';p.x=100+p.team*400+p.slot*50;p.y=100;}m.ball={x:350,y:250,vx:0,vy:0,rot:0};return m;}
 test('release stops real movement within one tick in every direction and after turning',()=>{
- for(let a=0;a<8;a++){const p={x:100,y:100,vx:0,vy:0,fx:1,fy:0},i={x:Math.cos(a*Math.PI/4),y:Math.sin(a*Math.PI/4)};for(let n=0;n<30;n++)movement.integrate(p,i,1/60);assert.ok(Math.hypot(p.vx,p.vy)<=140.001);movement.integrate(p,{x:-i.x,y:-i.y},1/60);const {x,y}=p;movement.integrate(p,{x:0,y:0},1/60);assert.deepEqual([p.x,p.y,p.vx,p.vy],[x,y,0,0]);}
+ for(let a=0;a<8;a++){const p={x:100,y:100,vx:0,vy:0,fx:1,fy:0},i={x:Math.cos(a*Math.PI/4),y:Math.sin(a*Math.PI/4)};for(let n=0;n<30;n++)movement.integrate(p,i,1/60);assert.ok(Math.hypot(p.vx,p.vy)<=160.001);movement.integrate(p,{x:-i.x,y:-i.y},1/60);const {x,y}=p;movement.integrate(p,{x:0,y:0},1/60);assert.deepEqual([p.x,p.y,p.vx,p.vy],[x,y,0,0]);}
 });
 test('online authoritative release has zero velocity; stopping near ball adds no force',()=>{
  const m=practice(),p=m.P[0];m.setInput(p.id,{x:1,y:0});for(let i=0;i<20;i++)m.update(1/60);m.setInput(p.id,{x:0,y:0});const x=p.x;m.update(1/60);assert.deepEqual([p.x,p.vx,p.vy],[x,0,0]);m.ball.x=p.x+30;m.ball.y=p.y;m.ball.vx=m.ball.vy=0;m.update(1/60);assert.equal(Math.hypot(m.ball.vx,m.ball.vy),0);

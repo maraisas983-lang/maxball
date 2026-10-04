@@ -1,6 +1,7 @@
 (function(root){
  'use strict';
  const physics=typeof module!=='undefined'?require('../physics/ballPhysics.js'):root.MaxballBall;
+ const rotation=typeof module!=='undefined'?require('../physics/ballRotation.js'):root.MaxballBallRotation;
  class SnapshotBuffer {
   constructor(delay=70){this.delay=delay;this.baseDelay=delay;this.frames=[];this.jitter=0;this.offset=null;}
   clear(){this.frames=[];this.offset=null;this.jitter=0;}
@@ -23,7 +24,7 @@
    const discontinuity=(!cinematic&&a.state.G?.phase!==b.state.G?.phase)||a.state.G?.ko!==b.state.G?.ko||a.state.G?.pauseState!==b.state.G?.pauseState||a.state.G?.sidesSwapped!==b.state.G?.sidesSwapped;
    const mix=(x,y)=>discontinuity||Math.hypot(y.x-x.x,y.y-x.y)>120?{...y}:{...y,x:x.x+(y.x-x.x)*t,y:x.y+(y.y-x.y)*t};
    const players=a.players;
-   const ball=mix(a.state.ball,b.state.ball);
+   const ball=mix(a.state.ball,b.state.ball);if(!discontinuity)rotation.blend(a.state.ball,b.state.ball,t,ball);
    // Unwrap rolling angles without changing authoritative coordinates or velocities.
    for(const key of ['rollX','rollY'])if(Number.isFinite(a.state.ball[key])&&Number.isFinite(b.state.ball[key])&&!discontinuity)ball[key]=a.state.ball[key]+(b.state.ball[key]-a.state.ball[key])*t;
    const P=b.state.P.map(p=>mix(players.get(p.id)||p,p)),gap=Math.min(50,Math.max(0,target-b.time))/1000;

@@ -108,3 +108,9 @@ Substituições manuais e vestiário foram implementados na rodada descrita em
 [Vestiário e substituições](VESTIARIO_E_SUBSTITUICOES.md). Clima, controle por gamepad e upload de evidências foram
 pedidos somente se já houvesse suporte na base. Os itens descritos como visão
 futura nos anexos, como clãs e passe de temporada, não foram ativados nesta entrega.
+
+## Rodada de confirmação de substituições e bots
+
+Concluídos: painel dos dois times e espectadores, rascunho com revisão e confirmação, trocas em lote com animações em sequência, personagem a 160 unidades/s, menor desaceleração da bola, rotação pelo deslocamento real e decisões dos bots online em worker separado. A suíte completa passou com 150 testes; o painel foi verificado no Edge em desktop e celular. Consulte [Substituições e bots](SUBSTITUICOES_E_BOTS.md).
+
+O processo local já aberto precisa ser reiniciado para carregar as alterações Node. A revisão automática rejeitou essa reinicialização em uma tentativa anterior, sem fornecer motivo detalhado; ela não foi contornada. As pendências de acesso Supabase e Render acima permanecem.
