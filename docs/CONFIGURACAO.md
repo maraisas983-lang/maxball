@@ -3,10 +3,10 @@
 ## Testar esta versão
 
 Abra **http://127.0.0.1:5173** neste computador e pressione **Ctrl+F5** após atualizar.
-Se necessário, execute `npm.cmd start` na pasta do projeto. **Jogar → Treino/Local**
+Para desenvolver e testar, execute `npm.cmd run dev` na pasta do projeto. Esse comando recarrega o servidor quando os módulos usados pela API mudam. **Jogar → Treino/Local**
 funciona sem conta; os demais modos pedem login e aceite dos documentos.
 
-As migrações SQLite até `008_social_payments.sql` rodam automaticamente no início.
+As migrações SQLite até `009_community.sql` rodam automaticamente no início.
 Preserve o banco local: ele contém carreira, economia, suporte e auditoria.
 No Supabase, depois do `001_ranked.sql` já executado, abra SQL Editor → New query,
 cole o arquivo completo `server/database/supabase/002_ranked_parties.sql` e clique
@@ -18,6 +18,19 @@ SUPER_ADMIN permanece compatível. `npm.cmd run admin -- usuário_ou_uuid` cria 
 primeiro OWNER a partir de uma conta existente; depois, entre novamente.
 
 Veja o [relatório e roteiro de testes](REESTRUTURACAO_2026.md).
+
+### “Recurso não encontrado” após atualizar
+
+O servidor Node mantém os módulos da API em memória. Uma janela antiga pode servir
+a interface atualizada e continuar com rotas antigas. Encerre essa execução com
+Ctrl+C no terminal correspondente, execute `npm.cmd run dev` e abra o endereço
+anunciado. Se aparecer `EADDRINUSE`, a porta 5173 continua ocupada pelo servidor
+antigo; encerre-o antes de iniciar outra execução. Não exclua o banco nem o `.env`.
+
+O cliente verifica a versão da API antes de enviar alterações. Se o servidor estiver
+antigo, mostra uma mensagem de atualização em vez de tentar acessar rotas novas.
+No Render, mantenha `npm start` e faça o deploy da branch `develop/maxball`;
+o recarregamento automático de `dev` é para o ambiente local.
 
 ## Configuração da Cakto pelo painel
 

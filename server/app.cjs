@@ -14,6 +14,7 @@ const {createPayments}=require('./services/payments.cjs');
 const {createSkins}=require('./services/skins.cjs'),{createChampionships}=require('./services/championships.cjs');
 const {AppError,fail,object}=require('./lib/validation.cjs');
 const ROOT=path.resolve(__dirname,'..');
+const apiContract=require('../src/core/apiContract.js');
 
 function createApp({databasePath='var/maxball.sqlite',origin='http://127.0.0.1:5173',production=false,logger=console,sessionMs,supabase,adminEmails=[]}={}){
  if(production&&!origin.startsWith('https://'))throw new Error('Production requires an HTTPS PUBLIC_ORIGIN');
@@ -45,11 +46,12 @@ function createApp({databasePath='var/maxball.sqlite',origin='http://127.0.0.1:5
   res.setHeader('Content-Security-Policy',"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' "+origin.replace(/^http/,'ws')+"; object-src 'none'; base-uri 'none'; frame-ancestors 'none'");
   if(production)res.setHeader('Strict-Transport-Security','max-age=31536000');
   if(!pathname.startsWith('/api/'))return staticFile(req,res,pathname);
+  res.setHeader('X-Maxball-API-Version',apiContract.version);
   limit('api:'+req.socket.remoteAddress,600,60000);
   const write=!['GET','HEAD'].includes(method);
   if(pathname==='/api/payments/cakto/webhook'&&method==='POST'){limit('webhook:'+req.socket.remoteAddress,120,60000);return json(res,200,payments.webhook(await body(req)));}
   if(write&&req.headers.origin!==origin)fail('ORIGIN','Origem não permitida.',403);
-  if(pathname==='/api/config'&&method==='GET')return json(res,200,{authProvider:auth.provider,legal:{termsVersion:operations.policy.termsVersion,privacyVersion:operations.policy.privacyVersion},announcement:operations.settings().announcement});
+  if(pathname==='/api/config'&&method==='GET')return json(res,200,{apiVersion:apiContract.version,authProvider:auth.provider,legal:{termsVersion:operations.policy.termsVersion,privacyVersion:operations.policy.privacyVersion},announcement:operations.settings().announcement});
   if(pathname==='/api/health'&&method==='GET')return json(res,200,{ok:true});
   if(['/api/auth/register','/api/auth/login'].includes(pathname)&&method==='POST'){
    limit('auth:'+req.socket.remoteAddress,12,15*60000);

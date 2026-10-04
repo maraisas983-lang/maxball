@@ -5,6 +5,7 @@
   "description": "MAXBALL - futebol arcade, carreira e multiplayer",
   "scripts": {
     "start": "node server/index.cjs",
+    "dev": "node --watch server/index.cjs",
     "check": "node scripts/check.cjs",
     "check:supabase": "node scripts/check-supabase.cjs",
     "test": "node --max-old-space-size=128 --no-opt --liftoff-only --no-wasm-tier-up --wasm-num-compilation-tasks=1 --wasm-lazy-compilation --test --test-concurrency=1 --test-timeout=90000 tests/*.test.cjs",
