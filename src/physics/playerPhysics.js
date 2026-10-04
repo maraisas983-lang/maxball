@@ -64,7 +64,7 @@
     const blocked=G.restarting&&p.team!==G.ko;
     if(blocked){i.x=i.y=0;i.shoot=i.pass=false;}
     let l=Math.hypot(i.x,i.y);if(l>1){i.x/=l;i.y/=l;l=1;}
-    const sp=p.ctrl==='ai'?[114,123,130][G.cfg.diff]:config.playerMaxSpeed;
+    const sp=p.ctrl==='ai'?config.botMaxSpeeds[G.cfg.diff]:config.playerMaxSpeed;
     movement.integrate(p,i,dt,sp);p.cd-=dt;p.st=1;
     for(const type of ['shoot','pass']){
      const edge=i[type]&&!p[type+'Held']||Number.isSafeInteger(i[type+'Seq'])&&i[type+'Seq']>(p[type+'Seq']||0);

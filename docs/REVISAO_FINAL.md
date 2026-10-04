@@ -27,8 +27,8 @@ Se o servidor estiver fechado, execute `npm.cmd start` na raiz do projeto.
 | --- | --- |
 | Preservar o jogo | Canvas, menus, modos locais, saves antigos e sistemas existentes preservados; módulos compartilhados entre navegador e Node. |
 | Bola com volume | Painéis de bola de futebol, iluminação, sombra e rotação; imagens reutilizadas em um conjunto limitado. |
-| Bola menos rápida e com peso | Massa relativa 1,8; condução gradual, limite de condução 122, passe 250, chute 320 e limite da bola 400 unidades/s. Colisões usam velocidade relativa, massa e subpassos. |
-| Velocidade do boneco aprovada | Base de 130 unidades/s preservada; soltar o controle zera a velocidade real, com direção diagonal normalizada. |
+| Bola menos rápida e com peso | Massa relativa 1,8; condução gradual, limite de condução 132, passe 275, chute 350 e limite da bola 400 unidades/s. Colisões usam velocidade relativa, massa e subpassos. |
+| Velocidade do boneco | Base ajustada levemente de 130 para 140 unidades/s conforme o último pedido; soltar o controle zera a velocidade real, com direção diagonal normalizada. |
 | Círculo pequeno, sem sensor antigo | Somente no jogador controlado; raio de 31,75–32,5, com desenho e alcance real compartilhados e escala limitada conforme o campo. |
 | Limites e gol | Personagens atravessam as linhas até a margem externa; traves e redes têm colisão. A bola respeita as bordas. Gol confirmado ao cruzar completamente a linha, antes de contato posterior com defensor externo. |
 | Replay | Histórico limitado, reprodução mais lenta, pular, nome do autor e da assistência, indicação de gol contra e de ausência de assistência. |

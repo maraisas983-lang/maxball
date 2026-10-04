@@ -24,8 +24,8 @@ Transferências preservam as opções; não é necessária outra migração SQL.
 
 ## Ajustes de jogo
 
-- Passe manual: **250** unidades/s; passes com mira: **230–280** antes dos atributos.
-- Chute: **320** unidades/s; limite da bola: **400** unidades/s. Há uma contribuição pequena do movimento do jogador e da velocidade tangencial anterior da bola, respeitando o limite.
+- Passe manual: **275** unidades/s; passes com mira: **250–310** antes dos atributos.
+- Chute: **350** unidades/s; limite da bola: **400** unidades/s. Há uma contribuição pequena do movimento do jogador e da velocidade tangencial anterior da bola, respeitando o limite.
 - Atrito da bola: fator por segundo **0,38**, para dar resistência à condução e encerrar o movimento mais cedo. Velocidades abaixo de 0,5 são zeradas para encerrar o movimento residual.
 - Entrada local e online usam a mesma sequência com movimento suave e saídas escalonadas. A opção de pular a entrada local continua disponível.
 - Entrada online: 0,8 → **5 segundos**; apresentação comum: **10,2 segundos**, carreira: **21,8 segundos**.

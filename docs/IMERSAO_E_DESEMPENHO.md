@@ -2,7 +2,7 @@
 
 ## O que mudou
 
-- Velocidade base de 130 unidades/s, mudança rápida de direção e parada real imediata ao soltar o controle.
+- Velocidade base de 140 unidades/s, mudança rápida de direção e parada real imediata ao soltar o controle.
 - Círculo de interação com raio de 31,75–32,5 unidades. O desenho e o alcance real usam a mesma função.
 - Grande área proporcional: profundidade de 10,5% da largura; em 4v4, 14%. Dois defensores podem entrar; o terceiro é bloqueado pela física.
 - A saída de bola fica protegida até um contato ou comando válido da equipe responsável. Não expira por tempo.
@@ -51,3 +51,7 @@ Jogador: 165 → 130 unidades/s; chute: 460 → 320; passe: 340 → 250; limite 
 O gol é reconhecido ao cruzar completamente a linha, antes de contatos posteriores com jogadores fora do campo. A rede amortece a bola e a mantém dentro do gol. Contatos junto à trave continuam sendo colisões válidas. O replay exibe autor e assistência; gols contra e jogadas sem assistência são indicados explicitamente.
 
 Os bots calculam distâncias de passe e chute usando força, atributos e resistência ao rolamento. Foram verificados oito casos específicos dessa atualização, além da suíte existente: condução gradual, parada, chute/passe, retenção da bola nas redes, nomes e assistência, árbitro no lobby e decisão de avançar em vez de chutar de longe.
+
+## Ajuste leve de velocidade solicitado após a revisão
+
+Jogador: 130 → 140 unidades/s (+7,7%); chute: 320 → 350 (+9,4%); passe: 250 → 275 (+10%). Passes com mira: 250–310; condução limitada a 132. Bots acompanham o aumento, mantendo a diferença entre dificuldades. Massa, atrito, parada imediata, alcance e limite máximo da bola continuam iguais.

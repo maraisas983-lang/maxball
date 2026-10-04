@@ -28,7 +28,7 @@ Abra **http://127.0.0.1:5173**. As migrations são aplicadas automaticamente em 
 
 WASD/setas movem; F/Espaço chutam; G/E passam. Em dois jogadores, os padrões são F/G para J1 e Enter/barra para J2. Escolha suas teclas em **Controles → Teclas no PC**, ou na engrenagem durante a partida; ficam salvas neste navegador. Na carreira, **Q pede passe** e **R pede chute ao gol**, também disponíveis em botões na tela. O companheiro precisa alcançar a bola e se alinhar para executar o pedido. **T** abre o chat durante partidas online; **Esc** fecha. Jogadores atravessam as linhas até a margem externa do gramado; a bola permanece nas bordas e gols.
 
-A velocidade base do jogador permanece em 130 unidades/s. Ao soltar o controle, a velocidade real zera. A bola tem condução mais pesada, chute de 320, passe de 250 e limite de 400 unidades/s. O replay do gol identifica autor e assistência.
+A velocidade base do jogador é de 140 unidades/s. Ao soltar o controle, a velocidade real zera. A bola tem condução mais pesada, chute de 350, passe de 275 e limite de 400 unidades/s. O replay do gol identifica autor e assistência.
 
 Elo inicial: 1000; K=32. Busca: ±100, ±200 após 10 segundos e ±400 após 20 segundos. Sair gera derrota; desconexões permitem 20 segundos para reconectar. Reinício do servidor cancela partidas sem alterar Elo.
 
