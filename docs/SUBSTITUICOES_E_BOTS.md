@@ -37,3 +37,7 @@ A migração anterior do ranqueado em grupo e a verificação de publicação no
 A suíte completa passou com 150 testes, incluindo física e contato, parada imediata, orientação da bola, replay, fila de substituições, confirmação e descarte do rascunho, permissões e recuperação do worker. Foram testadas quatro partidas simultâneas com dez jogadores cada no mesmo worker. Isso verifica funcionamento e isolamento; não representa uma medição de capacidade de produção.
 
 No Edge, o painel foi verificado em 1100 × 720 e 390 × 844, com trocas nos dois times, revisão, retorno para editar e envio somente após confirmar. Não ocorreram erros de JavaScript.
+
+## Ajuste de força e velocidade
+
+A configuração atual usa personagem a 180 unidades/s (antes 160), chute de 430 (antes 350), passe de 340 (antes 275) e limite da bola de 480 (antes 400). Passes direcionados usam a faixa de 310–380. A condução tem limite de 170, e os bots acompanham o novo ritmo por dificuldade. Soltar o controle continua zerando a velocidade real; a massa e a desaceleração da bola permanecem iguais.

@@ -12,11 +12,11 @@ test('legacy CSS and screens remain available alongside the new home and HUD', (
 test('movement responds promptly at a calmer speed and stops without diagonal boost',()=>{
  const before=gameHarness({original:true,saved:stableSave}),after=gameHarness({saved:stableSave});
  for(const h of [before,after]){h.api.start('train');h.api.state.P[0].x=150;h.api.state.P[0].y=100;h.api.state.keys.KeyD=1;for(let i=0;i<6;i++)h.api.update(1/60);}
- assert.ok(after.api.state.P[0].vx/160>before.api.state.P[0].vx/205);
+ assert.ok(after.api.state.P[0].vx/180>before.api.state.P[0].vx/205);
  for(const h of [before,after]){h.api.state.keys.KeyD=0;for(let i=0;i<30;i++)h.api.update(1/60);}
  assert.ok(after.api.state.P[0].vx<before.api.state.P[0].vx/10);
  after.api.state.keys.KeyD=after.api.state.keys.KeyS=1;for(let i=0;i<30;i++)after.api.update(1/60);
- assert.ok(Math.hypot(after.api.state.P[0].vx,after.api.state.P[0].vy)<=160.001);
+ assert.ok(Math.hypot(after.api.state.P[0].vx,after.api.state.P[0].vy)<=180.001);
  assert.equal(after.errors.length,0);
 });
 test('all team sizes and field sizes start, simulate and render with finite coordinates',()=>{

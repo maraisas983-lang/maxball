@@ -12,7 +12,7 @@ Abra `http://127.0.0.1:5173` e recarregue com **Ctrl + F5**.
 
 ## Física e transições
 
-A velocidade base do personagem agora é de 160 unidades/s. A bola perde menos velocidade ao rolar; chute e passe mantêm 350 e 275 unidades/s. A rotação acompanha o deslocamento real, incluindo contatos com personagens. Veja [Substituições, movimento e bots](SUBSTITUICOES_E_BOTS.md). O contato com a bola separa o quique da força de condução, evitando aplicar toda a velocidade do jogador como um chute. Colisões entre personagens retiram a velocidade de aproximação e preservam o movimento lateral.
+A velocidade base do personagem agora é de 180 unidades/s. A bola perde menos velocidade ao rolar; chute e passe mantêm 430 e 340 unidades/s. A rotação acompanha o deslocamento real, incluindo contatos com personagens. Veja [Substituições, movimento e bots](SUBSTITUICOES_E_BOTS.md). O contato com a bola separa o quique da força de condução, evitando aplicar toda a velocidade do jogador como um chute. Colisões entre personagens retiram a velocidade de aproximação e preservam o movimento lateral.
 
 A entrada em campo usa trajetórias contínuas com início e fim suaves. O intervalo guarda as posições antes da saída e calcula a formação do segundo tempo com a direção invertida. A física da partida não roda durante essas cenas.
 
