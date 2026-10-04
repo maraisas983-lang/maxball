@@ -3,7 +3,7 @@
  const {el,button}=root.MaxballUI;
  const identities={
   play:['Jogar','SEU PRÓXIMO DESTINO','Escolha onde entrar em campo.','Cada modo tem seu próprio espaço, regras e preparação.','M'],
-  ranked:['Ranqueada','ARENA COMPETITIVA','Entre para disputar seu lugar.','4 × 4 · três minutos · partidas que valem Elo.','★'],
+  ranked:['Ranqueada','ARENA COMPETITIVA','Entre para disputar seu lugar.','1 × 1 a 4 × 4 · grupos de até quatro · partidas que valem Elo.','★'],
   career:['Carreira','VESTIÁRIO DO CLUBE','Sua história começa no clube.','Prepare a próxima rodada, acompanhe a temporada e conquiste seu espaço.','10'],
   training:['Treino','CENTRO DE TREINAMENTO','Encontre seu ritmo.','Teste passes, chutes e formações em um campo preparado por você.','◎'],
   local:['Local','ENCONTRO NO SOFÁ','Divida o teclado. Dispute o campo.','Monte o confronto para dois jogadores ou desafie os bots.','1 / 2'],

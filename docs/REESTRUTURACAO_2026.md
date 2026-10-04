@@ -175,6 +175,7 @@ não executa a API. O endereço local atende este computador; um link público d
 de hospedagem com Node, WebSocket, HTTPS e banco persistente.
 
 Evidências são links no texto do chamado, sem upload de arquivo. Substituições
-manuais, clima e silenciamento de chat não são oferecidos porque esses sistemas
-não existem nesta base. Os ensaios locais não substituem testes com usuários em
+manuais e clima foram pedidos somente caso esses sistemas já existissem na base.
+Silenciamento de chat foi acrescentado na evolução posterior; consulte
+[a revisão atual](REVISAO_FINAL.md). Os ensaios locais não substituem testes com usuários em
 redes externas para avaliar latência e capacidade da hospedagem.

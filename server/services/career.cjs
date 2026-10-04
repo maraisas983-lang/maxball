@@ -56,7 +56,7 @@ function createCareer(db,economy){
   return {career:{...career,stats:JSON.parse(career.stats),roster:JSON.parse(career.roster),progression:JSON.parse(career.progression),config:JSON.parse(career.config)},current:{...current,schedule:JSON.parse(current.schedule),table:JSON.parse(current.table_data),stats:JSON.parse(current.stats),awards:JSON.parse(current.awards)},
    clubs:[...playable(),...clubs().filter(c=>c.category==='CARREIRA')],rosterInfo:rosters.forTeam(career.club_id)||null,ratingMethodology:rosters.methodology,history:db.all('SELECT season,club_id,stats,awards,status FROM career_seasons WHERE career_id=? ORDER BY season DESC',career.id).map(s=>({...s,stats:JSON.parse(s.stats),awards:JSON.parse(s.awards)})),
    offers:db.all('SELECT * FROM transfer_offers WHERE career_id=? ORDER BY created_at DESC LIMIT 30',career.id),transfers:db.all('SELECT * FROM transfer_history WHERE career_id=? ORDER BY created_at',career.id),
-   trophies:db.all('SELECT * FROM accolades WHERE user_id=? AND career_id=? ORDER BY created_at DESC',userId,career.id),saves:saves(userId)};
+   trophies:db.all('SELECT a.*,c.player_name,c.save_name,club.name club_name FROM accolades a LEFT JOIN careers c ON c.id=a.career_id LEFT JOIN clubs club ON club.id=a.club_id WHERE a.user_id=? AND a.career_id=? ORDER BY a.created_at DESC',userId,career.id),saves:saves(userId)};
  }
  function settings(userId,body){
   object(body,['time','diff']);const career=get(userId);if(!career)fail('CAREER','Crie sua carreira primeiro.',404);
@@ -75,7 +75,8 @@ function createCareer(db,economy){
  }
  function accolade(career,code,title,kind,details){
   db.run('INSERT OR IGNORE INTO accolades VALUES(?,?,?,?,?,?,?,?,?,?)',id(),career.user_id,career.id,career.season,career.club_id,kind,code,title,JSON.stringify(details),Date.now());
-  return {code,name:title,kind};
+  const identity=db.one('SELECT c.player_name,c.save_name,club.name club_name FROM careers c JOIN clubs club ON club.id=c.club_id WHERE c.id=?',career.id);
+  return {code,name:title,kind,season:career.season,club_id:career.club_id,career_id:career.id,...identity,details:JSON.stringify(details)};
  }
  function complete(match){
   const career=db.one('SELECT * FROM careers WHERE id=?',match.career_id),current=season(career);

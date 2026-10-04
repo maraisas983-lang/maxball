@@ -4,7 +4,7 @@ Futebol arcade em Canvas 2D, com carreira, contas, economia, administração e p
 
 ## Executar
 
-Requer Node.js **24.14 ou superior**.
+Requer Node.js **24.19.x** (versão 24, a partir de 24.19.0).
 
 ```powershell
 npm.cmd install
@@ -18,14 +18,17 @@ Abra **http://127.0.0.1:5173**. As migrations são aplicadas automaticamente em 
 
 ## Jogar
 
-- **Jogar** abre o ranqueado: fila real, 4 × 4, um humano e três bots por equipe, 3 minutos. São necessárias duas contas conectadas.
-- **Carreira**: nome, número, clube, temporadas, liga, copa, continental e mundial conforme classificação; ofertas, transferências, títulos, prêmios e galeria.
-- **Sala personalizada**: nome/senha opcional, anfitrião, arraste de participantes, espectadores, equipes, impedimento, prorrogação e cobranças físicas de pênaltis.
+- **Jogar** abre a seleção de modos. Cada destino possui lobby e identidade visual próprios, incluindo Suporte.
+- **Ranqueada**: grupos de até quatro, formatos 1v1–4v4, prontidão, convites, busca e cancelamento. São necessários dois grupos conectados; com Supabase, grupos com mais de um integrante exigem a migração `002_ranked_parties.sql`.
+- **Carreira**: até 12 saves independentes, nome, número, clube, tempo e dificuldade; temporadas, liga, copa, continental e mundial conforme classificação; ofertas, transferências, títulos, prêmios e galeria.
+- **Sala personalizada**: nome/senha opcional, anfitrião, arraste de participantes, espectadores, técnicos com chat separado, árbitro organizador, equipes, impedimento, prorrogação e disputa de pênaltis por empate.
 - **Clubes**: criar uniforme por cores, salvar na conta e escolher em Meus Clubes. Categorias Brasileirão e Mamoball disponíveis nas salas.
-- **Gemas / Conta**: compras, inventário, equipamentos, perfil e sessão.
-- **Jogar contra bots, Treinar, Sala e 2 jogadores** preservam os modos locais.
+- **Gemas / Conta**: compras, inventário, equipamentos, emotes, perfil e sessão. A Cakto é configurada pelo administrador em Command Center → Pagamentos.
+- **Treino / Local**: prática livre sem cronômetro, bots opcionais e dois jogadores no mesmo teclado, disponíveis sem login.
 
-WASD/setas movem; F/Espaço chutam; G passa. Na carreira, **Q pede passe** e **R pede chute ao gol**, também disponíveis em botões na tela. O companheiro precisa alcançar a bola e se alinhar para executar o pedido. Jogadores atravessam as linhas até a margem externa do gramado; a bola permanece nas bordas e gols.
+WASD/setas movem; F/Espaço chutam; G/E passam. Em dois jogadores, os padrões são F/G para J1 e Enter/barra para J2. Escolha suas teclas em **Controles → Teclas no PC**, ou na engrenagem durante a partida; ficam salvas neste navegador. Na carreira, **Q pede passe** e **R pede chute ao gol**, também disponíveis em botões na tela. O companheiro precisa alcançar a bola e se alinhar para executar o pedido. **T** abre o chat durante partidas online; **Esc** fecha. Jogadores atravessam as linhas até a margem externa do gramado; a bola permanece nas bordas e gols.
+
+A velocidade base do jogador permanece em 130 unidades/s. Ao soltar o controle, a velocidade real zera. A bola tem condução mais pesada, chute de 320, passe de 250 e limite de 400 unidades/s. O replay do gol identifica autor e assistência.
 
 Elo inicial: 1000; K=32. Busca: ±100, ±200 após 10 segundos e ±400 após 20 segundos. Sair gera derrota; desconexões permitem 20 segundos para reconectar. Reinício do servidor cancela partidas sem alterar Elo.
 
@@ -52,6 +55,6 @@ Execute **uma instância Node** com disco persistente. SQLite guarda carreira, e
 
 O save offline mantém `maxball` e `maxball.backup`. Moedas e cosméticos locais não concedem direitos online. Contas usam scrypt ou Supabase Auth, cookie HttpOnly, CSRF e transações para compras/resultados.
 
-Documentação: [relatório da atualização](docs/ATUALIZACAO_GAMEPLAY.md), [configuração](docs/CONFIGURACAO.md), [implementação](docs/IMPLEMENTACAO.md), [validação](docs/VALIDACAO.md), [auditoria histórica](docs/AUDITORIA.md).
+Documentação: [revisão de todos os pedidos e estado atual](docs/REVISAO_FINAL.md), [configuração](docs/CONFIGURACAO.md), [deploy](docs/DEPLOY.md), [jogabilidade](docs/JOGABILIDADE_RESPONSIVA.md), [imersão e desempenho](docs/IMERSAO_E_DESEMPENHO.md), [auditoria histórica](docs/AUDITORIA.md).
 
-Para medir a física: `node scripts/physics-benchmark.cjs`. Pendências externas: hospedagem pública e validação de sensação/áudio em celular físico. A instalação Supabase configurada foi verificada; credenciais de implantação ficam no `.env` privado.
+Para medir a física: `node scripts/physics-benchmark.cjs`. `npm.cmd run check:supabase` verifica a instalação externa sem imprimir credenciais. O teste local não publica o jogo no Render. Consulte a revisão final para o estado da migração dos grupos e da hospedagem.

@@ -72,7 +72,7 @@ function createApp({databasePath='var/maxball.sqlite',origin='http://127.0.0.1:5
    if(pathname==='/api/ranked')return json(res,200,rooms.rankedStatus(user));
    if(pathname==='/api/party')return json(res,200,rooms.party.view(uid));
    if(pathname==='/api/party/players'){const q='%'+String(url.searchParams.get('q')||'').slice(0,40)+'%';return json(res,200,db.all('SELECT u.id,p.display_name name FROM users u JOIN profiles p ON p.user_id=u.id WHERE u.id<>? AND (p.display_name LIKE ? OR u.id=?) LIMIT 10',uid,q,String(url.searchParams.get('q')||'')));}
-   if(pathname==='/api/profile')return json(res,200,{profile:auth.profile(uid),achievements:db.all('SELECT * FROM accolades WHERE user_id=? ORDER BY created_at DESC',uid)});
+   if(pathname==='/api/profile')return json(res,200,{profile:auth.profile(uid),achievements:db.all('SELECT a.*,c.player_name,c.save_name,club.name club_name FROM accolades a LEFT JOIN careers c ON c.id=a.career_id LEFT JOIN clubs club ON club.id=a.club_id WHERE a.user_id=? ORDER BY a.created_at DESC',uid)});
    if(pathname==='/api/chat')return json(res,200,social.history(uid,url.searchParams.get('channel')||'players'));
    if(pathname==='/api/emotes')return json(res,200,social.slots(uid));
    if(pathname==='/api/shop')return json(res,200,economy.catalog());

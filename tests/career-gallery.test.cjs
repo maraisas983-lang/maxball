@@ -1,0 +1,35 @@
+const test=require('node:test'),assert=require('node:assert/strict');
+const {once}=require('node:events');
+const {JSDOM}=require('jsdom');
+const {createApp}=require('../server/app.cjs');
+const {read}=require('./helpers.cjs');
+
+test('awards keep the winning save identity after switching careers and display readable safe details',async t=>{
+ const origin='http://maxball.test',app=createApp({databasePath:':memory:',origin,logger:{warn(){},error:console.error}});
+ t.after(()=>app.close());
+ const account=await app.auth.register({username:'gallery_user',password:'gallery-password-123'}),uid=account.user.id;
+ const first=app.career.create(uid,{name:'POGGI',shirtNumber:9,clubId:'br-0',saveName:'Primeira história'}).career;
+ app.db.run('UPDATE career_seasons SET schedule=? WHERE career_id=?',JSON.stringify([{competition:'cup',stage:'Final',opponent:'br-1',status:'PENDING'}]),first.id);
+ const result=app.career.complete({id:'gallery-final',career_id:first.id,season:1,fixture:0,duration:120,score:[2,0],winner:0,stats:{[uid]:{goals:2,assists:0,grade:8}}});
+ const trophy=result.awards.find(a=>a.code==='CUP');
+ assert.equal(trophy.player_name,'POGGI');assert.equal(trophy.club_name,'Flamengo');assert.equal(trophy.season,1);assert.equal(trophy.career_id,first.id);
+ assert.equal(app.career.view(uid).trophies.find(a=>a.code==='CUP').player_name,'POGGI');
+ const second=app.career.create(uid,{name:'MIGUEL',shirtNumber:10,clubId:'br-1',saveName:'Segunda história'}).career;
+ assert.notEqual(second.id,first.id);assert.equal(app.career.view(uid).trophies.length,0);
+ app.server.listen(0,'127.0.0.1');await once(app.server,'listening');
+ const response=await fetch('http://127.0.0.1:'+app.server.address().port+'/api/profile',{headers:{Origin:origin,Cookie:'maxball_session='+account.token}});
+ assert.equal(response.status,200);const data=await response.json();
+ const saved=data.achievements.find(a=>a.code==='CUP');assert.equal(saved.player_name,'POGGI');assert.equal(saved.club_name,'Flamengo');assert.equal(saved.save_name,'Primeira história');
+ const dom=new JSDOM('<main id="content"></main>',{runScripts:'outside-only'});t.after(()=>dom.window.close());const w=dom.window;
+ w.HTMLDialogElement.prototype.showModal=function(){this.open=true;};w.HTMLDialogElement.prototype.close=function(){this.open=false;};
+ w.MaxballGame={celebrateSound(){}};w.MaxballPortal={account:{profile:{shirt_name:'GLOBAL_NAME'}},error:e=>{throw e;}};
+ w.eval(read('src/ui/components.js'));w.eval(read('src/ui/careerView.js'));
+ await w.MaxballViews.gallery({content:w.document.querySelector('#content'),api:async()=>data});
+ assert.match(w.document.querySelector('#content').textContent,/POGGI · Flamengo · Primeira história/);
+ assert.equal(w.document.querySelector('pre'),null);
+ [...w.document.querySelectorAll('button')].find(b=>b.textContent==='Ver conquista').click();
+ const dialog=w.document.querySelector('dialog');assert.match(dialog.textContent,/Temporada 1 · POGGI · Flamengo/);assert.doesNotMatch(dialog.textContent,/GLOBAL_NAME|MIGUEL/);
+ assert.match(dialog.textContent,/2 × 0/);dialog.remove();
+ w.MaxballUI.celebrate([{...saved,player_name:'<img src=x>',details:'not JSON'}]);
+ assert.match(w.document.querySelector('dialog').textContent,/<img src=x>/);assert.equal(w.document.querySelector('dialog img'),null);
+});

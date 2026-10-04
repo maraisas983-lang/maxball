@@ -43,8 +43,8 @@
   portal.content.append(card('Galeria de conquistas',note('Troféus, prêmios e marcos da sua carreira ficam guardados aqui.')));
   if(!achievements.length)portal.content.append(note('Entre em campo para conquistar seu primeiro marco.'));
   for(const trophy of achievements){
-   const details=JSON.parse(trophy.details);
-   portal.content.append(card((trophy.code==='BALLON_DOR'?'⚽ ':trophy.kind==='TROPHY'?'🏆 ':'★ ')+trophy.name,note(trophy.season?'Temporada '+trophy.season:'Conquista da conta'),note(new Date(trophy.created_at).toLocaleDateString('pt-BR')),button('Ver conquista',()=>celebrate([trophy]),'secondary'),el('details',{},[el('summary',{text:'Detalhes'}),el('pre',{text:JSON.stringify(details,null,2)})])));
+   const details=root.MaxballUI.awardDetails(trophy),context=[trophy.player_name,trophy.club_name,trophy.save_name].filter(Boolean).join(' · ');
+   portal.content.append(card((trophy.code==='BALLON_DOR'?'⚽ ':trophy.kind==='TROPHY'?'🏆 ':'★ ')+trophy.name,note(trophy.season?'Temporada '+trophy.season:'Conquista da conta'),...(context?[note(context)]:[]),note(new Date(trophy.created_at).toLocaleDateString('pt-BR')),button('Ver conquista',()=>celebrate([trophy]),'secondary'),...(details?[el('details',{},[el('summary',{text:'Desempenho da conquista'}),details])]:[])));
   }
  };
 })(globalThis);

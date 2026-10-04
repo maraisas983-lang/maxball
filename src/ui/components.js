@@ -25,16 +25,25 @@
  }
  function table(headers,rows){return el('div',{class:'table-scroll'},[el('table',{},[el('thead',{},[el('tr',{},headers.map(text=>el('th',{scope:'col',text})))]),el('tbody',{},rows.map(row=>el('tr',{},row.map(text=>el('td',{text})))) )])]);}
  function metrics(entries){return el('div',{class:'metrics'},entries.map(([label,value])=>el('div',{},[el('strong',{text:value}),el('span',{text:label})])));}
+ function awardDetails(award){
+  let details=award.details||{};if(typeof details==='string'){try{details=JSON.parse(details);}catch{details={};}}
+  const stats=details.stats||details,entries=[];
+  if(Array.isArray(details.score))entries.push(['Placar da final',details.score.join(' × ')]);
+  for(const [key,label] of [['matches','Partidas'],['goals','Gols'],['assists','Assistências'],['averageRating','Nota média'],['titles','Títulos']])if(Number.isFinite(stats[key]))entries.push([label,stats[key]]);
+  if(Number.isFinite(details.rating))entries.push(['Nota média',details.rating]);
+  return entries.length?metrics(entries):null;
+ }
  function celebrate(awards){
   if(!awards.length)return;
   const modal=el('dialog',{class:'celebration','aria-label':'Conquistas da temporada'});
   let index=0;
   function render(){
    const award=awards[index],gold=award.code==='BALLON_DOR';
-   modal.replaceChildren(el('div',{class:'trophy-mark',text:gold?'⚽':'🏆'}),el('p',{class:'eyebrow',text:gold?'O TOPO DO FUTEBOL MAXBALL':'UMA CONQUISTA PARA A HISTÓRIA'}),el('h2',{text:award.name}),note(`Temporada ${award.season||''} · ${root.MaxballPortal.account?.profile.shirt_name||''}`),button(index<awards.length-1?'Próximo':'Continuar',()=>{if(++index<awards.length)render();else{modal.close();modal.remove();}}));
+   const context=[award.season?'Temporada '+award.season:null,award.player_name,award.club_name].filter(Boolean).join(' · '),details=awardDetails(award);
+   modal.replaceChildren(el('div',{class:'trophy-mark',text:gold?'⚽':'🏆'}),el('p',{class:'eyebrow',text:gold?'O TOPO DO FUTEBOL MAXBALL':'UMA CONQUISTA PARA A HISTÓRIA'}),el('h2',{text:award.name}),note(context||'Conquista MAXBALL'),...(details?[details]:[]),button(index<awards.length-1?'Próximo':'Continuar',()=>{if(++index<awards.length)render();else{modal.close();modal.remove();}}));
   }
   document.body.append(modal);render();modal.addEventListener('cancel',()=>modal.remove());modal.showModal();root.MaxballGame.celebrateSound();
  }
- root.MaxballUI={el,button,card,note,field,select,form,table,metrics,celebrate};
+ root.MaxballUI={el,button,card,note,field,select,form,table,metrics,celebrate,awardDetails};
  root.MaxballViews={};
 })(globalThis);

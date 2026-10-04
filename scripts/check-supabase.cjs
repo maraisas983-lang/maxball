@@ -16,17 +16,23 @@ async function main(){
   ['Eventos','/rest/v1/ranked_events?select=match_id,sequence,payload&limit=0',config.serviceKey],
   ['RPC de resultado','/rest/v1/',config.serviceKey]
  ];
- let failed=false;
+ let failed=false;const missing=new Set();
  for(const [name,path,key] of checks){
   try{
    const response=await fetch(config.url+path,{headers:{...(key?{apikey:key,...(!key.startsWith('sb_')?{Authorization:'Bearer '+key}:{})}:{}),...(name==='RPC de resultado'?{Accept:'application/openapi+json'}:{})},signal:AbortSignal.timeout(12000)});
    const data=await response.json().catch(()=>({}));
    const ok=response.ok&&(name!=='Versão de grupos'||data===2)&&(name!=='RPC de resultado'||!!data.paths?.['/rpc/record_ranked_match']);
    failed||=!ok;
+   if(!ok&&(response.status===404||response.ok&&name==='Versão de grupos'))missing.add(name);
    const detail=ok?name==='JWKS'?`${data.keys?.length||0} chave(s) pública(s)`:'OK':response.ok?'função ausente':data.code==='PGRST205'?'tabela ausente':data.code==='42703'?'coluna ausente':'verifique configuração/migração';
    console.log(`${name}: HTTP ${response.status} · ${detail}`);
   }catch{failed=true;console.log(`${name}: conexão indisponível ou tempo esgotado`);}
  }
- if(failed){console.log('Se houver tabela/função ausente, execute server/database/supabase/001_ranked.sql e depois 002_ranked_parties.sql no SQL Editor do projeto.');process.exitCode=1;}
+ if(failed){
+  if(['Perfis','Partidas','Eventos','RPC de resultado'].some(name=>missing.has(name)))console.log('A estrutura inicial está incompleta. Verifique server/database/supabase/001_ranked.sql no SQL Editor antes de aplicar 002_ranked_parties.sql. Não repita 001 indiscriminadamente: suas políticas e trigger já podem existir.');
+  else if(missing.has('Participantes de grupos')||missing.has('Versão de grupos'))console.log('A estrutura inicial está disponível; execute apenas server/database/supabase/002_ranked_parties.sql no SQL Editor. Esse arquivo permite repetição.');
+  else console.log('Verifique conectividade, permissões e configuração do projeto; uma falha de conexão não significa migração ausente.');
+  process.exitCode=1;
+ }
 }
 main().catch(error=>{console.error(error.message);process.exitCode=1;});
