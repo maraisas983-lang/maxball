@@ -7,13 +7,14 @@
  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v)),distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
  const ROLES=['ATACANTE_CENTRAL','APOIO_DIREITO','MEIA_ESQUERDO','VOLANTE_CENTRAL','GOLEIRO'];
  class Tactics {
-  constructor(state,random=Math.random){this.state=state;this.random=random;this.time=0;this.next=0;this.teams=[{},{}];this.commands=new Map();}
+  constructor(state,random=Math.random){this.state=state;this.random=random;this.time=0;this.next=0;this.teams=[{},{}];this.commands=new Map();this.predictions=[{},{},{}];this.motion=new Map();}
   update(dt){this.time+=dt;if(this.time+1e-8<this.next)return;this.next=this.time+[.2,.13,.085][this.state().G.cfg.diff??1];this.decide();}
   command(p){return this.commands.get(p)||{x:0,y:0};}
   decide(){
    const s=this.state(),{P,ball,W,H,GY0,GY1,BR,G}=s;
    if(!P?.length)return;
-   const predicted=Math.hypot(ball.vx,ball.vy)>80?ballPhysics.predictTrajectory(s,[.15,.25,.35][G.cfg.diff??1]):ball,region=field.geometry(s);
+   const moving=Math.hypot(ball.vx,ball.vy)>80,horizons=[.18,.36,.6],forecast=moving?this.predictions.map((out,i)=>ballPhysics.predictTrajectory(s,horizons[i],out,false)):null,predicted=forecast?.[1]||ball,region=field.geometry(s);
+   const live=new Set(P.map(p=>p.id));for(const id of this.motion.keys())if(!live.has(id))this.motion.delete(id);
    for(const team of [0,1]){
     const players=P.filter(p=>!p.inactive&&p.team===team),opponents=P.filter(p=>!p.inactive&&p.team!==team);if(!players.length)continue;
     const side=field.side(s,team),tactical=this.teams[team],direction=side?-1:1,home=side?W:0,goal=side?0:W;
@@ -51,8 +52,11 @@
      if(phase==='DEFENDING'&&p!==chaser&&!keeper){const threat=threats[index%Math.max(1,threats.length)];if(threat){target={x:threat.x-direction*45,y:threat.y+(H/2-threat.y)*.15};state='MARKING';}}
      if(p===chaser){
       state='PRESSING';scores.press=90;
-      const targetY=enemy&&enemy.y>H/2?GY0+28:GY1-28;
-      let aim={x:goal,y:targetY},passTarget=null;const passRange=PHYSICS.passMaxSpeed*clamp((p.attributes.passing??70)/70,.8,1.2)/rollingResistance*.85;
+      // Compare the center and both corners against the actual defending line.
+      // The nearest opponent to the ball is not necessarily the goalkeeper.
+      let aim={x:goal,y:H/2},bestLane=-Infinity;
+      for(const y of [GY0+28,H/2,GY1-28]){const point={x:goal,y},space=Math.min(200,...opponents.map(q=>distance(q,point))),quality=(this.clearLane(ball,point,opponents,26)?160:0)+space*.3-distance(ball,point)*.04;if(quality>bestLane){bestLane=quality;aim=point;}}
+      let passTarget=null;const passRange=PHYSICS.passMaxSpeed*clamp((p.attributes.passing??70)/70,.8,1.2)/rollingResistance*.85;
       for(const ally of players){
        if(ally===p)continue;const range=distance(ally,ball);if(range<55||range>passRange)continue;
        const clear=this.clearLane(ball,ally,opponents,28),free=Math.min(160,...opponents.map(q=>distance(q,ally)));
@@ -61,7 +65,7 @@
       }
       const request=G.cfg.career&&G.teamRequests?.[team],requester=request&&players.find(q=>q.id===request.playerId);
       const requested=requester&&request.until>(G.elapsed||G.el||this.time)&&requester!==p;
-      const range=Math.abs(goal-ball.x),laneClear=this.clearLane(ball,aim,opponents,24),angle=Math.abs(ball.y-H/2);
+      const range=distance(ball,aim),laneClear=this.clearLane(ball,aim,opponents,24),angle=Math.abs(ball.y-H/2);
       scores.shoot=range<Math.min(W*.55,PHYSICS.shotImpulse*clamp((p.attributes.shooting??70)/70,.8,1.2)/rollingResistance*.85)?(laneClear?122:70)-range*.055-angle*.055:-20;
       scores.shoot*=p.attributes.aggression??(.8+(index%3)*.12);
       if(pressure<75)scores.pass+=22;
@@ -87,7 +91,7 @@
       const side=p.y<ball.y?-1:1;
       target={x:ball.x-ax*(20+BR+3)+(onWrongSide?-ay*side*42:0),y:ball.y-ay*(20+BR+3)+(onWrongSide?ax*side*42:0)};
       if(alignment>.7&&reach<20+BR+45)target={x:ball.x+ax*36,y:ball.y+ay*36};
-      if(!owned&&(opponentOwns||Math.hypot(ball.vx,ball.vy)>80)){target={x:predicted.x-(ball.last===team?ax*22:0),y:predicted.y-(ball.last===team?ay*22:0)};state='INTERCEPTING';}
+      if(!owned&&(opponentOwns||moving)){const intercept=forecast?.find((point,i)=>distance(p,point)<=PHYSICS.botMaxSpeeds[G.cfg.diff??1]*horizons[i]+interaction.radius(s))||predicted;target={x:intercept.x-(ball.last===team?ax*22:0),y:intercept.y-(ball.last===team?ay*22:0)};state='INTERCEPTING';}
      }
      if(keeper&&p!==chaser){target={x:home+direction*55,y:clamp(H/2+(ball.y-H/2)*.4,GY0+15,GY1-15)};state='GOALKEEPING';}
      // Humans may leave their slot; an ally covers an abandoned defensive lane.
@@ -104,6 +108,9 @@
      if(distance(p,ball)>90)for(const opponent of opponents){const dx=p.x-opponent.x,dy=p.y-opponent.y,d=Math.hypot(dx,dy);if(d<55&&d>0){target.x+=dx/d*(55-d);target.y+=dy/d*(55-d);}}
      target.x=clamp(target.x,-40,W+40);target.y=clamp(target.y,-40,H+40);
      reserved.push(target);p.basePosition={x:home+direction*(defender?W*.3:W*.3+Math.min(CONFIG.formationDepth,W*.23)),y:H/2+lane*CONFIG.formationWidth/2};p.formationTarget=formation;p.targetPosition=target;p.currentState=state;p.primaryBallChaser=p.id===tactical.chaser;p.defensiveAreaOwner=tactical.areaOwner;p.defensiveAreaOwners=areaOwners;p.decisionScores=scores;
+     // Keep a stable escape side when blocked instead of alternating every decision.
+     let motion=this.motion.get(p.id);if(!motion){motion={x:p.x,y:p.y,at:this.time,blocked:0,escapeUntil:0,side:index%2?1:-1};this.motion.set(p.id,motion);}const elapsed=this.time-motion.at;if(elapsed>=.25){motion.blocked=distance(p,motion)<5&&distance(p,target)>55?motion.blocked+elapsed:0;motion.x=p.x;motion.y=p.y;motion.at=this.time;if(motion.blocked>.65){motion.escapeUntil=this.time+.65;motion.blocked=0;}}
+     if(p.ctrl==='ai'&&motion.escapeUntil>this.time){const dx=target.x-p.x,dy=target.y-p.y,n=Math.hypot(dx,dy)||1;target.x=clamp(p.x+dx/n*35-dy/n*65*motion.side,25,W-25);target.y=clamp(p.y+dy/n*35+dx/n*65*motion.side,25,H-25);p.currentState='FINDING_SPACE';}
      const dx=target.x-p.x,dy=target.y-p.y,d=Math.hypot(dx,dy),speed=Math.min(1,d/40);if(d>6){command.x=dx/d*speed;command.y=dy/d*speed;}
      this.commands.set(p,command);
     }

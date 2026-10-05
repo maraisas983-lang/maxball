@@ -275,10 +275,10 @@ function createRooms({db,auth,economy,career,origin,logger=console,syncResults=f
     if(Date.now()-room.lastPresent>30000&&room.match.G.phase!=='end')room.match.finish('ABANDONED');
     room.match.update(1/60);if(room.match.G.phase==='halftime'&&room.cfg.intermissionLobby&&!room.halfNotified){room.halfNotified=true;notify(room);broadcast(room,{type:'intermission',room:visible(room)});}if(ticks%6===0)bots.submit(room.match);
     if(room.match.G.phase==='end'){bots.remove(room.match.id);persistResult(room);}
-    if(ticks%3===0&&!room.finalSent){const acks=Object.fromEntries(room.players.map(p=>[p.id,connections.get(p.id)?.sequence??-1]));
+    if(ticks>=(room.nextFrameTick||0)&&accumulator<1/60&&!room.finalSent){const acks=Object.fromEntries(room.players.map(p=>[p.id,connections.get(p.id)?.sequence??-1]));
      if(!room.sentBaseline||room.match.G.phase==='end'){const state=protocol.snapshot(room.match,ticks);state.acks=acks;broadcast(room,{type:'snapshot',state});}
      else broadcast(room,protocol.frameFromMatch(room.match,ticks,acks));
-     room.sentBaseline=true;if(room.match.G.phase==='end')room.finalSent=true;}
+     room.nextFrameTick=ticks+3;room.sentBaseline=true;if(room.match.G.phase==='end')room.finalSent=true;}
    }catch(error){logger.error(JSON.stringify({level:'ERROR',event:'match_tick',roomId:room.id,message:error.message}));room.match?.finish('ABANDONED');}
   }
   if(ticks%60===0)for(const room of rooms.values())if((room.match?.G.phase==='end'&&room.saved&&Date.now()-room.finishedAt>15*60000)||(!room.match&&Date.now()-room.createdAt>15*60000)){

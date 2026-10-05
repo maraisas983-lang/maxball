@@ -2,7 +2,7 @@ const {shootoutWinner}=require('../../src/game/rules.js');
 const timing=require('../../src/core/config.js').match;
 const {radius:interactionRadius}=require('../../src/physics/interaction.js');
 class Penalties {
- constructor(match,{team=0,onComplete=null}={}){this.match=match;this.onComplete=onComplete;this.state={score:[0,0],taken:[0,0],turn:team,attempt:0,result:null,time:0,kicked:false,single:!!onComplete};match.G.penalties=this.state;this.prepare();}
+ constructor(match,{team=0,onComplete=null}={}){this.match=match;this.onComplete=onComplete;this.state={score:[0,0],taken:[0,0],history:[[],[]],turn:team,attempt:0,result:null,time:0,kicked:false,single:!!onComplete};match.G.penalties=this.state;this.prepare();}
  prepare(){
   const m=this.match,s=this.state,attack=m.P.filter(p=>p.team===s.turn),defense=m.P.filter(p=>p.team!==s.turn);
   const shooter=attack[s.taken[s.turn]%attack.length],keeper=defense.find(p=>p.ctrl!=='ai')||defense.at(-1);
@@ -24,7 +24,7 @@ class Penalties {
  kicked(p){if(p.id===this.state.shooter&&!this.state.kicked){this.state.kicked=true;this.state.flightAt=this.state.time;}}
  goal(team){if(this.state.kicked&&team===0)this.resolve(true);}
  resolve(scored){
-  const m=this.match,s=this.state;if(s.result!==null)return;s.result=scored?'GOAL':'MISS';s.taken[s.turn]++;if(scored)s.score[s.turn]++;s.pause=timing.penaltyPauseSeconds;
+  const m=this.match,s=this.state;if(s.result!==null)return;s.result=scored?'GOAL':'MISS';s.history[s.turn].push(!!scored);s.taken[s.turn]++;if(scored)s.score[s.turn]++;s.pause=timing.penaltyPauseSeconds;
   m.record('PENALTY_TAKEN',{team:s.turn,shooter:s.shooter,scored,score:s.score.slice(),taken:s.taken.slice()});
  }
  update(dt){

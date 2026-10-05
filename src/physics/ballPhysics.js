@@ -84,7 +84,7 @@
     if(Math.hypot(ball.vx,ball.vy)<.5)ball.vx=ball.vy=0;
     ball.rot=(ball.rot||0)+Math.hypot(ball.vx,ball.vy)*dt/BR;
   }
-  function predictTrajectory(state,seconds,out={}){
+  function predictTrajectory(state,seconds,out={},visual=true){
     const {ball,W,H,GY0,GY1,BR}=state;Object.assign(out,{x:ball.x,y:ball.y,vx:ball.vx,vy:ball.vy,rollX:ball.rollX||0,rollY:ball.rollY||0,qx:ball.qx||0,qy:ball.qy||0,qz:ball.qz||0,qw:ball.qw??1});
     const count=Math.max(1,Math.ceil(seconds/.04)),dt=seconds/count,decay=Math.pow(CONFIG.friction,dt);
     for(let i=0;i<count;i++){
@@ -93,7 +93,7 @@
       const mouth=out.y>GY0+BR+CONFIG.postRadius&&out.y<GY1-BR-CONFIG.postRadius;
       if(!mouth&&(out.x<BR||out.x>W-BR)){out.x=clamp(out.x,BR,W-BR);out.vx*=-CONFIG.wallBounce;}
       for(const x of [0,W])for(const y of [GY0,GY1])collideCircle(out,x,y,BR+CONFIG.postRadius,CONFIG.postBounce);
-      out.x=clamp(out.x,-46+BR,W+46-BR);rotation.roll(out,out.x-previousX,out.y-previousY,BR);out.vx*=decay;out.vy*=decay;
+      out.x=clamp(out.x,-46+BR,W+46-BR);if(visual)rotation.roll(out,out.x-previousX,out.y-previousY,BR);out.vx*=decay;out.vy*=decay;
     }
     return out;
   }
