@@ -4,11 +4,11 @@ const {radius:interactionRadius}=require('../../src/physics/interaction.js');
 class Penalties {
  constructor(match,{team=0,onComplete=null}={}){this.match=match;this.onComplete=onComplete;this.state={score:[0,0],taken:[0,0],history:[[],[]],turn:team,attempt:0,result:null,time:0,kicked:false,single:!!onComplete};match.G.penalties=this.state;this.prepare();}
  prepare(){
-  const m=this.match,s=this.state,attack=m.P.filter(p=>p.team===s.turn),defense=m.P.filter(p=>p.team!==s.turn);
+  const m=this.match,s=this.state,attack=m.P.filter(p=>p.team===s.turn&&!p.sentOff),defense=m.P.filter(p=>p.team!==s.turn&&!p.sentOff);
   const shooter=attack[s.taken[s.turn]%attack.length],keeper=defense.find(p=>p.ctrl!=='ai')||defense.at(-1);
   s.shooter=shooter.id;s.keeper=keeper.id;s.time=0;s.kicked=false;s.result=null;s.attempt++;
   m.ball={x:m.W-190,y:m.H/2,vx:0,vy:0,rot:0,last:-1};m.G.restarting=false;m.G.kl=0;
-  for(const p of m.P){p.inactive=p!==shooter&&p!==keeper;p.vx=p.vy=0;p.cd=0;p.shootBuffer=p.passBuffer=0;if(p.inactive){p.x=m.W/2;p.y=60+p.slot*50+p.team*220;}}
+  for(const p of m.P){p.inactive=p.sentOff||p!==shooter&&p!==keeper;p.hid=!!p.sentOff;p.vx=p.vy=0;p.cd=0;p.shootBuffer=p.passBuffer=0;if(p.inactive){p.x=m.W/2;p.y=60+p.slot*50+p.team*220;}}
   shooter.x=m.ball.x-(interactionRadius(m)-.75);shooter.y=m.ball.y;shooter.fx=1;shooter.fy=0;
   keeper.x=m.W-24;keeper.y=m.H/2;keeper.fx=-1;keeper.fy=0;
   this.aimY=m.GY0+18+m.random()*(m.GY1-m.GY0-36);this.reaction=.35+m.random()*.3;this.shootAt=.7+m.random()*.7;

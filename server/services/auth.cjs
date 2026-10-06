@@ -14,7 +14,7 @@ async function verify(password,stored){
  const [,salt,expected]=stored.split('$'),actual=await derive(password,salt);
  return crypto.timingSafeEqual(actual,Buffer.from(expected,'hex'));
 }
-function createAuth(db,economy,{sessionMs=7*86400000}={}){
+function createAuth(db,economy,{sessionMs=30*86400000}={}){
  const dummy='scrypt$00000000000000000000000000000000$'+'0'.repeat(128);
  function allowed(user){
   if(!user||user.status!=='ACTIVE'||db.one('SELECT id FROM bans WHERE user_id=? AND active=1 AND (expires_at IS NULL OR expires_at>?)',user?.id||'',Date.now()))fail('ACCOUNT','Conta indisponível.',403);
@@ -37,7 +37,7 @@ function createAuth(db,economy,{sessionMs=7*86400000}={}){
    db.run('INSERT INTO users(id,username,password_hash,created_at,updated_at,last_login_at) VALUES(?,?,?,?,?,?)',userId,username,encoded,now,now,now);
    db.run('INSERT INTO profiles(id,user_id,display_name,shirt_name,shirt_number,created_at) VALUES(?,?,?,?,?,?)',id(),userId,username.slice(0,14),username.slice(0,14),10,now);
    db.run('INSERT INTO wallets VALUES(?,?,?)',userId,0,now);
-   for(const item of ['kit-0','kit-1','effect-0','emote-0'])db.run('INSERT INTO inventory VALUES(?,?,?)',userId,item,now);
+   for(const item of ['kit-0','kit-1','effect-0','emote-0','ball-0','celebration-0'])db.run('INSERT INTO inventory VALUES(?,?,?)',userId,item,now);
    db.run("INSERT OR IGNORE INTO emote_slots VALUES(?,0,'emote-0')",userId);
    // Gem rewards are earned exclusively in ranked matches; purchases use Cakto.
    return {...session(userId),user:publicUser(db.one('SELECT * FROM users WHERE id=?',userId))};
@@ -57,13 +57,12 @@ function createAuth(db,economy,{sessionMs=7*86400000}={}){
   return {user:allowed(db.one('SELECT * FROM users WHERE id=?',row.user_id)),session:row};
  }
  function profile(userId){const p=db.one('SELECT * FROM profiles WHERE user_id=?',userId);return {...p,positions:JSON.parse(p.positions),patent:require('../../src/data/ranks.js').rank(p.trophies).name};}
- function updateProfile(userId,body){
+ function updateProfile(userId,body,dryRun=false){
   object(body,['displayName','shirtName','shirtNumber','avatar','positions']);
   const positions=body.positions??profile(userId).positions;
   if(!Array.isArray(positions)||positions.length>4||new Set(positions).size!==positions.length||positions.some(p=>!['GK','MC','VL','PV','TEC'].includes(p)))fail('POSITIONS','Escolha até quatro posições diferentes: GK, MC, VL, PV ou TEC.');
   const display=name(body.displayName),shirt=name(body.shirtName),num=integer(body.shirtNumber,'Número',1,99),avatar=text(body.avatar||'ball','Avatar',1,20,/^(ball|star|bolt)$/);
-  db.run('UPDATE profiles SET display_name=?,shirt_name=?,shirt_number=?,avatar=? WHERE user_id=?',display,shirt,num,avatar,userId);
-  db.run('UPDATE profiles SET positions=? WHERE user_id=?',JSON.stringify(positions),userId);return profile(userId);
+  const before=profile(userId),changed=before.display_name!==display,cost=changed&&before.nickname_changes>0?10:0;if(cost&&db.one('SELECT 1 FROM gem_debts WHERE user_id=? AND amount>0',userId))fail('PAYMENT_DEBT','Regularize as gemas pendentes.',409);if(cost&&economy.wallet(userId).balance<cost)fail('BALANCE','A próxima troca de nick custa 10 gemas.',409);if(dryRun)return {...before,display_name:display,shirt_name:shirt,shirt_number:num,avatar,positions};return db.transaction(()=>{if(cost)economy.change(userId,-cost,'NICKNAME',display,'nickname:'+before.nickname_changes);db.run('UPDATE profiles SET display_name=?,shirt_name=?,shirt_number=?,avatar=?,positions=?,nickname_changes=nickname_changes+? WHERE user_id=?',display,shirt,num,avatar,JSON.stringify(positions),+changed,userId);return profile(userId);});
  }
  return {session,provider:"local",register,login,authenticate,publicUser,profile,updateProfile,allowed,
   logout:token=>db.run('DELETE FROM sessions WHERE token_hash=?',hash(token)),

@@ -23,11 +23,12 @@ function createApp({databasePath='var/maxball.sqlite',origin='http://127.0.0.1:5
  const payments=createPayments(db,economy,{permit,audit:operations.audit});
  db.run("UPDATE matches SET status='ABANDONED',finished_at=? WHERE status='RUNNING'",Date.now());
  db.run("UPDATE ranked_matches SET reason='SERVER_RESTART',home_after=home_before,away_after=away_before,finished_at=? WHERE finished_at IS NULL",Date.now());
+ const collections=require('./services/collections.cjs').createCollections(db,economy);
  const rooms=createRooms({db,auth,economy,career,origin,logger,syncResults:!!cloud,canRank:()=>{const s=operations.settings();return !s.maintenance&&s.ranked_enabled;},audit:(actor,action,resource,metadata)=>operations.audit(actor,action,resource,'OK',metadata)}),limits=new Map();
  const social=createSocial(db,rooms,auth),skins=createSkins(db),championships=createChampionships(db,economy,{permit,audit:operations.audit});
  const token=req=>(req.headers.cookie||'').split(';').map(x=>x.trim()).find(x=>x.startsWith('maxball_session='))?.slice(16);
  const json=(res,status,data)=>{res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'});res.end(JSON.stringify(data));};
- function cookie(res,value,maxAge=7*86400){res.setHeader('Set-Cookie',`maxball_session=${value}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${maxAge}${production?'; Secure':''}`);}
+ function cookie(res,value,maxAge=30*86400){res.setHeader('Set-Cookie',`maxball_session=${value}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${maxAge}${production?'; Secure':''}`);}
  function limit(key,max,window){
   const now=Date.now();let bucket=limits.get(key);
   if(!bucket||bucket.until<now){bucket={until:now+window,count:0};limits.set(key,bucket);}
@@ -81,6 +82,11 @@ limit('username:'+String(data.username).toLowerCase().slice(0,24),8,15*60000);
    if(pathname==='/api/profile')return json(res,200,{profile:auth.profile(uid),achievements:db.all('SELECT a.*,c.player_name,c.save_name,club.name club_name FROM accolades a LEFT JOIN careers c ON c.id=a.career_id LEFT JOIN clubs club ON club.id=a.club_id WHERE a.user_id=? ORDER BY a.created_at DESC',uid)});
    if(pathname==='/api/chat')return json(res,200,social.history(uid,url.searchParams.get('channel')||'players'));
    if(pathname==='/api/emotes')return json(res,200,social.slots(uid));
+   if(pathname==='/api/collections')return json(res,200,collections.shop(uid));
+   if(pathname==='/api/pass')return json(res,200,collections.pass(uid));
+   if(pathname==='/api/room-invites')return json(res,200,rooms.features.pending(uid));
+   if(pathname==='/api/command/collections'){if(!['ADMIN','SUPER_ADMIN'].includes(user.role))fail('ADMIN','Apenas administradores.',403);return json(res,200,collections.config());}
+   const inspected=pathname.match(/^\/api\/profiles\/([\w-]+)$/);if(inspected)return json(res,200,collections.profile(inspected[1]));
    if(pathname==='/api/shop')return json(res,200,economy.catalog());
    if(pathname==='/api/gems')return json(res,200,{...payments.publicConfig(),history:payments.history(uid)});
    if(pathname==='/api/command/payments')return json(res,200,payments.admin(user));
@@ -103,6 +109,12 @@ limit('username:'+String(data.username).toLowerCase().slice(0,24),8,15*60000);
   }
   if(method==='POST'||method==='PATCH'||method==='DELETE'){
    const data=await body(req);
+   if(pathname==='/api/collections/open')return json(res,200,collections.open(uid,data));
+   if(pathname==='/api/pass/max'){object(data,[]);return json(res,200,collections.unlock(uid));}
+   if(pathname==='/api/pass/claim')return json(res,200,collections.claim(uid,data));
+   if(pathname==='/api/command/collections')return json(res,200,collections.saveConfig(user,data));
+   if(pathname==='/api/room-invites/accept')return json(res,200,await rooms.features.accept(user,data));
+   const feature=pathname.match(/^\/api\/rooms\/([\w-]+)\/(cancel|customize|card|invite|move)$/);if(feature){if(feature[2]==='cancel')object(data,[]);return json(res,200,await rooms.features[feature[2]](user,feature[1],data));}
    if(pathname==='/api/friendlies/search'&&method==='POST'){if(operations.settings().maintenance)fail('MAINTENANCE','Novas partidas estão pausadas.',503);return json(res,200,rooms.friendlies.search(user,data));}
    if(pathname==='/api/friendlies/accept'&&method==='POST')return json(res,200,rooms.friendlies.accept(user,data));
    if(pathname==='/api/friendlies/cancel'&&method==='POST'){object(data,[]);rooms.friendlies.cancel(uid);return json(res,200,rooms.friendlies.view(uid));}
@@ -178,7 +190,7 @@ limit('username:'+String(data.username).toLowerCase().slice(0,24),8,15*60000);
  server.requestTimeout=15000;server.headersTimeout=10000;
  server.on('upgrade',(req,socket,head)=>rooms.upgrade(req,socket,head));
  async function close(){rooms.close();await cloudSync?.close();await new Promise(resolve=>{server.close(resolve);server.closeAllConnections();});db.close();}
- return {server,db,auth,economy,career,admin,operations,rooms,payments,skins,championships,cloudSync,close};
+ return {server,db,auth,economy,collections,career,admin,operations,rooms,payments,skins,championships,cloudSync,close};
 }
 async function staticFile(req,res,pathname){
  if(!['GET','HEAD'].includes(req.method)){res.writeHead(405,{Allow:'GET, HEAD'}).end();return;}

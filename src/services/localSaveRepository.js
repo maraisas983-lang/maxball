@@ -72,7 +72,7 @@
       result.ctl[key] = {
         x: number(control.x, .06, .94, fallback.x),
         y: number(control.y, .12, .94, fallback.y),
-        s: number(control.s, .6, 1.6, fallback.s)
+        s: number(control.s, .6, 2, fallback.s)
       };
     }
     return result;

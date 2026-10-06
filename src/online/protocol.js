@@ -4,12 +4,12 @@
  const round=v=>typeof v==='number'?Math.round(v*100)/100:v;
  function snapshot(match,tick=0){
   const state={matchId:match.id,cfg:match.cfg,G:{...match.G,cfg:undefined,teamRequests:undefined},P:match.P,ball:match.ball,W:match.W,H:match.H,GY0:match.GY0,GY1:match.GY1,BR:match.BR};
-  state.P=state.P.map(p=>Object.fromEntries(['id','name','displayName','team','num','slot','ctrl',...fields].filter(k=>p[k]!==undefined).map(k=>[k,round(p[k])])));
-  state.ball=Object.fromEntries(['x','y','vx','vy','rot','rollX','rollY','qx','qy','qz','qw','last'].map(k=>[k,round(state.ball[k])]));
+  state.P=state.P.map(p=>Object.fromEntries(['id','name','displayName','team','num','slot','ctrl','position','kit','sentOff','celebration',...fields].filter(k=>p[k]!==undefined).map(k=>[k,round(p[k])])));
+  state.ball=Object.fromEntries(['x','y','vx','vy','rot','rollX','rollY','qx','qy','qz','qw','last','trail'].map(k=>[k,round(state.ball[k])]));
   state.tick=tick;state.serverTime=performance.now();return state;
  }
  function frameFromMatch(match,tick,acks){
-  return {type:'frame',matchId:match.id,tick,serverTime:performance.now(),acks,G:{...match.G,cfg:undefined,teamRequests:undefined},P:match.P.map(p=>[p.id,...fields.map(k=>round(p[k]??0))]),ball:Object.fromEntries(['x','y','vx','vy','rot','rollX','rollY','qx','qy','qz','qw','last'].map(k=>[k,round(match.ball[k])]))};
+  return {type:'frame',matchId:match.id,tick,serverTime:performance.now(),acks,G:{...match.G,cfg:undefined,teamRequests:undefined},P:match.P.map(p=>[p.id,...fields.map(k=>round(p[k]??0))]),ball:Object.fromEntries(['x','y','vx','vy','rot','rollX','rollY','qx','qy','qz','qw','last','trail'].map(k=>[k,round(match.ball[k])]))};
  }
  function frame(state){return {type:'frame',matchId:state.matchId,tick:state.tick,serverTime:state.serverTime,acks:state.acks,G:state.G,P:state.P.map(p=>[p.id,...fields.map(k=>p[k]??0)]),ball:state.ball};}
  class Decoder {

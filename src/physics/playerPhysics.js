@@ -18,7 +18,7 @@
   function touch(p){
    if(G.restarting&&p.team!==G.ko)return;
    if(G.restarting){G.restarting=false;G.firstTouch=p.id;}
-   effects.touch?.(p);
+   ball.trail=p.trail??0;effects.touch?.(p);
    const id=p.id??P.indexOf(p);
    if(ball.lastPlayer!==id){ball.previousTouch={id:ball.lastPlayer,team:ball.last,time:ball.touchTime};ball.lastPlayer=id;}ball.touchTime=G.elapsed||G.el||0;ball.last=p.team;
   }

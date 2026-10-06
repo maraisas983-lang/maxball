@@ -73,6 +73,8 @@
      pendingAwards=profile.achievements.filter(a=>!knownAwards.has(a.id));knownAwards=new Set(profile.achievements.map(a=>a.id));
     }).catch(portal.error);
    }
+   if(message.type==='matchCancelled'){root.MaxballGame.leaveRemote?.({keepRoom:true});root.MaxballOfficials.room(message.room);portal.open('online').catch(portal.error);return;}
+   root.MaxballMatchOverlay?.receive(message);
    if(message.type==='room'&&shell.classList.contains('on')&&page==='online'){
     const room=message.room;portal.status(room.players.map(p=>p.name).join(' × ')+' · '+(room.status==='waiting'?'Aguardando início':'Partida iniciada'));
    }

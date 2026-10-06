@@ -31,6 +31,7 @@ function createSupabase({url,anonKey,serviceKey,fetchImpl=fetch}){
  };
 }
 function useSupabaseAuth(local,db,economy,cloud,{adminEmails=[]}={}){
+ const profileUpdates=new Set();
  const {session,allowed,publicUser}=local;
  const administrators=new Set(adminEmails.map(email=>email.trim().toLowerCase()).filter(Boolean));
  async function establish(tokens,isLogin=true){
@@ -44,7 +45,7 @@ function useSupabaseAuth(local,db,economy,cloud,{adminEmails=[]}={}){
     const name=(remote.display_name||identity.email.split('@')[0]).slice(0,14);
     db.run('INSERT INTO users(id,username,password_hash,created_at,updated_at,last_login_at) VALUES(?,?,?,?,?,?)',identity.id,'sb_'+identity.id,'EXTERNAL',now,now,now);
     db.run('INSERT INTO profiles(id,user_id,display_name,shirt_name,shirt_number,created_at,rating,ranked_wins,ranked_draws,ranked_losses,ranked_goals,ranked_assists) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)',id(),identity.id,name,name,10,now,remote.rating,remote.wins,remote.draws,remote.losses,remote.goals,remote.assists);
-    db.run('INSERT INTO wallets VALUES(?,?,?)',identity.id,0,now);for(const item of ['kit-0','kit-1','effect-0','emote-0'])db.run('INSERT INTO inventory VALUES(?,?,?)',identity.id,item,now);db.run("INSERT OR IGNORE INTO emote_slots VALUES(?,0,'emote-0')",identity.id);user=db.one('SELECT * FROM users WHERE id=?',identity.id);
+    db.run('INSERT INTO wallets VALUES(?,?,?)',identity.id,0,now);for(const item of ['kit-0','kit-1','effect-0','emote-0','ball-0','celebration-0'])db.run('INSERT INTO inventory VALUES(?,?,?)',identity.id,item,now);db.run("INSERT OR IGNORE INTO emote_slots VALUES(?,0,'emote-0')",identity.id);user=db.one('SELECT * FROM users WHERE id=?',identity.id);
    }
    allowed(user);
    if(identity.email_confirmed_at)db.run('INSERT INTO verified_emails VALUES(?,?) ON CONFLICT(user_id) DO UPDATE SET email=excluded.email',identity.id,identity.email.trim().toLowerCase());
@@ -69,7 +70,8 @@ function useSupabaseAuth(local,db,economy,cloud,{adminEmails=[]}={}){
   register:async body=>establish(await cloud.register(...credentials(body,true))),login:async body=>establish(await cloud.login(...credentials(body))),
   async refresh(token){local.authenticate(token);const row=db.one('SELECT * FROM external_sessions WHERE token_hash=?',hash(token));if(!row)fail('SESSION','Entre novamente.',401);const result=await establish(await cloud.refresh(row.refresh_token),false);local.logout(token);return result;},
   async logout(token){const row=db.one('SELECT * FROM external_sessions WHERE token_hash=?',hash(token));local.logout(token);if(row)await cloud.logout(row.access_token).catch(()=>{});},
-  async updateProfile(uid,body){const before=local.profile(uid),after=local.updateProfile(uid,body);try{await cloud.updateProfile(uid,after.display_name);}catch(error){db.run('UPDATE profiles SET display_name=?,shirt_name=?,shirt_number=?,avatar=? WHERE user_id=?',before.display_name,before.shirt_name,before.shirt_number,before.avatar,uid);db.run('UPDATE profiles SET positions=? WHERE user_id=?',JSON.stringify(before.positions),uid);throw error;}return after;}
+  async updateProfile(uid,body){if(profileUpdates.has(uid))fail('PROFILE_BUSY','Aguarde a atualização anterior.',409);profileUpdates.add(uid);const before=local.profile(uid);try{const after=local.updateProfile(uid,body,true);await cloud.updateProfile(uid,after.display_name);try{return local.updateProfile(uid,body);}catch(error){await cloud.updateProfile(uid,before.display_name).catch(()=>{});throw error;}}finally{profileUpdates.delete(uid);}}
+
  };
 }
 function createCloudSync(db,cloud,logger){

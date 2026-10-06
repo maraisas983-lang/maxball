@@ -15,6 +15,7 @@
 <link rel="stylesheet" href="styles/portal.css">
 <link rel="stylesheet" href="styles/lobby.css"><link rel="stylesheet" href="styles/command.css"><link rel="stylesheet" href="styles/modeLobbies.css"><link rel="stylesheet" href="styles/social.css">
 <link rel="stylesheet" href="styles/match-polish.css">
+<link rel="stylesheet" href="styles/collections.css">
 </head><body>
 <section id="boot-screen" aria-label="Carregamento do MAXBALL"><strong>MAXBALL</strong><p>Carregando o jogo…</p><progress aria-label="Carregamento dos arquivos"></progress><noscript>Ative o JavaScript para jogar.</noscript></section>
 
@@ -59,9 +60,9 @@
 
 <section class="scr" id="ctl">
  <div id="cpan">
-  <label>Analógico <input type="range" id="r0" min="60" max="160"></label>
-  <label>Chute <input type="range" id="r1" min="60" max="160"></label>
-  <label>Passe <input type="range" id="r2" min="60" max="160"></label>
+  <label>Analógico <input type="range" id="r0" min="60" max="200"></label>
+  <label>Chute <input type="range" id="r1" min="60" max="200"></label>
+  <label>Passe <input type="range" id="r2" min="60" max="200"></label>
   <label>Opacidade <input type="range" id="r3" min="30" max="100"></label>
   <button class="btn b2" id="crst">Restaurar</button><button class="btn b1" data-go="home">Salvar</button>
  </div>
@@ -85,7 +86,7 @@
  <div id="penalty-hud" hidden></div>
  <div id="network-status" role="status"></div>
  <button id="exit">Sair</button><button id="gset" aria-label="Configurações">⚙</button>
- <div id="gpan"><b>Configurações</b><label>Zoom <input type="range" id="z0" min="60" max="160"></label><label>Tamanho dos botões <input type="range" id="z1" min="60" max="160"></label><label>Opacidade <input type="range" id="z2" min="30" max="100"></label><label class="ck"><input type="checkbox" id="z3"> Tremor de tela</label><button class="btn b1" id="zok">Continuar</button></div>
+ <div id="gpan"><b>Configurações</b><label>Zoom <input type="range" id="z0" min="60" max="160"></label><label>Tamanho dos botões <input type="range" id="z1" min="60" max="200"></label><label>Opacidade <input type="range" id="z2" min="30" max="100"></label><label class="ck"><input type="checkbox" id="z3"> Tremor de tela</label><button class="btn b1" id="zok">Continuar</button></div>
  <div id="sb"><div id="sbr"><div class="tb" id="tabA"></div><div class="ab" id="abA">MAX</div>
    <div class="lm"><span id="s0">0</span><i class="sp"></i><span id="s1">0</span>
     <svg class="em" viewBox="0 0 38 44"><path d="M19 1l16 7v17c0 9-7 15-16 18C10 40 3 34 3 25V8z" fill="#0b1233" stroke="#d8e52a" stroke-width="3"/><circle cx="19" cy="22" r="10" fill="#fff"/><path d="M19 15l6 4-2 7h-8l-2-7z" fill="#0b1233"/></svg></div>
@@ -132,6 +133,7 @@
 <script src="src/physics/netPhysics.js"></script>
 <script src="src/online/snapshotBuffer.js"></script>
 <script src="src/audio/crowd.js"></script>
+<script src="src/data/collections.js"></script>
 <script src="src/ui/ballVisual.js"></script>
 <script src="src/ui/goalReplay.js"></script>
 <script src="src/legacy/game.js"></script>
@@ -145,6 +147,7 @@
 <script src="src/ui/lobbyShell.js"></script>
 <script src="src/ui/careerView.js"></script>
 <script src="src/ui/economyView.js"></script>
+<script src="src/ui/collectionView.js"></script>
 <script src="src/ui/roomDrag.js"></script>
 <script src="src/ui/skinEditor.js"></script>
 <script src="src/ui/clubView.js"></script>
@@ -169,9 +172,11 @@
 <script src="src/game/lockerMovement.js"></script>
 <script src="src/ui/lockerDecor.js"></script>
 <script src="src/ui/matchExperience.js"></script>
+<script src="src/ui/roomExtras.js"></script>
 <script src="src/ui/debugView.js"></script>
 <script src="src/ui/home.js"></script>
 <script src="src/ui/settingsView.js"></script>
+<script src="src/ui/touchSettings.js"></script>
 <script src="src/ui/endPresentation.js"></script>
 <script src="src/ui/entryView.js"></script>
 </body></html>

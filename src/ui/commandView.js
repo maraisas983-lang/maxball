@@ -16,7 +16,7 @@
    else if(['Partidas','Ranqueada','Carreira'].includes(page))main.append(table(['ID','Modo','Placar','Estado'],data.matches.filter(m=>page==='Carreira'?m.kind==='CAREER':page==='Ranqueada'?m.ranked:true).map(m=>[m.id,m.kind,m.score,m.status])));
    else if(page==='Logs')main.append(table(['Horário','Autor','Ação','Recurso','Resultado'],data.logs.map(l=>[new Date(l.created_at).toLocaleString(),l.actor_id||'Sistema',l.action,l.resource,l.result])));
    else if(page==='Campeonatos'){if(!can('settings')){main.append(note('Seu papel não permite administrar campeonatos.'));return;}const target=el('div');main.append(target);await root.MaxballChampionships.admin({...portal,content:target});}
-   else if(page==='Pagamentos'){
+   else if(page==='Pagamentos'){main.append(button('Pacotes e passe MAX',()=>root.MaxballPortal.open('collectionAdmin'),'secondary'));
     if(!can('settings')){main.append(note('Seu papel não permite configurar pagamentos.'));return;}
     const c=await portal.api('/command/payments'),fields=[];
     main.append(note('Cakto · configure as ofertas antes de liberar a compra de gemas.'),field('URL do webhook','webhook','url',location.origin+'/api/payments/cakto/webhook',{readonly:''}),note(c.webhookConfigured?'Chave do webhook configurada.':'Gere uma chave e copie para o webhook da Cakto.'));

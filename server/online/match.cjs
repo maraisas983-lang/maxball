@@ -20,7 +20,7 @@ class Match {
   this.random=seeded(seed);this.events=createEvents();this.log=[];this.inputs=new Map();this.stats={};this.P=[];this.retiredPlayers=[];this.substitutionQueue=[];
   for(let team=0;team<2;team++)for(let slot=0;slot<this.cfg.n;slot++){
    const human=players.find(p=>p.team===team&&p.slot===slot);
-   const player={id:human?.id||`bot-${team}-${slot}`,name:human?.name||['Caio','Breno','Davi','Rui','Leo','Nico','Vini','João','Ivo','Theo'][team*5+slot],displayName:human?.name||['Caio','Breno','Davi','Rui','Leo','Nico','Vini','João','Ivo','Theo'][team*5+slot],team,num:human?.num||7+slot,ctrl:human?'remote':'ai',slot,x:0,y:0,vx:0,vy:0,fx:team?-1:1,fy:0,st:1,cd:0,hop:0};
+   const player={id:human?.id||`bot-${team}-${slot}`,name:human?.name||['Caio','Breno','Davi','Rui','Leo','Nico','Vini','João','Ivo','Theo'][team*5+slot],displayName:human?.name||['Caio','Breno','Davi','Rui','Leo','Nico','Vini','João','Ivo','Theo'][team*5+slot],team,position:human?.position||null,kit:human?.kit??null,trail:human?.trail||0,celebration:human?.celebration||0,num:human?.num||7+slot,ctrl:human?'remote':'ai',slot,x:0,y:0,vx:0,vy:0,fx:team?-1:1,fy:0,st:1,cd:0,hop:0};
    const real=this.cfg.teams?.[team]?.squad?.[[4,3,2,1,0][slot]];if(real&&!human){player.name=player.displayName=real.name;player.realPosition=real.role;player.attributes=real.attributes;}
    this.P.push(player);this.stats[player.id]=performanceStats.empty();
   }
@@ -34,7 +34,7 @@ class Match {
  resumeHalf(){if(this.G.phase!=='halftime'||!this.cfg.intermissionLobby)return;this.G.phase='play';this.G.ko=1;this.kickoff();this.G.pauseState='PAUSED';this.resume();this.record('SECOND_HALF_STARTED',{score:this.G.score.slice()});}
  resume(){if(this.G.pauseState!=='PAUSED')return;this.G.pauseState='RESUMING';this.G.resumeRemaining=3;this.G.official.mode='RESUMING';this.inputs.clear();this.record('REFEREE_RESUMING',{});}
  substitute(outId,incoming){
-  const index=this.P.findIndex(p=>p.id===outId),out=this.P[index];if(!out||this.P.some(p=>p.id===incoming.id))throw new Error('Substituição inválida.');
+  const index=this.P.findIndex(p=>p.id===outId),out=this.P[index];if(!out||out.sentOff||this.P.some(p=>p.id===incoming.id))throw new Error('Substituição inválida.');
   this.retiredPlayers=this.retiredPlayers.filter(p=>p.id!==incoming.id&&p.id!==outId);this.retiredPlayers.push({...out});
   const next={...out,...incoming,team:out.team,slot:out.slot,displayName:incoming.name,ctrl:'remote',attributes:undefined,vx:0,vy:0,cd:0,shootHeld:false,passHeld:false,shootSeq:0,passSeq:0,shootBuffer:0,passBuffer:0};
   this.P[index]=next;this.stats[next.id]??=performanceStats.empty();this.inputs.delete(outId);this.inputs.delete(next.id);this.offside.candidates.clear();this.offside.pending=null;
@@ -55,7 +55,7 @@ class Match {
   const scorer=this.P.find(p=>p.id===this.ball.lastPlayer),previous=this.ball.previousTouch;
   let assist=null;
   if(scorer?.team===team){this.stats[scorer.id].goals++;if(previous?.id&&previous.id!==scorer.id&&previous.team===team&&this.G.elapsed-previous.time<8){assist=previous.id;this.stats[assist].assists++;}}
-  this.G.score[team]++;this.G.phase='goal';this.G.pt=0;this.G.sc=team;this.G.ko=1-team;this.G.scorerId=scorer?.id||null;this.G.scorerName=scorer?.displayName||scorer?.name||'Gol da equipe';this.G.assistId=assist;this.G.assistName=[...this.P,...this.retiredPlayers].find(p=>p.id===assist)?.displayName||[...this.P,...this.retiredPlayers].find(p=>p.id===assist)?.name||null;this.G.ownGoal=!!scorer&&scorer.team!==team;this.G.goalVariant=((this.G.cinematicVariant||0)+this.G.score.reduce((a,b)=>a+b,0))%3;
+  this.G.celebration=scorer?.celebration||0;this.G.score[team]++;this.G.phase='goal';this.G.pt=0;this.G.sc=team;this.G.ko=1-team;this.G.scorerId=scorer?.id||null;this.G.scorerName=scorer?.displayName||scorer?.name||'Gol da equipe';this.G.assistId=assist;this.G.assistName=[...this.P,...this.retiredPlayers].find(p=>p.id===assist)?.displayName||[...this.P,...this.retiredPlayers].find(p=>p.id===assist)?.name||null;this.G.ownGoal=!!scorer&&scorer.team!==team;this.G.goalVariant=((this.G.cinematicVariant||0)+this.G.score.reduce((a,b)=>a+b,0))%3;
   for(const p of this.P)if(p.team!==team&&field.inArea(p,p.team,this))this.stats[p.id].goalsConceded++;
   if(scorer&&scorer.team!==team)this.stats[scorer.id].errors++;
   this.record('GOAL_SCORED',{team,scorer:scorer?.id||null,assist,ownGoal:!!scorer&&scorer.team!==team});

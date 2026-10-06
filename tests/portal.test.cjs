@@ -47,8 +47,8 @@ test('account UI creates career, purchases/equips, renders admin and plays a ser
  window.document.querySelector('[name=name]').value='POGGI';
  window.document.querySelector('.sport-form').dispatchEvent(new window.Event('submit',{bubbles:true,cancelable:true}));
  await until(()=>button('Entrar em campo'),'career fixture');assert.match(window.document.querySelector('#portal-content').textContent,/Flamengo/);
- await portal.open('shop');assert.ok(window.document.querySelectorAll('.cosmetic-grid canvas').length>=22);
- const buy=button('Comprar');buy.click();await until(()=>portal.account.wallet.balance<200,'purchase');
+ await portal.open('shop');assert.equal([...window.document.querySelectorAll('#portal button')].filter(b=>b.textContent==='Ver pacote').length,5);
+ button('Ver pacote').click();const buy=[...window.document.querySelectorAll('dialog button')].find(b=>b.textContent==='Abrir por 30 gemas');assert.ok(buy);buy.click();await until(()=>portal.account.wallet.balance===170,'pack purchase');for(const dialog of window.document.querySelectorAll('dialog'))dialog.remove();
  await portal.open('inventory');const equip=button('Equipar');if(equip){equip.click();await until(()=>!equip.disabled,'equip');}
  await portal.open('profile');assert.equal(window.document.querySelector('[name=shirtName]').value,'ui_player');
  await portal.open('support');assert.ok(window.document.querySelector('[name=description]'));assert.equal(window.document.querySelector('#portal').dataset.lobby,'support');

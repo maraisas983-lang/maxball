@@ -36,7 +36,7 @@ function createEconomy(db) {
     const item=db.one('SELECT s.* FROM inventory i JOIN shop_items s ON s.id=i.item_id WHERE i.user_id=? AND i.item_id=?',userId,itemId);
     if(!item)fail('OWNERSHIP','Item não adquirido.',403);
     if(item.category==='EMOTE'){const slot=require('../lib/validation.cjs').integer(body.slot,'Slot',0,3);db.run('INSERT INTO emote_slots VALUES(?,?,?) ON CONFLICT(user_id,slot) DO UPDATE SET item_id=excluded.item_id',userId,slot,item.id);return inventory(userId);}
-    db.run(item.category==='KIT'?'UPDATE profiles SET kit=? WHERE user_id=?':'UPDATE profiles SET effect=? WHERE user_id=?',item.asset_index,userId);
+    const column={KIT:'kit',EFFECT:'effect',BALL:'ball_skin',CELEBRATION:'celebration'}[item.category];if(!column)fail('ITEM','Categoria inválida.');db.run('UPDATE profiles SET '+column+'=? WHERE user_id=?',item.asset_index,userId);
     return inventory(userId);
   }
   function inventory(userId){return db.all('SELECT s.*,i.acquired_at FROM inventory i JOIN shop_items s ON s.id=i.item_id WHERE i.user_id=? ORDER BY s.category,s.asset_index',userId);}
