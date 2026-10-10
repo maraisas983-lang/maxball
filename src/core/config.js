@@ -1,6 +1,18 @@
 (function(root){
  const config=Object.freeze({
-  physics:Object.freeze({playerRadius:20,playerMass:3,playerMaxSpeed:180,botMaxSpeeds:Object.freeze([158,170,180]),playerAcceleration:36,playerDeceleration:24,playerTurnResponse:48,playerOutsideMargin:70,ballMass:1.8,ballMaxSpeed:480,ballFriction:.65,ballRollingResistance:12,ballDamping:.25,wallRestitution:.65,postRestitution:.48,postRadius:6,contactRestitution:.22,contactMaxPushSpeed:170,shotImpulse:430,passImpulse:340,passMinSpeed:170,passMaxSpeed:380,kickCooldown:.18,kickReach:12,kickBuffer:.12,recontactProtection:.24,contactIterations:8}),
+  physics:Object.freeze({
+   // World units: the entire visible disc, including its rim, is 40 units wide.
+   playerRadius:20,ballRadius:20*.42,playerMass:3,ballMass:1.8,
+   playerMaxSpeed:180,botMaxSpeeds:Object.freeze([158,170,180]),
+   playerAcceleration:36,playerTurnResponse:48,inputEpsilon:.01,
+   playerOutsideMargin:70,
+   // Velocities: player 4.5, full pass 8.5, shot 17 player diameters/second.
+   shotImpulse:680,passImpulse:340,passMinSpeed:170,passMaxSpeed:440,ballMaxSpeed:816,
+   ballFriction:.65,ballRollingResistance:12,
+   wallRestitution:.65,postRestitution:.48,postRadius:6,
+   contactRestitution:.22,contactMaxPushSpeed:170,contactResponse:24,contactIterations:8,
+   kickCooldown:.18,kickReach:1,kickFrontCos:.5,kickBuffer:.12
+  }),
   field:Object.freeze({areaDepth:200,areaPadding:100,centerRadius:105}),
   input:Object.freeze({deadzone:.08}),
   match:Object.freeze({introSeconds:17.7,entrySeconds:5,goalCelebrationSeconds:1.6,goalPauseSeconds:6.2,extraTimeSeconds:60,penaltySeconds:8,penaltyFlightSeconds:3,penaltyPauseSeconds:1.2}),

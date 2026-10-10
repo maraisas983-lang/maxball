@@ -16,7 +16,7 @@ class Match {
   this.id=id;this.seed=seed;this.botController=botController;this.cfg={n:2,time:180,gold:0,diff:1,fs:0,ball:1,sk0:0,sk1:1,...cfg};
   this.cfg.intermissionLobby=this.cfg.halftime===true;
   this.cfg.settings=rules.settings(cfg.settings,!!cfg.gold);
-  Object.assign(this,dimensions(this.cfg.n,this.cfg.fs));this.BR=11;
+  Object.assign(this,dimensions(this.cfg.n,this.cfg.fs));this.BR=require('../../src/core/config.js').physics.ballRadius;
   this.G={cfg:this.cfg,period:'REGULATION',phase:this.cfg.presentation?'starting':'play',startRemaining:this.cfg.presentation?timing.introSeconds:0,score:[0,0],time:this.cfg.time,elapsed:0,pt:0,shake:0,ko:0};
   this.random=seeded(seed);this.events=createEvents();this.log=[];this.inputs=new Map();this.stats={};this.activity=new Map();this.inputAt=new Map();this.P=[];this.retiredPlayers=[];this.substitutionQueue=[];
   for(let team=0;team<2;team++)for(let slot=0;slot<this.cfg.n;slot++){

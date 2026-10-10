@@ -8,6 +8,15 @@
   const CONFIG = Object.freeze({maxSpeed:physics.ballMaxSpeed,friction:physics.ballFriction,wallBounce:physics.wallRestitution,postRadius:physics.postRadius,postBounce:physics.postRestitution});
   const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 
+  // Exact integration of dv/dt = -drag*v - rollingResistance along motion.
+  // One model supplies simulation, pass timing and trajectory prediction.
+  function rolling(speed,dt,friction=CONFIG.friction){
+    if(speed<=0)return {speed:0,distance:0};
+    const drag=-Math.log(friction),offset=physics.ballRollingResistance/drag;
+    const stop=Math.log1p(speed/offset)/drag,t=Math.min(dt,stop),decay=Math.exp(-drag*t);
+    return {speed:dt>=stop?0:Math.max(0,(speed+offset)*decay-offset),distance:(speed+offset)*(-Math.expm1(-drag*t))/drag-offset*t};
+  }
+
   function collideCircle(body, x, y, radius, bounce) {
     let dx=body.x-x,dy=body.y-y;if(dx*dx+dy*dy>=radius*radius)return 0;let distance=Math.hypot(dx,dy);
     if (distance >= radius) return 0;
@@ -35,7 +44,7 @@
     return null;
   }
 
-  function moveBall(state, dt, onGoal = () => {}, onImpact = () => {}) {
+  function moveBall(state, dt, onGoal = () => {}, onImpact = () => {}, visual=true) {
     const { ball, G, W, H, GY0, GY1, BR } = state;let awarded=false;
     if(ball.sweepStart&&(G.phase==='play'||G.phase==='penalties')){const crossed=crossedGoal(ball.sweepStart,ball,state);if(crossed!==null){awarded=true;onGoal(crossed);if(G.phase==='goal'){ball.vx*=.12;ball.vy*=.12;delete ball.sweepStart;return;}}}delete ball.sweepStart;
     const speed = Math.hypot(ball.vx, ball.vy);
@@ -49,7 +58,9 @@
     const previous={x:0,y:0};
     for (let n = 0; n < count; n++) {
       previous.x=ball.x;previous.y=ball.y;
-      ball.x += ball.vx * step; ball.y += ball.vy * step;
+      const incoming=Math.hypot(ball.vx,ball.vy),roll=rolling(incoming,step,G.phase==='goal'?.12:CONFIG.friction);
+      if(incoming){ball.x+=ball.vx/incoming*roll.distance;ball.y+=ball.vy/incoming*roll.distance;ball.vx*=roll.speed/incoming;ball.vy*=roll.speed/incoming;}
+      if(roll.speed===0)ball.vx=ball.vy=0;
       if (ball.y < BR || ball.y > H - BR) {
         ball.y = clamp(ball.y, BR, H - BR); ball.vy *= -CONFIG.wallBounce; onImpact(Math.abs(ball.vy));
       }
@@ -62,8 +73,10 @@
         if (impact) onImpact(impact);
       }
       if(!awarded&&(G.phase==='play'||G.phase==='penalties')){const scored=crossedGoal(previous,ball,state);if(scored!==null){awarded=true;onGoal(scored);if(G.phase==='goal'){rotation.roll(ball,ball.x-previous.x,ball.y-previous.y,BR);ball.vx*=.12;ball.vy*=.12;return;}}}
-      rotation.roll(ball,ball.x-previous.x,ball.y-previous.y,BR);
-      if(candidates?.length&&(G.phase==='play'||G.phase==='penalties')&&contacts.resolveContacts(candidates,ball,BR,step,notify,state)){
+      if(visual)rotation.roll(ball,ball.x-previous.x,ball.y-previous.y,BR);
+      // Player drive was applied once in playerPhysics. Substeps resolve only
+      // new impacts/separation, never a second full contact acceleration.
+      if(candidates?.length&&(G.phase==='play'||G.phase==='penalties')&&contacts.resolveContacts(candidates,ball,BR,0,notify,state)){
        for(const x of [0,W])for(const y of [GY0,GY1]){const impact=collideCircle(ball,x,y,BR+CONFIG.postRadius,CONFIG.postBounce);if(impact)onImpact(impact);}
       }
       if (!awarded&&(G.phase === 'play'||G.phase==='penalties')) {
@@ -78,24 +91,13 @@
         }
       }
     }
-    const friction = Math.pow(G.phase==='goal'?.12:CONFIG.friction, dt);
-    ball.vx *= friction; ball.vy *= friction;
-    const remaining=Math.hypot(ball.vx,ball.vy),rolling=Math.max(0,remaining-physics.ballRollingResistance*dt);
-    if(remaining){ball.vx*=rolling/remaining;ball.vy*=rolling/remaining;}
-    if(Math.hypot(ball.vx,ball.vy)<.5)ball.vx=ball.vy=0;
     ball.rot=(ball.rot||0)+Math.hypot(ball.vx,ball.vy)*dt/BR;
   }
   function predictTrajectory(state,seconds,out={},visual=true){
     const {ball,W,H,GY0,GY1,BR}=state;Object.assign(out,{x:ball.x,y:ball.y,vx:ball.vx,vy:ball.vy,rollX:ball.rollX||0,rollY:ball.rollY||0,qx:ball.qx||0,qy:ball.qy||0,qz:ball.qz||0,qw:ball.qw??1});
-    const count=Math.max(1,Math.ceil(seconds/.04)),dt=seconds/count,decay=Math.pow(CONFIG.friction,dt);
-    for(let i=0;i<count;i++){
-      const previousX=out.x,previousY=out.y;out.x+=out.vx*dt;out.y+=out.vy*dt;
-      if(out.y<BR||out.y>H-BR){out.y=clamp(out.y,BR,H-BR);out.vy*=-CONFIG.wallBounce;}
-      const mouth=out.y>GY0&&out.y<GY1;
-      if(!mouth&&previousX>=0&&previousX<=W&&(out.x<BR||out.x>W-BR)){out.x=clamp(out.x,BR,W-BR);out.vx*=-CONFIG.wallBounce;}
-      for(const x of [0,W])for(const y of [GY0,GY1])collideCircle(out,x,y,BR+CONFIG.postRadius,CONFIG.postBounce);
-      out.x=clamp(out.x,-46+BR,W+46-BR);if(visual)rotation.roll(out,out.x-previousX,out.y-previousY,BR);out.vx*=decay;out.vy*=decay;const speed=Math.hypot(out.vx,out.vy),slow=Math.max(0,speed-physics.ballRollingResistance*dt);if(speed){out.vx*=slow/speed;out.vy*=slow/speed;}
-    }
+    const count=Math.max(1,Math.ceil(seconds*60)),dt=seconds/count;
+    const predicted={ball:out,W,H,GY0,GY1,BR,G:{phase:state.G?.phase==='goal'?'goal':'play'}};
+    for(let i=0;i<count;i++)moveBall(predicted,dt,()=>{},()=>{},visual);
     return out;
   }
   const passSpeed=distance=>Math.max(physics.passMinSpeed,Math.min(physics.passMaxSpeed,110-Math.log(physics.ballFriction)*Math.max(0,distance)));
@@ -108,7 +110,7 @@
     let low=0,high=stop;for(let i=0;i<24;i++){const mid=(low+high)/2;if(travelled(mid)<distance)low=mid;else high=mid;}
     return (low+high)/2;
   }
-  const api = { CONFIG, passSpeed, travelTime, collideCircle, crossedGoal, moveBall, prepareContacts, predictTrajectory };
+  const api = { CONFIG, rolling, passSpeed, travelTime, collideCircle, crossedGoal, moveBall, prepareContacts, predictTrajectory };
   if (typeof module !== 'undefined') module.exports = api;
   else root.MaxballBall = Object.freeze(api);
 })(globalThis);

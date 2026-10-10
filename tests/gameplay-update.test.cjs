@@ -6,19 +6,19 @@ const {bindJoystick,bindAction}=require('../src/input/pointerControls.js');
 const {Element,Target}=require('./helpers.cjs');
 const {geometry}=require('../src/game/field.js');
 const teams=require('../src/data/teams.js');
-function practice(){const m=new Match({id:'practice',players:[{id:'human',team:0,slot:0}],cfg:{n:2}});m.G.restarting=false;m.G.kl=0;const p=m.P[0];m.P.forEach((q,i)=>{q.ctrl='remote';q.x=100+i*60;q.y=70;});p.x=450;p.y=280;m.ball.x=480;m.ball.y=280;return {m,p};}
+function practice(){const m=new Match({id:'practice',players:[{id:'human',team:0,slot:0}],cfg:{n:2}});m.G.restarting=false;m.G.kl=0;const p=m.P[0];m.P.forEach((q,i)=>{q.ctrl='remote';q.x=100+i*60;q.y=70;});p.x=450;p.y=280;m.ball.x=p.x+20+m.BR-.2;m.ball.y=280;return {m,p};}
 test('contact remains gentler than a pass, and stationary overlaps add no energy',()=>{
  const speeds=[];for(const speed of [0,60,205]){const p={id:'p',team:0,x:0,y:0,vx:speed,vy:0},b={x:30,y:0,vx:0,vy:0};resolveContacts([p],b,11,1/60);speeds.push(b.vx);assert.ok(b.vx<280);}
  assert.equal(speeds[0],0);assert.ok(speeds[1]>0&&speeds[2]>speeds[1]);assert.ok(speeds[2]<=190);
 });
 test('manual pass follows facing and recontact cannot immediately reverse it',()=>{
- const {m,p}=practice();p.fx=0;p.fy=-1;assert.ok(m.physics.kick(p,'p'));
+ const {m,p}=practice();p.fx=0;p.fy=-1;m.ball.x=p.x;m.ball.y=p.y-20-m.BR;assert.ok(m.physics.kick(p,'p'));
  assert.equal(m.ball.vx,0);assert.equal(m.ball.vy,-340);
- p.x=m.ball.x;p.y=m.ball.y-30;p.vy=205;const before=m.ball.vy;resolveContacts([p],m.ball,11,1/60);assert.equal(m.ball.vy,before);
+ p.x=m.ball.x;p.y=m.ball.y+20+m.BR-.2;p.vy=205;const before=m.ball.vy;resolveContacts([p],m.ball,m.BR,1/60);assert.equal(m.ball.vy,before);
 });
 test('held shoot repeats only after cooldown; a new sequence survives a short released tap',()=>{
  const {m,p}=practice();m.setInput(p.id,{x:0,y:0,shoot:true,shootSeq:1});m.physics.step(1/60);assert.equal(m.stats[p.id].shots,1);
- for(let i=0;i<90;i++){m.ball.x=p.x+30;m.ball.y=p.y;m.ball.vx=m.ball.vy=0;m.physics.step(1/60);}
+ for(let i=0;i<90;i++){m.ball.x=p.x+20+m.BR-.2;m.ball.y=p.y;m.ball.vx=m.ball.vy=0;m.physics.step(1/60);}
  assert.ok(m.stats[p.id].shots>1&&m.stats[p.id].shots<=10);
  const before=m.stats[p.id].shots;p.cd=0;m.G.kl=0;m.setInput(p.id,{x:0,y:0,shoot:false,shootSeq:2});m.physics.step(1/60);assert.equal(m.stats[p.id].shots,before+1);
 });
@@ -72,8 +72,8 @@ test('catalog includes all 21 requested Mamoball teams and contrasting alternati
  assert.ok(geometry({W:760,H:440,GY0:170,GY1:270}).centerRadius>60);
 });
 test('contact crossing the goal line scores, while contact beside the post remains bounded',()=>{
- const m=new Match({id:'goal-contact',cfg:{n:2}});m.ball.x=m.W+12;m.ball.y=m.H/2;m.ball.vx=100;m.ball.vy=0;m.ball.sweepStart={x:m.W+10,y:m.H/2};m.moveBall(1/60,t=>m.goal(t));assert.deepEqual(m.G.score,[1,0]);
- m.G.phase='play';m.ball={x:m.W+10,y:m.GY0+12,vx:0,vy:0,rot:0};m.moveBall(1/60,t=>m.goal(t));assert.ok(Math.hypot(m.ball.x-m.W,m.ball.y-m.GY0)>=m.BR+6-.001);assert.ok(m.ball.x>m.W,'a post resolves radially, never teleporting the ball back into the field');assert.deepEqual(m.G.score,[1,0]);
+ const m=new Match({id:'goal-contact',cfg:{n:2}});m.ball.x=m.W+m.BR+1;m.ball.y=m.H/2;m.ball.vx=100;m.ball.vy=0;m.ball.sweepStart={x:m.W+m.BR-1,y:m.H/2};m.moveBall(1/60,t=>m.goal(t));assert.deepEqual(m.G.score,[1,0]);
+ m.G.phase='play';m.ball={x:m.W+m.BR-1,y:m.GY0+12,vx:0,vy:0,rot:0};m.moveBall(1/60,t=>m.goal(t));assert.ok(Math.hypot(m.ball.x-m.W,m.ball.y-m.GY0)>=m.BR+6-.001);assert.ok(m.ball.x>m.W,'a post resolves radially, never teleporting the ball back into the field');assert.deepEqual(m.G.score,[1,0]);
 });
 test('fixed simulation gives matching player and ball positions at 20, 60 and 144 FPS',()=>{
  const {createClock}=require('../src/core/runtime.js'),results=[];

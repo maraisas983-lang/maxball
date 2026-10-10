@@ -71,6 +71,6 @@ Escolha entre cinco estádios nas salas, na carreira e nos modos locais. A entra
 
 ## Android e pagamentos
 
-[Baixar APK de teste 1.0.2](apk/MAXBALL-1.0.2.apk?raw=true) · [Correções de celular, bola e controles](docs/CORRECOES_MOBILE_1_0_2.md).
+[Baixar APK de teste 1.0.3](apk/MAXBALL-1.0.3.apk?raw=true) · [Física, calibração e testes](docs/FISICA_1_0_3.md) · [Correções de celular e controles](docs/CORRECOES_MOBILE_1_0_2.md).
 
 O projeto Android está em `android/`. Prepare os arquivos públicos com `npm.cmd run android:assets` e compile com `npm.cmd run android:apk` após configurar JDK/SDK e a origem HTTPS em `MAXBALL_SERVER_URL`. O workflow Android APK também gera um APK de testes. Consulte [Android e pagamentos](docs/ANDROID_E_PAGAMENTOS.md) para configuração, pacotes de gemas e acesso exclusivo da proprietária aos preços/links.

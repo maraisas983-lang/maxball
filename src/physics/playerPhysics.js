@@ -27,16 +27,19 @@
    const dx=ball.x-p.x,dy=ball.y-p.y,length=Math.hypot(dx,dy);
    if(!interaction.contains(origin,ball,view))return false;
    let ax=aim?.x,ay=aim?.y;
-   // Human actions share the last movement direction; AI may supply an explicit target.
+   // Movement updates heading from the current input before actions are evaluated.
+   // With no input, keep that heading; AI may supply a target displacement.
    if(!aim||!Number.isFinite(ax)||!Number.isFinite(ay)||Math.hypot(ax,ay)<1e-8){ax=p.fx;ay=p.fy;aim=null;}
-   if(!Number.isFinite(ax)||!Number.isFinite(ay)||Math.hypot(ax,ay)<1e-8){ax=length?dx/length:(p.team?-1:1);ay=length?dy/length:0;}
+   if(!Number.isFinite(ax)||!Number.isFinite(ay)||Math.hypot(ax,ay)<1e-8){ax=p.team?-1:1;ay=0;}
    const n=Math.hypot(ax,ay)||1;
-   const power=type==='s'?config.shotImpulse:aim?ballPhysics.passSpeed(n):config.passImpulse;
+   const ux=ax/n,uy=ay/n;
+   // A real forward contact is required. Never disable the kicker's collider.
+   if(length<1e-8||(dx*ux+dy*uy)/length<config.kickFrontCos)return false;
+   const power=type==='s'?config.shotImpulse:aim?ballPhysics.passSpeed(n):config.passMinSpeed+(config.passImpulse-config.passMinSpeed)*clamp(p.aimStrength??1,0,1);
    G.restarting=false;G.kl=.08;p.cd=config.kickCooldown;
    const ability=type==='s'?p.attributes?.shooting:p.attributes?.passing,factor=clamp((ability??70)/70,.8,1.2);
-   const ux=ax/n,uy=ay/n;
    ball.vx=ux*power*factor;ball.vy=uy*power*factor;
-   const speed=Math.hypot(ball.vx,ball.vy);if(speed>config.ballMaxSpeed){ball.vx*=config.ballMaxSpeed/speed;ball.vy*=config.ballMaxSpeed/speed;}ball.kickedBy=p.id;ball.contactProtection=config.recontactProtection;
+   const speed=Math.hypot(ball.vx,ball.vy);if(speed>config.ballMaxSpeed){ball.vx*=config.ballMaxSpeed/speed;ball.vy*=config.ballMaxSpeed/speed;}ball.kickedBy=p.id;
    touch(p);effects.kick?.(p,type);
    const col=p.team?'#ff2d87':'#c8ff2e';effects.burst?.(ball.x,ball.y,type==='s'?10:6,[col,'#fff'],type==='s'?220:120,.3);
    effects.beep?.(type==='s'?180:420,.1,type==='s'?'sawtooth':'triangle',.06);
@@ -59,7 +62,7 @@
    }
   }
   function step(dt){
-   stats.steps++;ball.sweepStart={x:ball.x,y:ball.y};G.kl=(G.kl||0)-dt;ball.contactProtection=Math.max(0,(ball.contactProtection||0)-dt);
+   stats.steps++;ball.sweepStart={x:ball.x,y:ball.y};G.kl=(G.kl||0)-dt;
    if(G.restarting)G.restartTime+=dt;
    brain.update?.(dt);active.length=actions.length=0;
    for(const p of P)if(!p.inactive){active.push(p);let point=previous.get(p.id);if(!point){point={x:0,y:0};previous.set(p.id,point);}point.x=p.x;point.y=p.y;}

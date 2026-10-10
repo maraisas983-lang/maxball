@@ -9,10 +9,10 @@ test('online authoritative release has zero velocity; stopping near ball adds no
  const m=practice(),p=m.P[0];m.setInput(p.id,{x:1,y:0});for(let i=0;i<20;i++)m.update(1/60);m.setInput(p.id,{x:0,y:0});const x=p.x;m.update(1/60);assert.deepEqual([p.x,p.vx,p.vy],[x,0,0]);m.ball.x=p.x+30;m.ball.y=p.y;m.ball.vx=m.ball.vy=0;m.update(1/60);assert.equal(Math.hypot(m.ball.vx,m.ball.vy),0);
 });
 test('interaction ring and kick detection agree at the exact boundary on all fields',()=>{
- let previous=0;for(let n=1;n<=5;n++){const m=practice(n),p=m.P[0],r=interaction.radius(m);assert.ok(r>=31.75&&r<=32.5);assert.ok(r>=previous);previous=r;m.ball.x=p.x+r-.000001;m.ball.y=p.y;assert.ok(interaction.contains(p,m.ball,m));assert.ok(m.physics.kick(p,'p'));p.cd=0;m.G.kl=0;m.ball.x=p.x+r+.01;assert.equal(interaction.contains(p,m.ball,m),false);assert.equal(m.physics.kick(p,'s'),false);}
+ let previous=0;for(let n=1;n<=5;n++){const m=practice(n),p=m.P[0],r=interaction.radius(m);assert.ok(r===cfg.physics.playerRadius+m.BR+cfg.physics.kickReach);assert.ok(r>=previous);previous=r;m.ball.x=p.x+r-.000001;m.ball.y=p.y;assert.ok(interaction.contains(p,m.ball,m));assert.ok(m.physics.kick(p,'p'));p.cd=0;m.G.kl=0;m.ball.x=p.x+r+.01;assert.equal(interaction.contains(p,m.ball,m),false);assert.equal(m.physics.kick(p,'s'),false);}
 });
 test('fast ball cannot cross a stationary player between physics ticks',()=>{
- const m=practice(),p=m.P[0];m.P=[p];p.x=400;p.y=250;m.ball.x=362;m.ball.vx=560;for(let i=0;i<30;i++){m.update(1/60);assert.ok(m.ball.x<=p.x-30.99);assert.ok(Math.hypot(m.ball.vx,m.ball.vy)<=560.001);}assert.ok(m.ball.vx<=0.5);
+ const m=practice(),p=m.P[0];m.P=[p];p.x=400;p.y=250;m.ball.x=362;m.ball.vx=560;for(let i=0;i<30;i++){m.update(1/60);assert.ok(m.ball.x<=p.x-cfg.physics.playerRadius-m.BR+.01);assert.ok(Math.hypot(m.ball.vx,m.ball.vy)<=560.001);}assert.ok(m.ball.vx<=0.5);
 });
 test('player and ball squeezed against each side wall separate without jitter or energy',()=>{
  for(const side of ['top','bottom','left','right']){const field={W:1000,H:560,GY0:210,GY1:350},p={id:1,team:0,x:100,y:100,vx:0,vy:0},b={x:100,y:100,vx:0,vy:0};if(side==='top'){b.y=11;p.y=35;}if(side==='bottom'){b.y=549;p.y=525;}if(side==='left'){b.x=11;p.x=35;}if(side==='right'){b.x=989;p.x=965;}for(let i=0;i<120;i++)resolveContacts([p],b,11,1/60,()=>{},field);assert.ok(Math.hypot(b.x-p.x,b.y-p.y)>30.99);assert.equal(Math.hypot(b.vx,b.vy),0);assert.ok(b.x>=11&&b.x<=989&&b.y>=11&&b.y<=549);}
@@ -27,7 +27,7 @@ test('bots use bounded interception near walls, one chaser and distinct formatio
  for(const x of [90,800,1450]){const m=new Match({id:'tactics',cfg:{n:4,diff:2}});m.G.restarting=false;m.ball.x=x;m.ball.y=14;m.ball.vy=-300;const brain=new Tactics(()=>m,()=>.5);brain.update(1/60);for(const team of [0,1]){const players=m.P.filter(p=>p.team===team);assert.equal(players.filter(p=>p.primaryBallChaser).length,1);assert.ok(new Set(players.map(p=>Math.round(p.targetPosition.y))).size>1);for(const p of players){assert.ok(p.targetPosition.x>=-40&&p.targetPosition.x<=m.W+40);assert.ok(p.targetPosition.y>=-40&&p.targetPosition.y<=m.H+40);assert.ok(Object.values(p.decisionScores).every(Number.isFinite));}}}
 });
 test('real roster attributes cannot produce invalid decisions and a clear shot is taken',()=>{
- const m=new Match({id:'real-shot',cfg:{n:2,diff:2}});m.G.restarting=false;const p=m.P[0];p.x=m.W-232;p.y=m.H/2;m.ball.x=p.x+32;m.ball.y=p.y;p.attributes={speed:70,shooting:70,passing:70};for(const q of m.P.slice(1)){q.x=80;q.y=60;}m.update(1/60);assert.equal(m.stats[p.id].shots,1);assert.ok(Object.values(p.decisionScores).every(Number.isFinite));
+ const m=new Match({id:'real-shot',cfg:{n:2,diff:2}});m.G.restarting=false;const p=m.P[0];p.x=m.W-232;p.y=m.H/2;m.ball.x=p.x+cfg.physics.playerRadius+m.BR+.5;m.ball.y=p.y;p.attributes={speed:70,shooting:70,passing:70};for(const q of m.P.slice(1)){q.x=80;q.y=60;}m.update(1/60);assert.equal(m.stats[p.id].shots,1);assert.ok(Object.values(p.decisionScores).every(Number.isFinite));
 });
 test('AI decisions stay throttled instead of recalculating every physics frame',()=>{
  const m=practice(),brain=new Tactics(()=>m);let decisions=0;brain.decide=()=>decisions++;for(let i=0;i<60;i++)brain.update(1/60);assert.ok(decisions>=7&&decisions<=9);

@@ -5,25 +5,25 @@ const {Net}=require('../src/physics/netPhysics.js');
 const {resolveContacts}=require('../src/physics/contacts.js');
 const {gameHarness,plain}=require('./helpers.cjs');
 function scene(){const p={id:'human',ctrl:'p1',team:0,x:500,y:280,vx:0,vy:0,fx:1,fy:0,cd:0};const s={W:1000,H:560,GY0:210,GY1:350,BR:11,G:{phase:'play',kl:0,cfg:{diff:1}},P:[p],ball:{x:531,y:280,vx:0,vy:0}};return s;}
-test('shots and passes follow the chosen direction in all eight directions, including a ball behind the player',()=>{
+test('shots require a forward ball and never disable the kicker collider',()=>{
  for(const type of ['s','p'])for(let i=0;i<8;i++){
   const s=scene(),p=s.P[0],x=Math.cos(i*Math.PI/4),y=Math.sin(i*Math.PI/4);p.fx=x;p.fy=y;s.ball.x=p.x-31*x;s.ball.y=p.y-31*y;
-  const physics=createPhysics({state:()=>s,input:()=>({x,y}),externalAI:{update(){}}});assert.ok(physics.kick(p,type));
+  const physics=createPhysics({state:()=>s,input:()=>({x,y}),externalAI:{update(){}}});assert.equal(physics.kick(p,type),false);
+  s.ball.x=p.x+31*x;s.ball.y=p.y+31*y;assert.ok(physics.kick(p,type));
   assert.ok(s.ball.vx*x+s.ball.vy*y>300);assert.ok(Math.abs(s.ball.vx*y-s.ball.vy*x)<1e-8);
   for(let n=0;n<18;n++){physics.step(1/60);moveBall(s,1/60);}
-  assert.ok((s.ball.x-p.x)*x+(s.ball.y-p.y)*y>31,'ball must leave the kicker without bouncing off their own body');
+  assert.ok((s.ball.x-p.x)*x+(s.ball.y-p.y)*y>31);
  }
 });
-test('a shot pressed while turning away from a touching ball is accepted in the same tick',()=>{
+test('turning away from a ball rejects a backwards shot until it enters the frontal arc',()=>{
  const s=scene(),p=s.P[0];p.vx=-180;const physics=createPhysics({state:()=>s,input:()=>({x:-1,y:0,shoot:true}),externalAI:{update(){}}});
- physics.step(1/60);assert.equal(s.ball.kickedBy,p.id);assert.ok(s.ball.vx<0);
+ physics.step(1/60);assert.equal(s.ball.kickedBy,undefined);assert.equal(s.ball.vx,0);
 });
-test('kick protection ends after release, so a rebound can collide with the kicker and opponents still block',()=>{
- const s=scene(),p=s.P[0],physics=createPhysics({state:()=>s,input:()=>({x:0,y:0}),externalAI:{update(){}}});physics.kick(p,'s');
- s.ball.x=p.x+34;resolveContacts([p],s.ball,11,1/60);assert.equal(s.ball.contactProtection,0);
+test('rebounds collide with the kicker immediately and opponents remain solid',()=>{
+ const s=scene(),p=s.P[0],physics=createPhysics({state:()=>s,input:()=>({x:0,y:0}),externalAI:{update(){}}});assert.ok(physics.kick(p,'s'));
  s.ball.x=p.x+30;s.ball.vx=-200;resolveContacts([p],s.ball,11,1/60);assert.ok(s.ball.vx>0);
- const defender={id:'other',team:1,x:700,y:280,vx:0,vy:0};s.ball.x=670;s.ball.y=280;s.ball.vx=340;s.ball.contactProtection=.24;
- resolveContacts([defender],s.ball,11,1/60);assert.ok(s.ball.vx<0);assert.equal(s.ball.contactProtection,0);
+ const defender={id:'other',team:1,x:700,y:280,vx:0,vy:0};s.ball.x=670;s.ball.y=280;s.ball.vx=340;
+ resolveContacts([defender],s.ball,11,1/60);assert.ok(s.ball.vx<0);
 });
 test('diagonal balls already behind the post cannot hit an imaginary end-line wall',()=>{
  for(const side of [0,1]){const s=scene();s.P=[];s.ball={x:side?1010:-10,y:228,vx:side?150:-150,vy:-120};let goals=0;

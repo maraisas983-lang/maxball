@@ -5,26 +5,20 @@
  // Reuse scratch memory; the synchronous solver never allocates per iteration.
  const scratch=[];
  function resolveContacts(players,ball,radius,dt,touch=()=>{},field){
-  const protectedPlayer=p=>{
-   if(!(ball.contactProtection>0&&ball.kickedBy===p.id))return false;
-   const dx=ball.x-p.x,dy=ball.y-p.y;
-   if(Math.hypot(dx,dy)>config.playerRadius+radius+.01&&dx*(ball.vx-p.vx)+dy*(ball.vy-p.vy)>=0){ball.contactProtection=0;return false;}
-   return true;
-  };
   const distance=config.playerRadius+radius;let count=0,impulseX=0,impulseY=0,touched=null,best=Infinity;
   for(let i=0;i<players.length;i++){
-   const p=players[i];if(p.inactive||protectedPlayer(p)||(ball.x-p.x)**2+(ball.y-p.y)**2>=distance*distance)continue;const n=normal(ball,p,scratch[i]??={x:0,y:0,d:0});if(n.d>=distance-.001)continue;count++;
+   const p=players[i];if(p.inactive||(ball.x-p.x)**2+(ball.y-p.y)**2>=distance*distance)continue;const n=normal(ball,p,scratch[i]??={x:0,y:0,d:0});if(n.d>=distance-.001)continue;count++;
    if(n.d<best||n.d===best&&String(p.id??p.num)<String(touched?.id??touched?.num)){touched=p;best=n.d;}
    const relative=(ball.vx-p.vx)*n.x+(ball.vy-p.vy)*n.y;
-   if(relative<0&&!(ball.kickedBy===p.id&&ball.contactProtection>0)){
+   if(relative<0){
     // Players follow control input as kinematic bodies: bounce once at contact,
     // rather than retain velocity into an immovable body for repeated corrections.
     let impulse=-(1+config.contactRestitution)*relative,normalSpeed=ball.vx*n.x+ball.vy*n.y;
     if(normalSpeed>=0){
-     const drive=p.vx*n.x+p.vy*n.y,transfer=1-Math.exp(-24*dt*config.playerMass/(config.playerMass+config.ballMass));
+     const drive=p.vx*n.x+p.vy*n.y,transfer=1-Math.exp(-config.contactResponse*dt*config.playerMass/(config.playerMass+config.ballMass));
      impulse=Math.min(impulse,Math.max(0,Math.min(drive,config.contactMaxPushSpeed)-normalSpeed))*transfer;
     }else{
-     const motion=p.vx*n.x+p.vy*n.y,drive=Math.max(0,Math.min(motion,config.contactMaxPushSpeed)),transfer=1-Math.exp(-24*dt*config.playerMass/(config.playerMass+config.ballMass));
+     const motion=p.vx*n.x+p.vy*n.y,drive=Math.max(0,Math.min(motion,config.contactMaxPushSpeed)),transfer=1-Math.exp(-config.contactResponse*dt*config.playerMass/(config.playerMass+config.ballMass));
      impulse=-(1+config.contactRestitution)*(normalSpeed-Math.min(0,motion))+drive*transfer;
     }
     impulseX+=impulse*n.x;impulseY+=impulse*n.y;
@@ -35,11 +29,11 @@
   ball.vx+=impulseX/count;ball.vy+=impulseY/count;
   for(let iteration=0;iteration<config.contactIterations;iteration++){
    let active=0,nx=0,ny=0;
-   for(let i=0;i<players.length;i++){if(players[i].inactive||protectedPlayer(players[i]))continue;const p=players[i],n=scratch[i]??={x:0,y:0,d:0};if((ball.x-p.x)**2+(ball.y-p.y)**2>=distance*distance){n.d=Infinity;continue;}normal(ball,p,n);if(n.d<distance-.001){active++;nx+=n.x;ny+=n.y;}}
+   for(let i=0;i<players.length;i++){if(players[i].inactive)continue;const p=players[i],n=scratch[i]??={x:0,y:0,d:0};if((ball.x-p.x)**2+(ball.y-p.y)**2>=distance*distance){n.d=Infinity;continue;}normal(ball,p,n);if(n.d<distance-.001){active++;nx+=n.x;ny+=n.y;}}
    if(!active)break;
    const balanced=active>1&&Math.hypot(nx,ny)<.8;let dx=0,dy=0;
    for(let i=0;i<players.length;i++){
-    const p=players[i],n=scratch[i];if(p.inactive||protectedPlayer(p)||n.d>=distance-.001)continue;
+    const p=players[i],n=scratch[i];if(p.inactive||n.d>=distance-.001)continue;
     const depth=distance-n.d,share=balanced?0:active===1?(p.vx*n.x+p.vy*n.y>0?config.playerMass/(config.playerMass+config.ballMass):1):.6;
     dx+=n.x*depth*share;dy+=n.y*depth*share;p.x-=n.x*depth*(1-share);p.y-=n.y*depth*(1-share);
    }
@@ -50,12 +44,11 @@
     if(!mouth&&x>=0&&x<=field.W)ball.x=Math.max(radius,Math.min(field.W-radius,ball.x));
     // Transfer correction blocked by a wall to the contacting bodies.
     const blockedX=x+dx/active-ball.x,blockedY=y+dy/active-ball.y;
-    if(blockedX||blockedY)for(let i=0;i<players.length;i++)if(!players[i].inactive&&!protectedPlayer(players[i])&&scratch[i].d<distance-.001){players[i].x-=blockedX;players[i].y-=blockedY;}
+    if(blockedX||blockedY)for(let i=0;i<players.length;i++)if(!players[i].inactive&&scratch[i].d<distance-.001){players[i].x-=blockedX;players[i].y-=blockedY;}
    }
   }
   const speed=Math.hypot(ball.vx,ball.vy);if(speed>config.ballMaxSpeed){ball.vx*=config.ballMaxSpeed/speed;ball.vy*=config.ballMaxSpeed/speed;}
-  if(ball.kickedBy!==touched.id)ball.contactProtection=0;
-  if(!(ball.kickedBy===touched.id&&ball.contactProtection>0))touch(touched);
+  touch(touched);
   return true;
  }
  if(typeof module!=='undefined')module.exports={resolveContacts};else root.MaxballContacts={resolveContacts};

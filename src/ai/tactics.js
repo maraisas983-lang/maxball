@@ -96,8 +96,8 @@
       }
       const onWrongSide=((p.x-ball.x)*ax+(p.y-ball.y)*ay)>-12;
       const side=p.y<ball.y?-1:1;
-      target={x:ball.x-ax*(20+BR+3)+(onWrongSide?-ay*side*42:0),y:ball.y-ay*(20+BR+3)+(onWrongSide?ax*side*42:0)};
-      if(alignment>.7&&reach<20+BR+45)target={x:ball.x+ax*36,y:ball.y+ay*36};
+      target={x:ball.x-ax*(PHYSICS.playerRadius+BR+3)+(onWrongSide?-ay*side*42:0),y:ball.y-ay*(PHYSICS.playerRadius+BR+3)+(onWrongSide?ax*side*42:0)};
+      if(alignment>.7&&reach<PHYSICS.playerRadius+BR+45)target={x:ball.x+ax*36,y:ball.y+ay*36};
       if(!owned&&(opponentOwns||moving)){const speed=PHYSICS.botMaxSpeeds[difficulty]*clamp((p.attributes?.speed??70)/70,.8,1.2),intercept=forecast?.find((point,i)=>distance(p,point)<=speed*horizons[i]+interaction.radius(s))||predicted;target={x:intercept.x-(ball.last===team?ax*22:0),y:intercept.y-(ball.last===team?ay*22:0)};state='INTERCEPTING';}
      }
      if(combination?.from===p.id&&ball.last===team&&!interaction.contains(p,ball,s)){target={...combination.run};state='GIVE_AND_GO';command.shoot=command.pass=false;}
