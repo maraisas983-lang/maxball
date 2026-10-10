@@ -35,6 +35,7 @@ test('account UI creates career, purchases/equips, renders admin and plays a ser
   assert.equal(window.document.querySelector('#portal-nav .tab'),null,'modes do not share a tab bar');
   assert.ok(window.document.querySelector('.lobby-cover'),'destination identity remains visible, including login');
  }
+ window.document.querySelector('[data-feature=pass] .feature-icon').click();await until(()=>window.document.querySelectorAll('.maxpass-level').length===50,'guest MaxPass from lobby button');assert.match(window.document.querySelector('.maxpass-hero').textContent,/Entre na sua conta/);assert.equal(window.document.querySelectorAll('.maxpass-reward button:not(:disabled)').length,0);window.document.querySelector('#portal-home').click();
  await portal.open('training');assert.ok(window.document.querySelector('[name=n]'),'guest can configure training format');
  await portal.open('play');window.document.querySelector('[data-mode=local] button').click();
  await until(()=>window.document.querySelector('#portal').dataset.lobby==='local'&&window.document.querySelector('[name=players]'),'mode selector opens the local lobby');
@@ -43,7 +44,7 @@ test('account UI creates career, purchases/equips, renders admin and plays a ser
  const button=label=>[...window.document.querySelectorAll('#portal button, #entry.on button')].find(b=>b.textContent===label);
  const acceptance=window.document.querySelector('[name=acceptTerms]');assert.equal(button('Criar conta com esses dados').disabled,true);acceptance.checked=true;acceptance.dispatchEvent(new window.Event('change'));
  button('Criar conta com esses dados').click();
- await until(()=>portal.account&&window.document.querySelector('#home.on'),'entry login completes');app.db.transaction(()=>app.economy.change(portal.account.user.id,200,'ADMIN_GRANT','test-fixture','test-fixture'));await portal.refreshAccount();await portal.open('career');try{await until(()=>window.document.querySelector('[name=clubId]'),'career creation form');}catch(error){console.error('UI status:',window.document.querySelector('#portal-status').textContent,'errors:',errors);throw error;}
+ await until(()=>portal.account&&window.document.querySelector('#home.on'),'entry login completes');app.db.transaction(()=>app.economy.change(portal.account.user.id,200,'ADMIN_GRANT','test-fixture','test-fixture'));await portal.refreshAccount();window.document.querySelector('[data-feature=pass] .feature-copy strong').click();await until(()=>window.document.querySelectorAll('.maxpass-level').length===50,'MaxPass from lobby button');assert.equal(window.document.querySelector('#portal').dataset.lobby,'pass');assert.equal(window.document.querySelectorAll('.maxpass-reward').length,100);window.document.querySelector('#portal-home').click();await portal.open('career');try{await until(()=>window.document.querySelector('[name=clubId]'),'career creation form');}catch(error){console.error('UI status:',window.document.querySelector('#portal-status').textContent,'errors:',errors);throw error;}
  window.document.querySelector('[name=name]').value='POGGI';
  window.document.querySelector('.sport-form').dispatchEvent(new window.Event('submit',{bubbles:true,cancelable:true}));
  await until(()=>button('Entrar em campo'),'career fixture');assert.match(window.document.querySelector('#portal-content').textContent,/Flamengo/);

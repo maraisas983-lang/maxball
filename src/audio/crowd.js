@@ -1,7 +1,7 @@
 (function(root){
  'use strict';
  class Crowd {
-  constructor(){this.context=null;this.gain=null;this.last=-1;this.celebration=0;this.points=[];this.key='';}
+  constructor(){this.context=null;this.gain=null;this.last=-1;this.celebration=0;this.points=[];this.key='';this.volume=-1;}
   start(context){
    if(!context||this.context===context)return;
    this.context=context;const buffer=context.createBuffer(1,context.sampleRate*3,context.sampleRate),data=buffer.getChannelData(0);let filtered=0;
@@ -11,12 +11,12 @@
    this.gain=context.createGain();this.gain.gain.value=0;source.connect(filter);filter.connect(this.gain);this.gain.connect(context.destination);source.start();
   }
   goal(){this.celebration=3;}
-  quiet(){if(this.gain)this.gain.gain.setTargetAtTime(0,this.context.currentTime,.1);}
+  quiet(){this.volume=-1;if(this.gain)this.gain.gain.setTargetAtTime(0,this.context.currentTime,.1);}
   update(dt,s){
    this.celebration=Math.max(0,this.celebration-dt);
    if(!this.gain)return;const danger=s.G.phase==='play'&&Math.min(s.ball.x,s.W-s.ball.x)<200;
    const volume=root.MaxballPreferences?.get().sound===false||s.G.paused?0:this.celebration>0?.4*(.6+.4*this.celebration/3):s.G.phase==='end'?.08:danger?.07:.025;
-   this.gain.gain.setTargetAtTime(volume*(s.G.cfg.final?1.4:1),this.context.currentTime,.18);
+   const next=volume*(s.G.cfg.final?1.4:1);if(Math.abs(next-this.volume)>.002){this.volume=next;this.gain.gain.setTargetAtTime(next,this.context.currentTime,.18);}
   }
   draw(g,s,reduced=false,viewport){
    const {W,H,G}=s,key=W+':'+H+':'+!!G.cfg.final;

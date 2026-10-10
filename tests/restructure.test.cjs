@@ -40,7 +40,7 @@ test('formats 1–5, career 5v5, async passwords, editable settings and atomic c
 });
 test('goal limit and halftime remain authoritative while foul penalties are disabled',()=>{
  const m=new Match({id:'limit',cfg:{goalLimit:1,halftime:true,time:60}});m.goal(0);for(let i=0;i<400&&m.G.phase==='goal';i++)m.update(1/60);assert.equal(m.G.reason,'GOAL_LIMIT');
- const half=new Match({id:'half',cfg:{n:1,halftime:true,time:60}});half.G.time=30.01;half.update(1/60);assert.equal(half.G.phase,'halftime');const frozen=half.G.time;half.update(1);assert.equal(half.G.time,frozen);for(let i=0;i<400&&half.G.phase==='halftime';i++)half.update(1/60);assert.equal(half.G.halfPlayed,true);assert.equal(half.G.phase,'play');
+ const half=new Match({id:'half',cfg:{n:1,halftime:true,time:60}});half.G.time=30.01;half.update(1/60);assert.equal(half.G.phase,'halftime');const frozen=half.G.time;half.update(1);assert.equal(half.G.time,frozen);half.update(298);assert.equal(half.G.phase,'halftime');half.update(1.1);assert.equal(half.G.halfPlayed,true);assert.equal(half.G.phase,'play');
  const foul=new Match({id:'foul',cfg:{n:1,settings:{penaltyFouls:true}}});foul.G.restarting=false;foul.G.elapsed=10;const [a,b]=foul.P;Object.assign(a,{x:foul.W-100,y:foul.H/2,vx:0,vy:0});Object.assign(b,{x:a.x+39,y:a.y,vx:-200,vy:0});Object.assign(foul.ball,{x:a.x-30,y:a.y});foul.contact(a,b);assert.equal(foul.pendingFoul,undefined);assert.equal(foul.applyFoul(),false);assert.equal(foul.G.phase,'play');assert.equal(foul.penalties,undefined);assert.equal(foul.cfg.settings.penaltyFouls,false);
 });
 test('wire codec excludes AI internals, reduces bandwidth and rejects stale frames',()=>{

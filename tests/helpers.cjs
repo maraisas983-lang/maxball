@@ -88,7 +88,7 @@ function gameHarness({ original = false, saved } = {}) {
   // Test-only access inside the legacy closure; no debug API is shipped in the game.
   const probe = `globalThis.gameProbe = {
     start, show, update, draw, kick, moveBall, kickoff, endMatch, lockStart, lkStep, lkDraw, netUpd,
-    ${original?'':'drawWithReplay, goalReplay, replaySkip, replayCredits, inputOf, remoteRender, setPortal(value){window.MaxballPortal=value;}, get controls(){return window.MaxballGame;},'}
+    ${original?'':'drawWithReplay, goalReplay, replaySkip, replayCredits, inputOf, remoteRender, camUpdate, get camera(){return {...cam,zoom:Z};}, setPortal(value){window.MaxballPortal=value;}, get controls(){return window.MaxballGame;},'}
     get state(){return {G,P,ball,save,keys,tj,tb,ljs,inv,NET,LK,W,H,GY0,GY1,BR};}
   };`;
   if (original) vm.runInContext(html.match(/<script>\r?\n([\s\S]*?)<\/script>/)[1] + '\n' + probe, context);

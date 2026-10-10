@@ -68,3 +68,7 @@ O modo Final tem cerimônia e entrega da taça. Veja as
 [regras de gemas, patentes e modos](docs/COMPETICAO_E_CONFIGURACOES.md).
 
 Escolha entre cinco estádios nas salas, na carreira e nos modos locais. A entrada apresenta a escalação com nomes e skins do time. **Criar skins** abre o editor de cores e camadas; aplique as skins aos clubes. Clubes públicos e privados recebem vários integrantes. **Campeonatos** permite propostas e inscrições por clube, com aprovação no Command Center e entrada grátis ou taxa em gemas. Veja [Como usar](docs/ESTADIOS_SKINS_E_CAMPEONATOS.md).
+
+## Android e pagamentos
+
+O projeto Android está em `android/`. Prepare os arquivos públicos com `npm.cmd run android:assets` e compile com `npm.cmd run android:apk` após configurar JDK/SDK e a origem HTTPS em `MAXBALL_SERVER_URL`. O workflow Android APK também gera um APK de testes. Consulte [Android e pagamentos](docs/ANDROID_E_PAGAMENTOS.md) para configuração, pacotes de gemas e acesso exclusivo da proprietária aos preços/links.

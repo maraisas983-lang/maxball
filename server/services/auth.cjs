@@ -20,10 +20,13 @@ function createAuth(db,economy,{sessionMs=30*86400000}={}){
   if(!user||user.status!=='ACTIVE'||db.one('SELECT id FROM bans WHERE user_id=? AND active=1 AND (expires_at IS NULL OR expires_at>?)',user?.id||'',Date.now()))fail('ACCOUNT','Conta indisponível.',403);
   return user.staff_role?{...user,role:user.staff_role}:user;
  }
- function publicUser(user){return {id:user.id,username:user.username,role:user.staff_role||user.role,createdAt:user.created_at};}
+ function publicUser(user){return {id:user.id,username:user.username,role:user.staff_role||user.role,createdAt:user.created_at,canManageCommerce:require('../lib/commerceOwner.cjs').canManageCommerce(db,user)};}
  function session(userId,absolute=Date.now()+30*86400000){
   const token=crypto.randomBytes(32).toString('hex'),csrf=crypto.randomBytes(24).toString('hex'),now=Date.now();
+  const user=db.one('SELECT role,staff_role FROM users WHERE id=?',userId);
+  if((user?.staff_role||user?.role)!=='PLAYER')absolute=Math.min(absolute,now+8*3600000);
   db.run('DELETE FROM sessions WHERE expires_at<?',now);
+  db.run('DELETE FROM sessions WHERE user_id=? AND token_hash NOT IN (SELECT token_hash FROM sessions WHERE user_id=? ORDER BY created_at DESC,rowid DESC LIMIT 9)',userId,userId);
   db.run('INSERT INTO sessions VALUES(?,?,?,?,?,?)',hash(token),userId,csrf,now,Math.min(now+sessionMs,absolute),absolute);
   return {token,csrf};
  }
@@ -54,7 +57,9 @@ function createAuth(db,economy,{sessionMs=30*86400000}={}){
   if(typeof token!=='string'||!/^[a-f0-9]{64}$/.test(token))fail('SESSION','Entre na sua conta.',401);
   const row=db.one('SELECT * FROM sessions WHERE token_hash=? AND expires_at>? AND absolute_expires_at>?',hash(token),Date.now(),Date.now());
   if(!row)fail('SESSION','Sessão expirada. Entre novamente.',401);
-  return {user:allowed(db.one('SELECT * FROM users WHERE id=?',row.user_id)),session:row};
+  const current=db.one('SELECT * FROM users WHERE id=?',row.user_id);
+  if((current?.staff_role||current?.role)!=='PLAYER'&&Date.now()-row.created_at>=8*3600000)fail('SESSION','Entre novamente para acessar a administração.',401);
+  return {user:allowed(current),session:row};
  }
  function profile(userId){const p=db.one('SELECT * FROM profiles WHERE user_id=?',userId);return {...p,positions:JSON.parse(p.positions),patent:require('../../src/data/ranks.js').rank(p.trophies).name};}
  function updateProfile(userId,body,dryRun=false){

@@ -17,9 +17,9 @@
    if(cleanup){const stop=cleanup;cleanup=null;await stop();}
    root.MaxballSocial?.close();page=next;const version=++generation;root.MaxballGame.show('portal');content.replaceChildren();portal.status('Carregando…');
    root.MaxballLobby.mount(shell,content,nav,next,key=>portal.open(key));
-   if(!account&&!['training','local','play','settings'].includes(next)){try{await portal.refreshAccount();}catch(error){if(error.status!==401)portal.error(error);}}
+   if(!account&&!['training','local','play','settings','pass'].includes(next)){try{await portal.refreshAccount();}catch(error){if(error.status!==401)portal.error(error);}}
    if(version!==generation)return;
-   if(!account&&!['training','local','play','settings'].includes(next)){
+   if(!account&&!['training','local','play','settings','pass'].includes(next)){
     try{authProvider=(await api('/config')).authProvider;}catch(error){
      portal.error(error);nav.replaceChildren();
      const link=/^(localhost|127\.0\.0\.1)$/.test(location.hostname)?el('a',{class:'action primary',href:'http://127.0.0.1:5173',text:'Abrir MAXBALL com login'}):null;
@@ -66,7 +66,8 @@
     if(!message.room&&roomListener&&page==='online'&&shell.classList.contains('on')){portal.open('online').catch(portal.error);return;}
    }
    if(message.type==='room'){root.MaxballOfficials?.room(message.room);roomListener?.(message.room);}
-   if(message.type==='intermission'){root.MaxballGame.resetInputs();portal.open('online').catch(portal.error);return;}
+   if(message.type==='championshipClosed'){portal.open('championships').catch(portal.error);return;}
+   if(message.type==='intermission'){root.MaxballGame.resetInputs();root.MaxballOfficials?.room(message.room);root.MaxballExperience?.intermission(message.room);return;}
    if(message.type==='snapshot')root.MaxballGame.snapshot(message.state,account.user.id);
    if(message.type==='result'){root.MaxballResults.show(message);
     Promise.all([portal.refreshAccount(),api('/profile')]).then(([,profile])=>{
@@ -88,5 +89,5 @@
  });
  document.querySelector('#portal-home').onclick=()=>{generation++;if(cleanup){cleanup();cleanup=null;}root.MaxballGame.show('home');};
  // Restore the session without interfering with the local home screen.
- portal.renderLogin=renderLogin;portal.loadAuth=async()=>{authProvider=(await api('/config')).authProvider;};portal.ready=location.protocol==='file:'?Promise.resolve():portal.refreshAccount().then(async()=>{const profile=await api('/profile');knownAwards=new Set(profile.achievements.map(a=>a.id));if(account.room)portal.connection.connect();}).catch(()=>{});
+ portal.renderLogin=renderLogin;portal.loadAuth=async()=>{authProvider=(await api('/config')).authProvider;};portal.ready=(root.MaxballAPI.offline||location.protocol==='file:')?Promise.resolve():portal.refreshAccount().then(async()=>{const profile=await api('/profile');knownAwards=new Set(profile.achievements.map(a=>a.id));if(account.room)portal.connection.connect();}).catch(()=>{});
 })(globalThis);

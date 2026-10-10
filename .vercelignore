@@ -12,3 +12,15 @@ maxball-main
 maxball-codigo-6*
 .git
 package-lock.json
+var
+.work
+android
+coverage
+**/*.sqlite*
+**/*.db
+**/*.pem
+**/*.key
+**/*.jks
+**/*.keystore
+**/*.log
+**/*.cpuprofile

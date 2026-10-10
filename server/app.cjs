@@ -15,30 +15,31 @@ const {createSkins}=require('./services/skins.cjs'),{createChampionships}=requir
 const {AppError,fail,object}=require('./lib/validation.cjs');
 const ROOT=path.resolve(__dirname,'..');
 const apiContract=require('../src/core/apiContract.js');
+const {securityConfig,createLimiter,createSecurityReporter}=require('./lib/security.cjs');
 
-function createApp({databasePath='var/maxball.sqlite',origin='http://127.0.0.1:5173',production=false,logger=console,sessionMs,supabase,adminEmails=[]}={}){
+function createApp({databasePath='var/maxball.sqlite',origin='http://127.0.0.1:5173',production=false,logger=console,sessionMs,supabase,adminEmails=[],security={},cakto={}}={}){
+ const securityLimits=securityConfig(security),limit=createLimiter();
  if(production&&!origin.startsWith('https://'))throw new Error('Production requires an HTTPS PUBLIC_ORIGIN');
+ const securityEvents=createSecurityReporter(logger);
  const db=openDatabase(databasePath),economy=createEconomy(db),localAuth=createAuth(db,economy,{sessionMs}),career=createCareer(db,economy),admin=createAdmin(db,economy),operations=createOperations(db);
  const cloud=supabase?createSupabase(supabase):null,auth=cloud?useSupabaseAuth(localAuth,db,economy,cloud,{adminEmails}):localAuth,cloudSync=cloud?createCloudSync(db,cloud,logger):null;
- const payments=createPayments(db,economy,{permit,audit:operations.audit});
+ const maxpass=require('./services/maxpass.cjs').createMaxpass(db,economy,{permit,audit:operations.audit});
+ const payments=createPayments(db,economy,{permit,audit:operations.audit,maxpass,cakto:require('./services/cakto.cjs').createCakto(cakto)});
  db.run("UPDATE matches SET status='ABANDONED',finished_at=? WHERE status='RUNNING'",Date.now());
  db.run("UPDATE ranked_matches SET reason='SERVER_RESTART',home_after=home_before,away_after=away_before,finished_at=? WHERE finished_at IS NULL",Date.now());
  const collections=require('./services/collections.cjs').createCollections(db,economy);
- const rooms=createRooms({db,auth,economy,career,origin,logger,syncResults:!!cloud,canRank:()=>{const s=operations.settings();return !s.maintenance&&s.ranked_enabled;},audit:(actor,action,resource,metadata)=>operations.audit(actor,action,resource,'OK',metadata)}),limits=new Map();
- const social=createSocial(db,rooms,auth),skins=createSkins(db),championships=createChampionships(db,economy,{permit,audit:operations.audit});
+ const rooms=createRooms({db,auth,economy,career,maxpass,origin,logger,security:securityLimits,securityEvent:securityEvents.record,syncResults:!!cloud,canRank:()=>{const s=operations.settings();return !s.maintenance&&s.ranked_enabled;},audit:(actor,action,resource,metadata)=>operations.audit(actor,action,resource,'OK',metadata)});
+ const social=createSocial(db,rooms,auth),skins=createSkins(db),championships=createChampionships(db,economy,{permit,audit:operations.audit,rooms});
+ rooms.setChampionshipResult(championships.rounds.complete);
+ const championshipTimer=setInterval(()=>{try{championships.rounds.tick();}catch(error){logger.error('championship_tick: '+error.message);}},1000);championshipTimer.unref();
  const token=req=>(req.headers.cookie||'').split(';').map(x=>x.trim()).find(x=>x.startsWith('maxball_session='))?.slice(16);
  const json=(res,status,data)=>{res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'});res.end(JSON.stringify(data));};
  function cookie(res,value,maxAge=30*86400){res.setHeader('Set-Cookie',`maxball_session=${value}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${maxAge}${production?'; Secure':''}`);}
- function limit(key,max,window){
-  const now=Date.now();let bucket=limits.get(key);
-  if(!bucket||bucket.until<now){bucket={until:now+window,count:0};limits.set(key,bucket);}
-  if(limits.size>10000)for(const [k,v] of limits)if(v.until<now)limits.delete(k);
-  if(limits.size>15000)fail('BUSY','Servidor ocupado.',503);
-  if(++bucket.count>max)fail('RATE_LIMIT','Muitas tentativas. Aguarde e tente novamente.',429);
- }
  async function body(req){
-  if(!String(req.headers['content-type']||'').startsWith('application/json'))fail('CONTENT_TYPE','Envie JSON.',415);
-  let raw='';for await(const chunk of req){raw+=chunk;if(Buffer.byteLength(raw)>16384)fail('BODY_TOO_LARGE','Requisição muito grande.',413);}
+  if(!/^application\/json(?:\s*;|\s*$)/i.test(String(req.headers['content-type']||'')))fail('CONTENT_TYPE','Envie JSON.',415);
+  if(Number(req.headers['content-length'])>16384)fail('BODY_TOO_LARGE','Requisição muito grande.',413);
+  const chunks=[];let size=0;for await(const chunk of req.iterator({destroyOnReturn:false})){size+=chunk.length;if(size>16384)fail('BODY_TOO_LARGE','Requisição muito grande.',413);chunks.push(chunk);}
+  const raw=Buffer.concat(chunks).toString('utf8');
   try{return object(JSON.parse(raw||'{}'));}catch(error){if(error instanceof AppError)throw error;fail('JSON','JSON inválido.');}
  }
  async function route(req,res){
@@ -53,27 +54,30 @@ function createApp({databasePath='var/maxball.sqlite',origin='http://127.0.0.1:5
   if(pathname==='/api/payments/cakto/webhook'&&method==='POST'){limit('webhook:'+req.socket.remoteAddress,120,60000);return json(res,200,payments.webhook(await body(req)));}
   if(write&&req.headers.origin!==origin)fail('ORIGIN','Origem não permitida.',403);
   if(pathname==='/api/config'&&method==='GET')return json(res,200,{apiVersion:apiContract.version,authProvider:auth.provider,legal:{termsVersion:operations.policy.termsVersion,privacyVersion:operations.policy.privacyVersion},announcement:operations.settings().announcement});
+  if(pathname==='/api/maxpass/preview'&&method==='GET')return json(res,200,maxpass.preview());
   if(pathname==='/api/health'&&method==='GET')return json(res,200,{ok:true});
   if(['/api/auth/register','/api/auth/login'].includes(pathname)&&method==='POST'){
    limit('auth:'+req.socket.remoteAddress,12,15*60000);
    const data=await body(req);
-limit('username:'+String(data.username).toLowerCase().slice(0,24),8,15*60000);
+   const identity=typeof data.username==='string'?data.username.trim().toLowerCase().slice(0,254):'';
+   limit('username:'+require('./services/auth.cjs').hash(identity),8,15*60000);
    operations.consent(data);const credentials={username:data.username,password:data.password};
    const result=pathname.endsWith('register')?await auth.register(credentials):await auth.login(credentials);
    if(result.confirmationRequired){operations.pendingConsent(data.username);return json(res,200,{confirmationRequired:true});}
-   operations.accept(result.user,data.username);operations.audit(result.user,pathname.endsWith('register')?'REGISTER':'LOGIN',result.user.id);
+   maxpass.enrollUser(result.user.id);operations.accept(result.user,data.username);operations.audit(result.user,pathname.endsWith('register')?'REGISTER':'LOGIN',result.user.id);
    cookie(res,result.token);return json(res,200,{user:result.user,csrf:result.csrf});
   }
-  const sessionToken=token(req),{user,session}=auth.authenticate(sessionToken);
+  const sessionToken=token(req);let {user,session}=auth.authenticate(sessionToken);
   if(write&&req.headers['x-csrf-token']!==session.csrf)fail('CSRF','Atualize a sessão e tente novamente.',403);
   const uid=user.id;req.actor=user;
+  limit('account:'+uid,securityLimits.apiPerAccount,60000);
   if(method==='GET'){
    if(pathname==='/api/support')return json(res,200,operations.list(user));
    if(pathname==='/api/command')return json(res,200,operations.overview(user,rooms,url.searchParams.get('q')||''));
    if(pathname==='/api/command/tickets')return json(res,200,operations.list(user,true));
    const ticket=pathname.match(/^\/api\/(support|command\/tickets)\/([\w-]+)$/);if(ticket)return json(res,200,operations.ticket(user,ticket[2],ticket[1]!=='support'));
 
-   if(pathname==='/api/auth/me')return json(res,200,{user:auth.publicUser(user),csrf:session.csrf,profile:auth.profile(uid),wallet:economy.wallet(uid),room:rooms.current(uid)});
+   if(pathname==='/api/auth/me'){maxpass.enrollUser(uid);return json(res,200,{user:auth.publicUser(user),csrf:session.csrf,profile:auth.profile(uid),wallet:economy.wallet(uid),room:rooms.current(uid)});}
    if(pathname==='/api/leaderboard')return json(res,200,rooms.progression.leaderboard(uid));
    if(pathname==='/api/ranked')return json(res,200,rooms.rankedStatus(user));
    if(pathname==='/api/friendlies')return json(res,200,{...rooms.friendlies.view(uid),room:rooms.current(uid)});
@@ -83,13 +87,17 @@ limit('username:'+String(data.username).toLowerCase().slice(0,24),8,15*60000);
    if(pathname==='/api/chat')return json(res,200,social.history(uid,url.searchParams.get('channel')||'players'));
    if(pathname==='/api/emotes')return json(res,200,social.slots(uid));
    if(pathname==='/api/collections')return json(res,200,collections.shop(uid));
+   if(pathname==='/api/maxpass')return json(res,200,maxpass.view(uid,url.searchParams.get('season')||undefined));
+   if(pathname==='/api/maxpass/cosmetics')return json(res,200,maxpass.cosmetics(uid));
+   if(pathname==='/api/command/maxpass/payment')return json(res,200,maxpass.paymentConfig(user));
    if(pathname==='/api/pass')return json(res,200,collections.pass(uid));
    if(pathname==='/api/room-invites')return json(res,200,rooms.features.pending(uid));
-   if(pathname==='/api/command/collections'){if(!['ADMIN','SUPER_ADMIN'].includes(user.role))fail('ADMIN','Apenas administradores.',403);return json(res,200,collections.config());}
+   if(pathname==='/api/command/collections'){require('./lib/commerceOwner.cjs').requireCommerceOwner(db,user);return json(res,200,collections.config());}
    const inspected=pathname.match(/^\/api\/profiles\/([\w-]+)$/);if(inspected)return json(res,200,collections.profile(inspected[1]));
    if(pathname==='/api/shop')return json(res,200,economy.catalog());
    if(pathname==='/api/gems')return json(res,200,{...payments.publicConfig(),history:payments.history(uid)});
    if(pathname==='/api/command/payments')return json(res,200,payments.admin(user));
+   if(pathname==='/api/command/payments/cakto'){limit('cakto:'+uid,5,60000);return json(res,200,await payments.caktoOffers(user,Number(url.searchParams.get('page')||1)));}
    if(pathname==='/api/inventory')return json(res,200,economy.inventory(uid));
    if(pathname==='/api/wallet')return json(res,200,economy.wallet(uid));
    if(pathname==='/api/career')return json(res,200,career.view(uid));
@@ -109,6 +117,16 @@ limit('username:'+String(data.username).toLowerCase().slice(0,24),8,15*60000);
   }
   if(method==='POST'||method==='PATCH'||method==='DELETE'){
    const data=await body(req);
+   // Authentication before reading the body is not enough: a streamed request
+   // can outlive logout, expiry, bans or a change of staff permissions.
+   ({user,session}=auth.authenticate(sessionToken));req.actor=user;
+   if(req.headers['x-csrf-token']!==session.csrf)fail('CSRF','Atualize a sessão e tente novamente.',403);
+   if(pathname.startsWith('/api/rooms')||['/api/matchmaking','/api/career/play','/api/ranked/join','/api/friendlies/search'].includes(pathname))limit('room-actions:'+uid,securityLimits.roomOperations,60000);
+   if(pathname==='/api/maxpass/plus')return json(res,200,maxpass.unlock(uid,data));
+   if(pathname==='/api/maxpass/claim')return json(res,200,maxpass.claim(uid,data));
+   if(pathname==='/api/maxpass/checkout')return json(res,200,maxpass.checkout(user,data));
+   if(pathname==='/api/maxpass/cosmetics/equip')return json(res,200,maxpass.equip(uid,data));
+   if(pathname==='/api/command/maxpass/payment')return json(res,200,maxpass.savePayment(user,data));
    if(pathname==='/api/collections/open')return json(res,200,collections.open(uid,data));
    if(pathname==='/api/pass/max'){object(data,[]);return json(res,200,collections.unlock(uid));}
    if(pathname==='/api/pass/claim')return json(res,200,collections.claim(uid,data));
@@ -122,6 +140,9 @@ limit('username:'+String(data.username).toLowerCase().slice(0,24),8,15*60000);
    const skinPath=pathname.match(/^\/api\/skins\/([\w-]+)$/);if(skinPath&&method==='PATCH')return json(res,200,skins.save(uid,data,skinPath[1]));
    if(pathname==='/api/championships'&&method==='POST')return json(res,201,championships.save(user,data));
    if(pathname==='/api/command/championships'&&method==='POST')return json(res,201,championships.save(user,data,null,true));
+   const roundPublish=pathname.match(/^\/api\/command\/championships\/([\w-]+)\/rounds$/);if(roundPublish&&method==='POST'){object(data,[]);return json(res,201,championships.rounds.publish(user,roundPublish[1]));}
+   const fixtureAction=pathname.match(/^\/api\/championship-fixtures\/([\w-]+)\/(propose|respond|checkin)$/);if(fixtureAction&&method==='POST'){if(fixtureAction[2]==='checkin')object(data,[]);return json(res,200,championships.rounds[fixtureAction[2]](user,fixtureAction[1],data));}
+   const fixtureReopen=pathname.match(/^\/api\/command\/championship-fixtures\/([\w-]+)\/reopen$/);if(fixtureReopen&&method==='POST'){object(data,[]);return json(res,200,championships.rounds.reopen(user,fixtureReopen[1]));}
    const champAdmin=pathname.match(/^\/api\/command\/championships\/([\w-]+)(?:\/(status))?$/);
    if(champAdmin){if(method==='DELETE')return json(res,200,championships.moderate(user,champAdmin[1],'CANCELLED'));if(champAdmin[2]&&method==='POST'){object(data,['status']);return json(res,200,championships.moderate(user,champAdmin[1],data.status));}if(method==='PATCH')return json(res,200,championships.save(user,data,champAdmin[1],true));}
    const entryReview=pathname.match(/^\/api\/command\/championship-entries\/([\w-]+)$/);if(entryReview&&method==='POST'){object(data,['status']);return json(res,200,championships.review(user,entryReview[1],data.status));}
@@ -159,6 +180,7 @@ limit('username:'+String(data.username).toLowerCase().slice(0,24),8,15*60000);
    const pauseRoom=pathname.match(/^\/api\/rooms\/([\w-]+)\/pause$/);if(pauseRoom&&method==='POST')return json(res,200,rooms.pause(user,pauseRoom[1],data));
    const substituteRoom=pathname.match(/^\/api\/rooms\/([\w-]+)\/substitute$/);if(substituteRoom&&method==='POST')return json(res,200,rooms.substitute(user,substituteRoom[1],data));
    const substitutionsRoom=pathname.match(/^\/api\/rooms\/([\w-]+)\/substitutions$/);if(substitutionsRoom&&method==='POST')return json(res,200,rooms.substitutions(user,substitutionsRoom[1],data));
+   const lockerSkinRoom=pathname.match(/^\/api\/rooms\/([\w-]+)\/locker\/skin$/);if(lockerSkinRoom&&method==='POST')return json(res,200,rooms.lockerSkin(user,lockerSkinRoom[1],data));
    const lockerRoom=pathname.match(/^\/api\/rooms\/([\w-]+)\/locker$/);if(lockerRoom&&method==='POST')return json(res,200,rooms.locker(user,lockerRoom[1],data));
    if(pathname==='/api/rooms')return json(res,201,await rooms.create(user,data));
    if(pathname==='/api/rooms/leave'){rooms.leave(uid);return json(res,200,{ok:true});}
@@ -182,22 +204,24 @@ limit('username:'+String(data.username).toLowerCase().slice(0,24),8,15*60000);
   }
   fail('NOT_FOUND','Recurso não encontrado.',404);
  }
- const server=http.createServer((req,res)=>{res.on('finish',()=>{if(req.url.startsWith('/api/')&&!['GET','HEAD'].includes(req.method))try{operations.audit(req.actor,'HTTP_'+req.method,req.url.split('?')[0],res.statusCode<400?'OK':'ERROR',{status:res.statusCode});}catch(error){logger.error('Falha ao registrar auditoria: '+error.message);}});route(req,res).catch(error=>{
+ const server=http.createServer((req,res)=>{res.on('finish',()=>{if(req.actor&&res.statusCode<400&&req.url.startsWith('/api/')&&!['GET','HEAD'].includes(req.method))try{operations.audit(req.actor,'HTTP_'+req.method,req.url.split('?')[0],'OK',{status:res.statusCode});}catch{securityEvents.record('AUDIT_WRITE_FAILED');}});route(req,res).catch(error=>{
   const expected=error instanceof AppError;
-  if(!expected||error.status===403||error.status===429)logger[expected?'warn':'error'](JSON.stringify({level:expected?'SECURITY':'ERROR',event:'request_failed',code:error.code||'INTERNAL',message:expected?error.message:'Falha interna',...(expected?{}:{stack:error.stack})}));
+  if(!res.headersSent&&[413,415].includes(error.status))res.setHeader('Connection','close');
+  if(!expected||[401,403,413,429].includes(error.status))securityEvents.record(expected?error.code:'INTERNAL');
   if(!res.headersSent)json(res,expected?error.status:500,{error:{code:expected?error.code:'INTERNAL',message:expected?error.message:'Não foi possível concluir. Tente novamente.'}});else res.end();
  });});
  server.requestTimeout=15000;server.headersTimeout=10000;
  server.on('upgrade',(req,socket,head)=>rooms.upgrade(req,socket,head));
- async function close(){rooms.close();await cloudSync?.close();await new Promise(resolve=>{server.close(resolve);server.closeAllConnections();});db.close();}
- return {server,db,auth,economy,collections,career,admin,operations,rooms,payments,skins,championships,cloudSync,close};
+ async function close(){clearInterval(championshipTimer);rooms.close();await cloudSync?.close();await new Promise(resolve=>{server.close(resolve);server.closeAllConnections();});securityEvents.close();db.close();}
+ return {server,db,auth,economy,collections,career,admin,operations,rooms,payments,maxpass,skins,championships,cloudSync,close};
 }
 async function staticFile(req,res,pathname){
  if(!['GET','HEAD'].includes(req.method)){res.writeHead(405,{Allow:'GET, HEAD'}).end();return;}
  let file;try{file=decodeURIComponent(pathname);}catch{res.writeHead(400).end();return;}
  if(file==='/')file='/index.html';
- if(!/^\/assets\/crests\/br-\d{1,2}\.png$/.test(file)&&file!=='/index.html'&&!/^\/(styles|src)\/[a-zA-Z0-9/_-]+\.(css|js)$/.test(file)){res.writeHead(404).end();return;}
- try{const content=await fs.readFile(path.join(ROOT,file));res.writeHead(200,{'Content-Type':({'.html':'text/html','.css':'text/css','.js':'text/javascript','.png':'image/png'})[path.extname(file)]+'; charset=utf-8','Cache-Control':'no-cache'});res.end(req.method==='HEAD'?undefined:content);}
+ if(/^\/assets\/crests\/br-\d{1,2}\.png$/.test(file)){res.writeHead(302,{Location:file.replace(/\.png$/,'.svg'),'Cache-Control':'no-cache'}).end();return;}
+ if(!/^\/assets\/crests\/(br|mamo)-\d{1,2}\.svg$/.test(file)&&file!=='/index.html'&&!/^\/(styles|src)\/[a-zA-Z0-9/_-]+\.(css|js)$/.test(file)){res.writeHead(404).end();return;}
+ try{const content=await fs.readFile(path.join(ROOT,file));res.writeHead(200,{'Content-Type':({'.html':'text/html','.css':'text/css','.js':'text/javascript','.png':'image/png','.svg':'image/svg+xml'})[path.extname(file)]+'; charset=utf-8','Cache-Control':'no-cache'});res.end(req.method==='HEAD'?undefined:content);}
  catch{res.writeHead(404).end();}
 }
 module.exports={createApp};

@@ -16,11 +16,11 @@ test('manual pass follows facing and recontact cannot immediately reverse it',()
  assert.equal(m.ball.vx,0);assert.equal(m.ball.vy,-340);
  p.x=m.ball.x;p.y=m.ball.y-30;p.vy=205;const before=m.ball.vy;resolveContacts([p],m.ball,11,1/60);assert.equal(m.ball.vy,before);
 });
-test('held shoot fires once; a new action sequence survives a short released tap',()=>{
+test('held shoot repeats only after cooldown; a new sequence survives a short released tap',()=>{
  const {m,p}=practice();m.setInput(p.id,{x:0,y:0,shoot:true,shootSeq:1});m.physics.step(1/60);assert.equal(m.stats[p.id].shots,1);
  for(let i=0;i<90;i++){m.ball.x=p.x+30;m.ball.y=p.y;m.ball.vx=m.ball.vy=0;m.physics.step(1/60);}
- assert.equal(m.stats[p.id].shots,1);
- m.setInput(p.id,{x:0,y:0,shoot:false,shootSeq:2});m.physics.step(1/60);assert.equal(m.stats[p.id].shots,2);
+ assert.ok(m.stats[p.id].shots>1&&m.stats[p.id].shots<=10);
+ const before=m.stats[p.id].shots;p.cd=0;m.G.kl=0;m.setInput(p.id,{x:0,y:0,shoot:false,shootSeq:2});m.physics.step(1/60);assert.equal(m.stats[p.id].shots,before+1);
 });
 test('joystick finger and action fingers remain independent and cancel safely',()=>{
  const host=new Target(),joy=new Element(),knob=new Element(),button=new Element(),value={x:0,y:0};joy.getBoundingClientRect=()=>({left:0,top:0,width:100,height:100});

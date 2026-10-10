@@ -17,6 +17,11 @@ function createRanked(db,{syncResults=false}={}){
  function begin(room){const a=room.players.find(p=>p.team===0),b=room.players.find(p=>p.team===1),pa=db.one('SELECT rating FROM profiles WHERE user_id=?',a.id),pb=db.one('SELECT rating FROM profiles WHERE user_id=?',b.id);db.run('INSERT INTO ranked_matches(id,home_id,away_id,home_before,away_before,created_at) VALUES(?,?,?,?,?,?)',room.match.id,a.id,b.id,pa.rating,pb.rating,Date.now());for(const p of room.players)db.run('INSERT INTO ranked_participants VALUES(?,?,?,?,NULL)',room.match.id,p.id,p.team,db.one('SELECT rating FROM profiles WHERE user_id=?',p.id).rating);}
  function complete(room){
   const m=room.match,row=db.one('SELECT * FROM ranked_matches WHERE id=?',m.id);if(!row||row.finished_at)return;
+  if(m.G.reason==='ABANDONED'){
+   db.run('UPDATE ranked_participants SET rating_after=rating_before WHERE match_id=?',m.id);
+   db.run("UPDATE ranked_matches SET home_after=home_before,away_after=away_before,score=?,reason='ABANDONED',finished_at=? WHERE id=?",JSON.stringify(m.G.score),Date.now(),m.id);
+   return;
+  }
   const result=m.G.score[0]===m.G.score[1]?.5:m.G.score[0]>m.G.score[1]?1:0,ratings=elo(row.home_before,row.away_before,result);
   const participants=db.all('SELECT * FROM ranked_participants WHERE match_id=?',m.id),averages=[0,1].map(team=>{const side=participants.filter(p=>p.team===team);return side.reduce((sum,p)=>sum+p.rating_before,0)/side.length;}),delta=elo(...averages,result)[0]-averages[0];
   for(const p of participants){const uid=p.user_id,won=result===(p.team?0:1),draw=result===.5,stats=m.stats[uid],after=p.rating_before+(p.team?-delta:delta);db.run('UPDATE ranked_participants SET rating_after=? WHERE match_id=? AND user_id=?',after,m.id,uid);db.run('UPDATE profiles SET rating=?,ranked_wins=ranked_wins+?,ranked_draws=ranked_draws+?,ranked_losses=ranked_losses+?,ranked_goals=ranked_goals+?,ranked_assists=ranked_assists+? WHERE user_id=?',after,+won,+draw,+(!won&&!draw),stats?.goals||0,stats?.assists||0,uid);}

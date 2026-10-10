@@ -2,7 +2,7 @@
 const fs = require('node:fs/promises');
 const path = require('node:path');
 const root = path.resolve(__dirname, '..');
-const types = { '.html': 'text/html', '.css': 'text/css', '.js': 'text/javascript', '.png':'image/png' };
+const types = { '.html': 'text/html', '.css': 'text/css', '.js': 'text/javascript', '.png':'image/png', '.svg':'image/svg+xml' };
 const server = http.createServer(async (request, response) => {
   if (!['GET', 'HEAD'].includes(request.method)) {
     response.writeHead(405, { Allow: 'GET, HEAD' }).end();
@@ -12,8 +12,9 @@ const server = http.createServer(async (request, response) => {
   try { file = decodeURIComponent(new URL(request.url, 'http://localhost').pathname); }
   catch { response.writeHead(400).end(); return; }
   if (file === '/') file = '/index.html';
+  if (/^\/assets\/crests\/br-\d{1,2}\.png$/.test(file)) { response.writeHead(302, { Location: file.replace(/\.png$/, '.svg') }).end(); return; }
   // Serve only runtime assets, never backups, documents or future server files.
-  const allowed = /^\/assets\/crests\/br-\d{1,2}\.png$/.test(file) || file === '/index.html' || /^\/(styles|src)\/[a-zA-Z0-9/_-]+\.(css|js)$/.test(file);
+  const allowed = /^\/assets\/crests\/(br|mamo)-\d{1,2}\.svg$/.test(file) || file === '/index.html' || /^\/(styles|src)\/[a-zA-Z0-9/_-]+\.(css|js)$/.test(file);
   if (!allowed) { response.writeHead(404).end(); return; }
   try {
     const bytes = await fs.readFile(path.join(root, file));

@@ -8,3 +8,10 @@ var/
 *.sqlite*
 coverage/
 .work/
+
+android/.gradle/
+android/**/build/
+android/local.properties
+android/app/src/main/assets/game/
+*.jks
+*.keystore

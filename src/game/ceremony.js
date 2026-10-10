@@ -22,7 +22,7 @@
  function advance(s,dt){const G=s.G,scene=scenes.get(G);if(!scene)return true;G.startRemaining=Math.max(0,G.startRemaining-dt);const elapsed=G.startDuration-G.startRemaining;let offset=0,stage=stages(G.cfg).at(-1),t=1;for(const part of stages(G.cfg)){if(elapsed<offset+part[1]){stage=part;t=clamp((elapsed-offset)/part[1],0,1);break;}offset+=part[1];}G.startStage=stage[0];G.stageProgress=t;
   s.P.forEach((p,i)=>{const target=scene.targets[i],line=scene.lines[i],entry=scene.entries[i];p.vx=p.vy=0;p.fx=p.team?-1:1;p.fy=0;p.hop=0;
    if(['STADIUM','PREPARE','LINEUP'].includes(G.startStage)&&!(G.cfg.career||G.cfg.final)){p.hid=true;return;}if(G.startStage==='STADIUM'){p.hid=true;return;}p.hid=false;
-   if(G.startStage==='ENTRY'){p.x=mix(entry.x,line.x,ease(clamp(t/.22,0,1)));p.y=mix(entry.y,line.y,ease(clamp((t-.22)/.78,0,1)));p.fx=0;p.fy=-1;}
+   if(G.startStage==='ENTRY'){p.y=mix(entry.y,line.y,ease(clamp(t/.65,0,1)));p.x=mix(entry.x,line.x,ease(clamp((t-.65)/.35,0,1)));p.hid=p.y>s.H+35;p.fx=t<.65?0:Math.sign(line.x-entry.x);p.fy=t<.65?-1:0;}
    else if((G.cfg.career||G.cfg.final)&&['LINEUP','ANTHEM','HANDSHAKE','CAPTAINS','TROPHY'].includes(G.startStage)){p.x=line.x;p.y=line.y;}
    else if(G.startStage==='FORMATION'){p.x=mix(line.x,target.x,ease(t));p.y=mix(line.y,target.y,ease(t));}
    else {p.x=target.x;p.y=target.y;p.fx=p.team?-1:1;p.fy=0;}

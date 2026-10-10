@@ -11,6 +11,7 @@
  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v)),dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
  function createPhysics({state,input,effects={},random=Math.random,externalAI=null}){
   let view,G,P,ball,W,H,GY0,GY1,BR,brain,brainGame;
+  const stats={steps:0,playerPairs:0,playerContacts:0,ballContacts:0},inputs=[];
   const corrections=[],previous=new Map(),active=[],contactPlayers=[],actions=[];
   const PR=config.playerRadius;
   const rotation=typeof module!=='undefined'?require('./ballRotation.js'):root.MaxballBallRotation;
@@ -29,7 +30,7 @@
    let ax=aim?.x,ay=aim?.y;
    if(!aim){ax=type==='p'?p.fx:(length?dx/length:p.fx);ay=type==='p'?p.fy:(length?dy/length:p.fy);}
    const n=Math.hypot(ax,ay)||1;
-   const power=type==='s'?config.shotImpulse:aim?clamp(210+n*.25,config.passMinSpeed,config.passMaxSpeed):config.passImpulse;
+   const power=type==='s'?config.shotImpulse:aim?ballPhysics.passSpeed(n):config.passImpulse;
    G.restarting=false;G.kl=.08;p.cd=config.kickCooldown;
    const ability=type==='s'?p.attributes?.shooting:p.attributes?.passing,factor=clamp((ability??70)/70,.8,1.2);
    const ux=ax/n,uy=ay/n,along=ball.vx*ux+ball.vy*uy;
@@ -46,7 +47,7 @@
     for(let i=0;i<active.length;i++){corrections[i]??={x:0,y:0};corrections[i].x=corrections[i].y=0;}
     let overlaps=0;
     for(let a=0;a<active.length;a++)for(let b=a+1;b<active.length;b++){
-     const A=active[a],B=active[b];if((A.x-B.x)**2+(A.y-B.y)**2>=PR*PR*4)continue;const d=dist(A,B);if(d>=PR*2-.01)continue;overlaps++;
+     stats.playerPairs++;const A=active[a],B=active[b];if((A.x-B.x)**2+(A.y-B.y)**2>=PR*PR*4)continue;const d=dist(A,B);if(d>=PR*2-.01)continue;overlaps++;if(iteration===0)stats.playerContacts++;
      if(iteration===0)effects.playerContact?.(A,B);
      const nx=d?(B.x-A.x)/d:String(A.id)<String(B.id)?1:-1,ny=d?(B.y-A.y)/d:0,depth=(PR*2-d)*.5;
      corrections[a].x-=nx*depth;corrections[a].y-=ny*depth;corrections[b].x+=nx*depth;corrections[b].y+=ny*depth;
@@ -57,12 +58,12 @@
    }
   }
   function step(dt){
-   ball.sweepStart={x:ball.x,y:ball.y};G.kl=(G.kl||0)-dt;ball.contactProtection=Math.max(0,(ball.contactProtection||0)-dt);
+   stats.steps++;ball.sweepStart={x:ball.x,y:ball.y};G.kl=(G.kl||0)-dt;ball.contactProtection=Math.max(0,(ball.contactProtection||0)-dt);
    if(G.restarting)G.restartTime+=dt;
    brain.update?.(dt);active.length=actions.length=0;
    for(const p of P)if(!p.inactive){active.push(p);let point=previous.get(p.id);if(!point){point={x:0,y:0};previous.set(p.id,point);}point.x=p.x;point.y=p.y;}
-   for(const p of active){
-    const source=p.ctrl==='ai'&&G.phase!=='penalties'?brain.command(p):input(p),i={x:0,y:0,...source};
+   for(let index=0;index<active.length;index++){const p=active[index];
+    const source=p.ctrl==='ai'&&G.phase!=='penalties'?brain.command(p):input(p),i=inputs[index]??={};i.x=source?.x??0;i.y=source?.y??0;i.shoot=source?.shoot;i.pass=source?.pass;i.shootSeq=source?.shootSeq;i.passSeq=source?.passSeq;i.aim=source?.aim;
     const blocked=G.restarting&&p.team!==G.ko;
     if(blocked){i.x=i.y=0;i.shoot=i.pass=false;}
     let l=Math.hypot(i.x,i.y);if(l>1){i.x/=l;i.y/=l;l=1;}
@@ -70,7 +71,7 @@
     movement.integrate(p,i,dt,sp);p.cd-=dt;p.st=1;
     for(const type of ['shoot','pass']){
      const edge=i[type]&&!p[type+'Held']||Number.isSafeInteger(i[type+'Seq'])&&i[type+'Seq']>(p[type+'Seq']||0);
-     if(!blocked&&(edge||p.ctrl==='ai'&&i[type]))p[type+'Buffer']=config.kickBuffer;
+     if(!blocked&&(edge||i[type]))p[type+'Buffer']=config.kickBuffer;
      p[type+'Held']=!!i[type];if(Number.isSafeInteger(i[type+'Seq']))p[type+'Seq']=i[type+'Seq'];
     }
     if(p.cd<=0&&interaction.contains(p,ball,view)&&(p.shootBuffer>0||p.passBuffer>0))actions.push({p,type:p.shootBuffer>0?'s':'p',aim:i.aim});
@@ -82,13 +83,13 @@
    separatePlayers(active);
    if(G.restarting){const spot=G.restartSpot||{x:W/2,y:H/2},zone=field.geometry(view).centerRadius+PR;for(const p of active)if(p.team!==G.ko){const dx=p.x-spot.x,dy=p.y-spot.y,d=Math.hypot(dx,dy);if(d<zone){p.x=spot.x+(d?dx/d:(p.team?-1:1))*zone;p.y=spot.y+(d?dy/d:0)*zone;p.vx=p.vy=0;}}}
    contactPlayers.length=0;for(const p of active)if(!G.restarting||p.team===G.ko)contactPlayers.push(p);
-   const bx=ball.x,by=ball.y;contacts.resolveContacts(contactPlayers,ball,BR,dt,touch,view);
+   const bx=ball.x,by=ball.y;if(contacts.resolveContacts(contactPlayers,ball,BR,dt,touch,view))stats.ballContacts++;
    rotation.roll(ball,ball.x-bx,ball.y-by,BR);
    ballPhysics.prepareContacts(ball,G.restarting?contactPlayers:active,touch);
    for(const p of active){p.x=clamp(p.x,PR-config.playerOutsideMargin,W+config.playerOutsideMargin-PR);p.y=clamp(p.y,PR-config.playerOutsideMargin,H+config.playerOutsideMargin-PR);goalColliders.resolve(p,previous.get(p.id),view,PR);}
    field.limitDefense(view,previous);
   }
-  return {ai(p){sync();return brain.command(p);},kick(...args){sync();return kick(...args);},step(dt){sync();step(dt);}};
+  return {stats,ai(p){sync();return brain.command(p);},kick(...args){sync();return kick(...args);},step(dt){sync();step(dt);}};
  }
  const api={createPhysics};if(typeof module!=='undefined')module.exports=api;else root.MaxballPhysics=api;
 })(globalThis);

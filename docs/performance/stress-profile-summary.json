@@ -1,0 +1,113 @@
+{
+  "samples": 10735,
+  "top": [
+    {
+      "function": "(idle)",
+      "file": "",
+      "line": 0,
+      "samples": 9525
+    },
+    {
+      "function": "(program)",
+      "file": "",
+      "line": 0,
+      "samples": 92
+    },
+    {
+      "function": "step",
+      "file": "physics/playerPhysics.js",
+      "line": 60,
+      "samples": 61
+    },
+    {
+      "function": "(anônimo)",
+      "file": "game/performance.js",
+      "line": 8,
+      "samples": 46
+    },
+    {
+      "function": "encode",
+      "file": "online/protocol.js",
+      "line": 19,
+      "samples": 42
+    },
+    {
+      "function": "writev",
+      "file": "",
+      "line": 0,
+      "samples": 37
+    },
+    {
+      "function": "(garbage collector)",
+      "file": "",
+      "line": 0,
+      "samples": 34
+    },
+    {
+      "function": "(anônimo)",
+      "file": "online/rooms.cjs",
+      "line": 270,
+      "samples": 33
+    },
+    {
+      "function": "step",
+      "file": "physics/playerPhysics.js",
+      "line": 92,
+      "samples": 29
+    },
+    {
+      "function": "utf8Slice",
+      "file": "",
+      "line": 0,
+      "samples": 26
+    },
+    {
+      "function": "(anônimo)",
+      "file": "database/index.cjs",
+      "line": 28,
+      "samples": 21
+    },
+    {
+      "function": "(anônimo)",
+      "file": "dns/utils",
+      "line": 90,
+      "samples": 15
+    },
+    {
+      "function": "submit",
+      "file": "online/bots.cjs",
+      "line": 7,
+      "samples": 15
+    },
+    {
+      "function": "geometry",
+      "file": "game/field.js",
+      "line": 4,
+      "samples": 12
+    },
+    {
+      "function": "update",
+      "file": "online/match.cjs",
+      "line": 81,
+      "samples": 11
+    },
+    {
+      "function": "writev",
+      "file": "",
+      "line": 0,
+      "samples": 11
+    },
+    {
+      "function": "nextTick",
+      "file": "process/task_queues",
+      "line": 113,
+      "samples": 11
+    },
+    {
+      "function": "listOnTimeout",
+      "file": "node:internal/timers",
+      "line": 576,
+      "samples": 10
+    }
+  ]
+}

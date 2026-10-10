@@ -1,15 +1,16 @@
 (function (root) {
   'use strict';
+  let listenerTotal=0;
   function createEvents() {
     const listeners = new Map();
     return {
       on(type, listener) {
         if (!listeners.has(type)) listeners.set(type, new Set());
-        listeners.get(type).add(listener);
-        return () => listeners.get(type)?.delete(listener);
+        const set=listeners.get(type);if(!set.has(listener)){set.add(listener);listenerTotal++;}
+        return () => {if(set.delete(listener))listenerTotal--;};
       },
       emit(type, payload) { for (const fn of listeners.get(type) || []) fn(payload); },
-      clear() { listeners.clear(); }
+      clear() { for(const set of listeners.values()){listenerTotal-=set.size;set.clear();}listeners.clear(); }
     };
   }
   function createClock(step, frequency = 60) {
@@ -33,7 +34,7 @@
       clear() { for (const id of ids) cancel(id); ids.clear(); }
     };
   }
-  const api = { createEvents, createClock, createTimers };
+  const api = { createEvents, createClock, createTimers, listenerCount:()=>listenerTotal };
   if (typeof module !== 'undefined') module.exports = api;
   else root.MaxballCore = Object.freeze(api);
 })(globalThis);

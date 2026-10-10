@@ -10,5 +10,6 @@
   let remaining=Math.max(0,Math.min(.12,seconds));while(remaining>0){const dt=Math.min(1/60,remaining);movement.integrate(p,input,dt);remaining-=dt;}
   p.x=Math.max(-50,Math.min(state.W+50,p.x));p.y=Math.max(-50,Math.min(state.H+50,p.y));if(state.G.areaOccupancy?.[p.team]>=2&&!field.inArea(source,p.team,state)&&field.inArea(p,p.team,state))return {...source};return p;
  }
- const api={predict};if(typeof module!=='undefined')module.exports=api;else root.MaxballPrediction=api;
+ function predictTimeline(state,userId,history,from,to){if(!history.length)return predict(state,userId,{x:0,y:0},0);let p=state.P.find(p=>p.id===userId);if(!p)return null;let input=history[0],at=from;for(const sample of history){if(sample.at<=from){input=sample;continue;}if(sample.at>to)break;if(sample.at>at){p=predict({...state,P:state.P.map(q=>q.id===userId?p:q)},userId,input,(sample.at-at)/1000);at=sample.at;}input=sample;}return predict({...state,P:state.P.map(q=>q.id===userId?p:q)},userId,input,Math.max(0,to-at)/1000);}
+ const api={predict,predictTimeline};if(typeof module!=='undefined')module.exports=api;else root.MaxballPrediction=api;
 })(globalThis);

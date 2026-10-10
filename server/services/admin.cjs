@@ -31,7 +31,7 @@ function createAdmin(db,economy){
       if(item.price===0)fail('ITEM','Itens básicos não podem ser removidos.');
       db.run('DELETE FROM inventory WHERE user_id=? AND item_id=?',userId,item.id);
       if(item.category==='EMOTE')db.run('DELETE FROM emote_slots WHERE user_id=? AND item_id=?',userId,item.id);
-      else db.run(item.category==='KIT'?'UPDATE profiles SET kit=0 WHERE user_id=? AND kit=?':'UPDATE profiles SET effect=0 WHERE user_id=? AND effect=?',userId,item.asset_index);
+      else{const column={KIT:'kit',EFFECT:'effect',BALL:'ball_skin',CELEBRATION:'celebration'}[item.category];if(column)db.run('UPDATE profiles SET '+column+'=0 WHERE user_id=? AND '+column+'=?',userId,item.asset_index);}
      }
     }else if(action==='ROLE'){
      requireRole(actor,'SUPER_ADMIN');if(!['PLAYER','SUPPORT','MODERATOR','ADMIN'].includes(body.role))fail('ROLE','Permissão inválida.');

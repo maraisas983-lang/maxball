@@ -1,0 +1,184 @@
+{
+  "before": {
+    "note": "Local CPU, mocked Canvas; neither real browser FPS nor Android/GPU performance.",
+    "renderer": {
+      "p50Ms": 0.3323,
+      "p95Ms": 1.0887,
+      "maxMs": 18.803
+    },
+    "localPhysicsAndAI": {
+      "p50Ms": 0.2513,
+      "p95Ms": 2.6406,
+      "maxMs": 61.336
+    },
+    "wire": {
+      "seconds": 15,
+      "fullFrameBytesPerSecond": 24246,
+      "actualBytesPerSecond": 24245
+    },
+    "heapMB": 10.6
+  },
+  "after": [
+    {
+      "note": "Local CPU, mocked Canvas; neither real browser FPS nor Android/GPU performance.",
+      "renderer": {
+        "p50Ms": 0.1664,
+        "p95Ms": 0.4898,
+        "maxMs": 2.814
+      },
+      "localPhysicsAndAI": {
+        "p50Ms": 0.1282,
+        "p95Ms": 0.7937,
+        "maxMs": 5.065
+      },
+      "wire": {
+        "seconds": 15,
+        "fullFrameBytesPerSecond": 24245,
+        "actualBytesPerSecond": 15933
+      },
+      "heapMB": 11.59
+    },
+    {
+      "note": "Local CPU, mocked Canvas; neither real browser FPS nor Android/GPU performance.",
+      "renderer": {
+        "p50Ms": 0.1587,
+        "p95Ms": 0.4468,
+        "maxMs": 4.019
+      },
+      "localPhysicsAndAI": {
+        "p50Ms": 0.1257,
+        "p95Ms": 0.7404,
+        "maxMs": 4.166
+      },
+      "wire": {
+        "seconds": 15,
+        "fullFrameBytesPerSecond": 24239,
+        "actualBytesPerSecond": 15927
+      },
+      "heapMB": 11.48
+    },
+    {
+      "note": "Local CPU, mocked Canvas; neither real browser FPS nor Android/GPU performance.",
+      "renderer": {
+        "p50Ms": 0.1659,
+        "p95Ms": 0.4844,
+        "maxMs": 6.289
+      },
+      "localPhysicsAndAI": {
+        "p50Ms": 0.1256,
+        "p95Ms": 0.7446,
+        "maxMs": 3.394
+      },
+      "wire": {
+        "seconds": 15,
+        "fullFrameBytesPerSecond": 24240,
+        "actualBytesPerSecond": 15928
+      },
+      "heapMB": 10.68
+    }
+  ],
+  "baselineGameplay": {
+    "physicsHz": 60,
+    "snapshotHz": 20,
+    "measurements": [
+      {
+        "format": "1v1",
+        "players": 2,
+        "p50Ms": 0.0429,
+        "p95Ms": 0.3385,
+        "maxMs": 4.643
+      },
+      {
+        "format": "2v2",
+        "players": 4,
+        "p50Ms": 0.0673,
+        "p95Ms": 0.4707,
+        "maxMs": 13.803
+      },
+      {
+        "format": "3v3",
+        "players": 6,
+        "p50Ms": 0.068,
+        "p95Ms": 0.4441,
+        "maxMs": 73.258
+      },
+      {
+        "format": "4v4",
+        "players": 8,
+        "p50Ms": 0.0713,
+        "p95Ms": 0.4824,
+        "maxMs": 8.98
+      },
+      {
+        "format": "5v5",
+        "players": 10,
+        "p50Ms": 0.0933,
+        "p95Ms": 0.6886,
+        "maxMs": 34.639
+      }
+    ],
+    "encoding": [
+      {
+        "snapshotThenFrameMsPer1000": 175.3365,
+        "directFrameMsPer1000": 66.442
+      },
+      {
+        "snapshotThenFrameMsPer1000": 107.18440000000001,
+        "directFrameMsPer1000": 39.349000000000004
+      },
+      {
+        "snapshotThenFrameMsPer1000": 98.43350000000001,
+        "directFrameMsPer1000": 37.9581
+      }
+    ]
+  },
+  "baselineNetwork": {
+    "note": "Local simulation and encoding, not a WAN latency measurement. Physics 60 Hz, snapshots 20 Hz.",
+    "measurements": [
+      {
+        "rooms": 1,
+        "players": 10,
+        "ticks": 600,
+        "p50Ms": 0.193,
+        "p95Ms": 1.383,
+        "fullBytes": 11163,
+        "frameBytes": 1183,
+        "bytesPerSecondPerClient": 23660,
+        "reductionPercent": 89
+      },
+      {
+        "rooms": 5,
+        "players": 50,
+        "ticks": 600,
+        "p50Ms": 0.703,
+        "p95Ms": 5.114,
+        "fullBytes": 11163,
+        "frameBytes": 1184,
+        "bytesPerSecondPerClient": 23680,
+        "reductionPercent": 89
+      },
+      {
+        "rooms": 10,
+        "players": 100,
+        "ticks": 600,
+        "p50Ms": 1.167,
+        "p95Ms": 6.385,
+        "fullBytes": 11163,
+        "frameBytes": 1184,
+        "bytesPerSecondPerClient": 23680,
+        "reductionPercent": 89
+      },
+      {
+        "rooms": 25,
+        "players": 250,
+        "ticks": 600,
+        "p50Ms": 2.534,
+        "p95Ms": 12.606,
+        "fullBytes": 11163,
+        "frameBytes": 1184,
+        "bytesPerSecondPerClient": 23680,
+        "reductionPercent": 89
+      }
+    ]
+  }
+}

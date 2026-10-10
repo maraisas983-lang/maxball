@@ -16,6 +16,8 @@
 <link rel="stylesheet" href="styles/lobby.css"><link rel="stylesheet" href="styles/command.css"><link rel="stylesheet" href="styles/modeLobbies.css"><link rel="stylesheet" href="styles/social.css">
 <link rel="stylesheet" href="styles/match-polish.css">
 <link rel="stylesheet" href="styles/collections.css">
+<link rel="stylesheet" href="styles/maxpass.css">
+<link rel="stylesheet" href="styles/android.css">
 </head><body>
 <section id="boot-screen" aria-label="Carregamento do MAXBALL"><strong>MAXBALL</strong><p>Carregando o jogo…</p><progress aria-label="Carregamento dos arquivos"></progress><noscript>Ative o JavaScript para jogar.</noscript></section>
 
@@ -73,7 +75,7 @@
 
 <section class="scr" id="lock">
  <canvas id="lcv"></canvas>
- <div class="rtop lt"><button class="back" data-go="room" aria-label="Voltar">‹</button><div><b id="lname">Vestiário</b><small id="lsub"></small></div><button class="btn b1" id="lgo" style="margin-left:auto;font-size:14px;padding:10px 14px">Iniciar partida</button></div>
+ <div class="rtop lt"><button class="back" data-go="room" aria-label="Voltar">‹</button><div><b id="lname">Vestiário</b><small id="lsub"></small></div><button class="btn b2" id="lskin">Trocar skin</button><button class="btn b2" id="ltactics">Quadro de tática</button><button class="btn b1" id="lgo" style="margin-left:auto;font-size:14px;padding:10px 14px">Iniciar partida</button></div>
  <div id="ljoy"><div class="kn2"></div></div>
  <div id="lnum"><b>Número da camisa</b><div class="num"><button id="lnm" aria-label="Diminuir">−</button><span id="lnv"></span><button id="lnp" aria-label="Aumentar">+</button></div><button class="btn b1" id="lnok">OK</button></div>
  <div id="lchat"><div class="emo"><button>👏</button><button>🔥</button><button>😂</button><button>👍</button></div><div id="llog"></div><div class="lin"><input id="lmsg" type="text" maxlength="60" placeholder="Digite uma mensagem..." autocomplete="off"><button class="btn b2" id="lsend">Enviar</button></div></div>
@@ -108,11 +110,13 @@
 <script src="src/input/inputLifecycle.js"></script>
 <script src="src/core/runtime.js"></script>
 <script src="src/core/config.js"></script>
+<script src="src/core/performance.js"></script>
 <script src="src/services/preferences.js"></script>
 <script src="src/data/skinDesign.js"></script>
 <script src="src/data/stadiums.js"></script>
 <script src="src/data/ranks.js"></script>
 <script src="src/data/teams.js"></script>
+<script src="src/data/crests.js"></script>
 <script src="src/data/emotes.js"></script>
 <script src="src/data/rosters2026.js"></script>
 <script src="src/game/rules.js"></script>
@@ -133,7 +137,9 @@
 <script src="src/physics/netPhysics.js"></script>
 <script src="src/online/snapshotBuffer.js"></script>
 <script src="src/audio/crowd.js"></script>
+<script src="src/audio/soundtrack.js"></script>
 <script src="src/data/collections.js"></script>
+<script src="src/data/maxpass.js"></script>
 <script src="src/ui/ballVisual.js"></script>
 <script src="src/ui/goalReplay.js"></script>
 <script src="src/legacy/game.js"></script>
@@ -148,6 +154,7 @@
 <script src="src/ui/careerView.js"></script>
 <script src="src/ui/economyView.js"></script>
 <script src="src/ui/collectionView.js"></script>
+<script src="src/ui/maxpassView.js"></script>
 <script src="src/ui/roomDrag.js"></script>
 <script src="src/ui/skinEditor.js"></script>
 <script src="src/ui/clubView.js"></script>
@@ -171,6 +178,7 @@
 <script src="src/ui/substitutions.js"></script>
 <script src="src/game/lockerMovement.js"></script>
 <script src="src/ui/lockerDecor.js"></script>
+<script src="src/ui/lockerTools.js"></script>
 <script src="src/ui/matchExperience.js"></script>
 <script src="src/ui/roomExtras.js"></script>
 <script src="src/ui/debugView.js"></script>
@@ -179,4 +187,5 @@
 <script src="src/ui/touchSettings.js"></script>
 <script src="src/ui/endPresentation.js"></script>
 <script src="src/ui/entryView.js"></script>
+<script src="src/services/androidRuntime.js"></script>
 </body></html>

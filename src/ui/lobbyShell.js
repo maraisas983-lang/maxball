@@ -2,8 +2,9 @@
  'use strict';
  const {el,button}=root.MaxballUI;
  const identities={
-  pass:['Passe Mini / MAX','JOGUE E DESBLOQUEIE','Sua coleção cresce em campo.','Duas ranqueadas válidas por nível. Mini gratuito e MAX premium.','★'],
-  collectionAdmin:['Coleções','PREÇOS DA LOJA','Pacotes e passe MAX.','Configure os valores em gemas.','◆'],
+  pass:['MaxPass','SUA TEMPORADA EM CAMPO','Jogue. Evolua. Conquiste.','50 níveis, objetivos e recompensas. Gratuito para todos e Plus com cosméticos especiais.','★'],
+  maxpassAdmin:['MaxPass · Pagamentos','OFERTA DA TEMPORADA','Configure o MaxPass Plus.','Checkout Cakto e confirmação segura pelo webhook.','◆'],
+  collectionAdmin:['Coleções','PREÇOS DA LOJA','Preços dos pacotes de cosméticos.','Configure os valores em gemas.','◆'],
   settings:['Configurações','DO SEU JEITO','Prepare sua experiência.','Áudio, controles, gráficos e desempenho.','⚙'],
   leaderboard:['Ranking','OS MELHORES DO MAXBALL','Cada troféu conta.','Os 100 jogadores com mais troféus e sua posição na disputa.','★'],
   friendly:['Amistosos','ENCONTRO ENTRE CLUBES','Quatro jogadores. Um clube.','Dois tempos de 10 minutos, aceite dos capitães e intervalo na sala.','4'],
@@ -42,6 +43,7 @@
   nav.append(el('span',{class:'lobby-location',text:name,'aria-current':'page'}));
   content.append(el('section',{class:'lobby-cover','aria-label':'Lobby de '+name},[
    el('div',{class:'lobby-copy'},[el('p',{class:'eyebrow',text:tag}),el('h1',{text:title}),el('p',{class:'lobby-description',text:description})]),
+   el('small',{class:'lobby-credit',text:'feito por poggi e mateuswsf'}),
    el('div',{class:'lobby-emblem','aria-hidden':'true'},[el('span',{text:mark}),el('small',{text:name})])
   ]));
  }};

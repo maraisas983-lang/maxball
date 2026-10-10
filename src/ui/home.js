@@ -16,9 +16,19 @@
  }
  for(const [id,direction] of [['#home-prev',-1],['#home-next',1]])$(id).onclick=async()=>{try{await cycle(direction);}catch(error){root.MaxballGame.toast(error.message);}};
  const chatLink=document.querySelector('[data-account-page=chat]');if(!chatLink){const chatButton=document.querySelector('#home-chat');if(chatButton)chatButton.onclick=()=>root.MaxballPortal.open('chat');}
- const footer=document.querySelector('.home-footer');if(footer){const buttons=root.MaxballUI.el('div',{class:'community-links'},[root.MaxballUI.button('Passe Mini / MAX',()=>root.MaxballPortal.open('pass'),'secondary'),root.MaxballUI.button('Campeonatos',()=>root.MaxballPortal.open('championships'),'secondary'),root.MaxballUI.button('Criar skins',()=>root.MaxballPortal.open('skins'),'secondary')]);footer.prepend(buttons);}root.MaxballHome={refresh};refresh();
+ const features=root.MaxballUI.el('nav',{class:'home-features','aria-label':'Passe, campeonatos e criação de skins'});
+ for(const [page,icon,title,description,tag] of [
+  ['pass','★','MaxPass','50 níveis de recompensas. Conquiste seu estilo em campo.','RECOMPENSAS'],
+  ['championships','🏆','Campeonatos','Inscreva seu clube e dispute as rodadas.','COMPETIÇÃO'],
+  ['skins','✦','Criar skins','Monte seu uniforme, cores e identidade.','SEU ESTILO']
+ ]){const link=root.MaxballUI.el('button',{type:'button',class:'home-feature','data-feature':page,'data-account-page':page},[
+   root.MaxballUI.el('span',{class:'feature-icon','aria-hidden':'true',text:icon}),
+   root.MaxballUI.el('span',{class:'feature-copy'},[root.MaxballUI.el('small',{text:tag}),root.MaxballUI.el('strong',{text:title}),root.MaxballUI.el('span',{text:description})]),
+   root.MaxballUI.el('span',{class:'feature-arrow','aria-hidden':'true',text:'›'})
+  ]);features.append(link);}
+ document.querySelector('#home').append(features);root.MaxballHome={refresh};refresh();
  async function announcement(){
-  if(document.hidden||!$('#home').classList.contains('on')||location.protocol==='file:')return;
+  if(document.hidden||!$('#home').classList.contains('on')||root.MaxballAPI.offline||location.protocol==='file:')return;
   try{const config=await root.MaxballAPI.request('/config'),welcome=document.querySelector('.home-footer>span');if(welcome)welcome.textContent=config.announcement||'Bem-vindo ao MAXBALL!';}catch{}
  }
  announcement();setInterval(announcement,30000);

@@ -29,7 +29,7 @@
   ball.vx+=impulseX/count;ball.vy+=impulseY/count;
   for(let iteration=0;iteration<config.contactIterations;iteration++){
    let active=0,nx=0,ny=0;
-   for(let i=0;i<players.length;i++){if(players[i].inactive)continue;const n=normal(ball,players[i],scratch[i]??={x:0,y:0,d:0});if(n.d<distance-.001){active++;nx+=n.x;ny+=n.y;}}
+   for(let i=0;i<players.length;i++){if(players[i].inactive)continue;const p=players[i],n=scratch[i]??={x:0,y:0,d:0};if((ball.x-p.x)**2+(ball.y-p.y)**2>=distance*distance){n.d=Infinity;continue;}normal(ball,p,n);if(n.d<distance-.001){active++;nx+=n.x;ny+=n.y;}}
    if(!active)break;
    const balanced=active>1&&Math.hypot(nx,ny)<.8;let dx=0,dy=0;
    for(let i=0;i<players.length;i++){

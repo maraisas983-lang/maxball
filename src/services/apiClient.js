@@ -1,6 +1,7 @@
 (function(root){
  'use strict';
  let csrf=null,verified=false;
+ const offline=location.protocol==='file:'||location.hostname==='appassets.androidplatform.net';
  const expectedVersion=root.MaxballAPIContract?.version;
  function versionError(){
   const local=/^(localhost|127\.0\.0\.1)$/.test(location.hostname||'');
@@ -8,10 +9,10 @@
   error.code='SERVER_VERSION_MISMATCH';return error;
  }
  async function request(path,method='GET',body){
-  if(location.protocol==='file:')throw new Error('Abra o jogo pelo servidor local para acessar sua conta.');
+  if(offline)throw new Error(/MAXBALL-Android\//.test(root.navigator?.userAgent||'')?'Este APK está no modo local. Configure o endereço HTTPS do servidor ao gerar o APK para usar contas e multiplayer.':'Abra o jogo pelo servidor local para acessar sua conta.');
   // Verify before mutations so an old backend never accepts a new UI's writes.
   if(expectedVersion&&!verified&&!['GET','HEAD'].includes(method))await request('/config');
-  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),12000);
+  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),path.startsWith('/auth/')?25000:12000);
   try{
    const response=await fetch('/api'+path,{method,credentials:'same-origin',signal:controller.signal,headers:{...(body===undefined?{}:{'Content-Type':'application/json'}),...(csrf?{'X-CSRF-Token':csrf}:{})},body:body===undefined?undefined:JSON.stringify(body)});
    if(!response.headers.get('content-type')?.includes('application/json')){
@@ -30,5 +31,5 @@
    return data;
   }catch(error){if(error.name==='AbortError')throw new Error('O servidor demorou para responder. Tente novamente.');if(error instanceof TypeError)throw new Error('Não foi possível conectar ao servidor MAXBALL. Confira se ele está iniciado.');throw error;}finally{clearTimeout(timer);}
  }
- root.MaxballAPI=Object.freeze({request,clear(){csrf=null;verified=false;}});
+ root.MaxballAPI=Object.freeze({request,offline,clear(){csrf=null;verified=false;}});
 })(globalThis);

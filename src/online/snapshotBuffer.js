@@ -35,7 +35,8 @@
      p.x=Math.max(-50,Math.min(b.state.W+50,p.x+p.vx*gap));p.y=Math.max(-50,Math.min(b.state.H+50,p.y+p.vy*gap));
     }
    }
-   return {...b.state,P,ball};
+   let G=b.state.G;const old=a.state.G?.substitution,current=G?.substitution;if(!discontinuity&&old&&current&&old.out.id===current.out.id&&old.in.id===current.in.id&&old.outPosition&&current.outPosition){G={...G,substitution:{...current,elapsed:old.elapsed+(current.elapsed-old.elapsed)*t,outPosition:mix(old.outPosition,current.outPosition)}};}
+   return {...b.state,G,P,ball};
   }
  }
  if(typeof module!=='undefined')module.exports={SnapshotBuffer};else root.MaxballSnapshots={SnapshotBuffer};

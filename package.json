@@ -8,10 +8,14 @@
     "dev": "node --watch server/index.cjs",
     "check": "node scripts/check.cjs",
     "check:supabase": "node scripts/check-supabase.cjs",
+    "check:cakto": "node scripts/check-cakto.cjs",
     "test": "node --max-old-space-size=128 --no-opt --liftoff-only --no-wasm-tier-up --wasm-num-compilation-tasks=1 --wasm-lazy-compilation --test --test-concurrency=1 --test-timeout=90000 tests/*.test.cjs",
     "start:offline": "node scripts/serve.cjs",
     "migrate": "node scripts/migrate.cjs",
-    "admin": "node scripts/admin.cjs"
+    "admin": "node scripts/admin.cjs",
+    "android:assets": "node scripts/android-assets.cjs",
+    "android:apk": "node scripts/android-build.cjs",
+    "android:apk:lite": "node --max-old-space-size=128 --max-semi-space-size=1 scripts/android-build-lite.cjs"
   },
   "engines": {
     "node": ">=24.19.0 <25"

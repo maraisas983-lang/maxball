@@ -6,6 +6,7 @@
 #portal[data-lobby=local]{--lobby-accent:#ffc59a;--lobby-panel:#39253b;--lobby-base:#231428;background:radial-gradient(circle at 100% 0,#bd655344,transparent 55%),radial-gradient(circle at 0 90%,#8b55a644,transparent 60%),var(--lobby-base)}
 #portal[data-lobby=online]{--lobby-accent:#b5a5ff;--lobby-panel:#262345;--lobby-base:#15132c;background:radial-gradient(circle at 80% 30%,#6952b044,transparent 55%),var(--lobby-base)}
 #portal[data-lobby=quick]{--lobby-accent:#7de1ff;--lobby-base:#082337;--lobby-panel:#12394b}
+#portal[data-lobby=final]{--lobby-accent:#edc363;--lobby-panel:#17243a;--lobby-base:#0c1627;--lobby-border:#625639;background:radial-gradient(ellipse at top right,#4b3c26,transparent 65%),var(--lobby-base)}
 #portal[data-lobby=support]{--lobby-accent:#176a9a;--lobby-ink:#15324b;--lobby-muted:#47647b;--lobby-panel:#fff;--lobby-base:#eef5f8;--lobby-border:#cbdde7;background:radial-gradient(circle at 100% 0,#cceaf1,transparent 60%),var(--lobby-base)}
 .mode-lobby .portal-header{background:transparent;border-color:var(--lobby-border)}
 .mode-lobby>.portal-header,.mode-lobby>#portal-content,.mode-lobby>#portal-status{flex-shrink:0}

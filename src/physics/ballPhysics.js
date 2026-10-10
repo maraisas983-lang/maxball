@@ -46,8 +46,9 @@
     const candidates=context?.candidates||(context?(context.candidates=[]):null);
     if(candidates){candidates.length=0;const reach=physics.playerRadius+BR+CONFIG.maxSpeed*dt;for(const p of context.players)if(Math.abs(p.x-ball.x)<=reach&&Math.abs(p.y-ball.y)<=reach)candidates.push(p);}
     const notify=context?(context.notify??=(p=>{if(!context.seen.has(p.id)){context.seen.add(p.id);context.touch(p);}})):null;
+    const previous={x:0,y:0};
     for (let n = 0; n < count; n++) {
-      const previous = { x: ball.x, y: ball.y };
+      previous.x=ball.x;previous.y=ball.y;
       ball.x += ball.vx * step; ball.y += ball.vy * step;
       if (ball.y < BR || ball.y > H - BR) {
         ball.y = clamp(ball.y, BR, H - BR); ball.vy *= -CONFIG.wallBounce; onImpact(Math.abs(ball.vy));
@@ -97,7 +98,8 @@
     }
     return out;
   }
-  const api = { CONFIG, collideCircle, crossedGoal, moveBall, prepareContacts, predictTrajectory };
+  const passSpeed=distance=>Math.max(physics.passMinSpeed,Math.min(physics.passMaxSpeed,110-Math.log(physics.ballFriction)*Math.max(0,distance)));
+  const api = { CONFIG, passSpeed, collideCircle, crossedGoal, moveBall, prepareContacts, predictTrajectory };
   if (typeof module !== 'undefined') module.exports = api;
   else root.MaxballBall = Object.freeze(api);
 })(globalThis);
