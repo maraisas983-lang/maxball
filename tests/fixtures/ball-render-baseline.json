@@ -6,7 +6,7 @@
       "qz": 0,
       "qw": 1
     },
-    "digest": "a238d118daba49c6fe14f98627f692030cbd005a1d26aeeaafd61e5f7dd15902"
+    "digest": "838f9a8cb43c1f7aee882ad1f81bbe0d4be052e5d529b521324929c7e73cdeef"
   },
   {
     "q": {
@@ -15,7 +15,7 @@
       "qz": 0.2,
       "qw": 0.9273618495495703
     },
-    "digest": "32a91f5f2e93076c87333b4888922faa67d970ab465ca5bf06beaeaa3b987a04"
+    "digest": "eddbed4586988175a38f44547aa8707d2b7f71a44d0fad9230fcc4ae1ab897b2"
   },
   {
     "q": {
@@ -24,7 +24,7 @@
       "qz": 0.1,
       "qw": 0.7615773105863908
     },
-    "digest": "8309adf2719d6ae4debe8c4b744e47d5d445eb4fe0172ba78b18523f702a2684"
+    "digest": "ca0bfeb28f3fd1f8dbe1ce27c2b0b5a90454d8502306930399beac92e11218f5"
   },
   {
     "q": {
@@ -33,6 +33,6 @@
       "qz": 0,
       "qw": 0.714142842854285
     },
-    "digest": "69c32a37c690e49d9de1d263e0c11e4dd442a5f8218997c507dd0d7777cbf531"
+    "digest": "7e98e6eab09599a35aa755dee691ed2c0fbba95b5070157ab65ef23cf337909e"
   }
 ]

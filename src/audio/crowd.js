@@ -15,7 +15,7 @@
   update(dt,s){
    this.celebration=Math.max(0,this.celebration-dt);
    if(!this.gain)return;const danger=s.G.phase==='play'&&Math.min(s.ball.x,s.W-s.ball.x)<200;
-   const volume=root.MaxballPreferences?.get().sound===false||s.G.paused?0:this.celebration>0?.4*(.6+.4*this.celebration/3):s.G.phase==='end'?.08:danger?.07:.025;
+   const volume=root.MaxballPreferences?.get().sound===false||s.G.paused?0:this.celebration>0?.12*(.6+.4*this.celebration/3):s.G.phase==='end'?.08:danger?.07:.025;
    const next=volume*(s.G.cfg.final?1.4:1);if(Math.abs(next-this.volume)>.002){this.volume=next;this.gain.gain.setTargetAtTime(next,this.context.currentTime,.18);}
   }
   draw(g,s,reduced=false,viewport){

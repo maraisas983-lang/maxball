@@ -32,7 +32,7 @@
           energy += Math.abs(this.u[i]) + Math.abs(this.v[i]);
         }
       }
-      if (energy < .02) this.reset();
+      if (energy < .02) { const inside=this.inside; this.reset(); this.inside=inside; }
     }
     sample(y, depth) {
       const r = Math.max(0, Math.min(this.rows - 1.001, y * (this.rows - 1)));

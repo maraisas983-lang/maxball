@@ -138,17 +138,17 @@
   }
   shotPlan(s,p,opponents){
    const goal=field.side(s,p.team)?0:s.W,factor=clamp((p.attributes?.shooting??70)/70,.8,1.2);let best=null;
-   for(const y of [s.GY0+s.BR+12,s.H/2,s.GY1-s.BR-12]){const target={x:goal,y},dx=goal-s.ball.x,dy=y-s.ball.y,range=Math.hypot(dx,dy),speed=PHYSICS.shotImpulse*factor,remaining=1-rollingResistance*range/speed,arrival=remaining>.05?-Math.log(remaining)/rollingResistance:3;
+   for(const y of [s.GY0+s.BR+12,s.H/2,s.GY1-s.BR-12]){const target={x:goal,y},dx=goal-s.ball.x,dy=y-s.ball.y,range=Math.hypot(dx,dy),speed=PHYSICS.shotImpulse*factor,arrival=Math.min(3,ballPhysics.travelTime(range,speed));
     const clearance=Math.min(180,...opponents.map(q=>{const t=clamp(((q.x-s.ball.x)*dx+(q.y-s.ball.y)*dy)/(range*range||1),0,1),at=arrival*t,px=q.x+(q.vx||0)*at*.7,py=q.y+(q.vy||0)*at*.7;return Math.hypot(px-s.ball.x-dx*t,py-s.ball.y-dy*t)-PHYSICS.playerRadius-s.BR;}));const safe=clearance>5,quality=(safe?160:0)+clearance*.35-range*.04;if(!best||quality>best.quality)best={target,safe,quality,arrival};
    }return best;
   }
   passPlan(s,player,ally,opponents){
    const factor=clamp((player.attributes?.passing??70)/70,.8,1.2);let target={x:ally.x,y:ally.y},arrival=0,speed=0;
    // Match the same friction and pass strength used by the physical kick.
-   for(let i=0;i<4;i++){const range=distance(s.ball,target);speed=ballPhysics.passSpeed(range)*factor;const remaining=1-rollingResistance*range/speed;if(remaining<=.06)return null;arrival=-Math.log(remaining)/rollingResistance;if(arrival>3)return null;target={x:clamp(ally.x+(ally.vx||0)*arrival,40,s.W-40),y:clamp(ally.y+(ally.vy||0)*arrival,40,s.H-40)};}
-   const finalRange=distance(s.ball,target);speed=ballPhysics.passSpeed(finalRange)*factor;const remaining=1-rollingResistance*finalRange/speed;if(remaining<=.06)return null;arrival=-Math.log(remaining)/rollingResistance;if(arrival>3)return null;
+   for(let i=0;i<4;i++){const range=distance(s.ball,target);speed=ballPhysics.passSpeed(range)*factor;arrival=ballPhysics.travelTime(range,speed);if(arrival>3)return null;target={x:clamp(ally.x+(ally.vx||0)*arrival,40,s.W-40),y:clamp(ally.y+(ally.vy||0)*arrival,40,s.H-40)};}
+   const finalRange=distance(s.ball,target);speed=ballPhysics.passSpeed(finalRange)*factor;arrival=ballPhysics.travelTime(finalRange,speed);if(arrival>3)return null;
    const dx=target.x-s.ball.x,dy=target.y-s.ball.y,length=dx*dx+dy*dy||1;
-   const clearance=Math.min(200,...opponents.map(q=>{const fraction=clamp(((q.x-s.ball.x)*dx+(q.y-s.ball.y)*dy)/length,0,1),time=-Math.log(Math.max(.06,1-rollingResistance*Math.sqrt(length)*fraction/speed))/rollingResistance;const px=q.x+(q.vx||0)*time*.65,py=q.y+(q.vy||0)*time*.65;return Math.hypot(px-s.ball.x-dx*fraction,py-s.ball.y-dy*fraction)-PHYSICS.playerRadius-s.BR-Math.max(0,time-.3)*PHYSICS.playerMaxSpeed*.25;}));
+   const clearance=Math.min(200,...opponents.map(q=>{const fraction=clamp(((q.x-s.ball.x)*dx+(q.y-s.ball.y)*dy)/length,0,1),time=ballPhysics.travelTime(Math.sqrt(length)*fraction,speed);const px=q.x+(q.vx||0)*time*.65,py=q.y+(q.vy||0)*time*.65;return Math.hypot(px-s.ball.x-dx*fraction,py-s.ball.y-dy*fraction)-PHYSICS.playerRadius-s.BR-Math.max(0,time-.3)*PHYSICS.playerMaxSpeed*.25;}));
    return {target,arrival,speed,clearance,safe:clearance>8};
   }
   dribblePlan(s,p,opponents,direction){

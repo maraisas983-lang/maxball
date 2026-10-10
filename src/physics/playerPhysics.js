@@ -14,7 +14,6 @@
   const stats={steps:0,playerPairs:0,playerContacts:0,ballContacts:0},inputs=[];
   const corrections=[],previous=new Map(),active=[],contactPlayers=[],actions=[];
   const PR=config.playerRadius;
-  const rotation=typeof module!=='undefined'?require('./ballRotation.js'):root.MaxballBallRotation;
   function sync(){view=state();({G,P,ball,W,H,GY0,GY1,BR}=view);if(G!==brainGame){brain=externalAI||new tactics.Tactics(state,random);brainGame=G;}}
   function touch(p){
    if(G.restarting&&p.team!==G.ko)return;
@@ -23,18 +22,20 @@
    const id=p.id??P.indexOf(p);
    if(ball.lastPlayer!==id){ball.previousTouch={id:ball.lastPlayer,team:ball.last,time:ball.touchTime};ball.lastPlayer=id;}ball.touchTime=G.elapsed||G.el||0;ball.last=p.team;
   }
-  function kick(p,type,aim){
+  function kick(p,type,aim,origin=p){
    if(G.kl>0||p.cd>0||G.restarting&&p.team!==G.ko||p.inactive)return false;
    const dx=ball.x-p.x,dy=ball.y-p.y,length=Math.hypot(dx,dy);
-   if(!interaction.contains(p,ball,view))return false;
+   if(!interaction.contains(origin,ball,view))return false;
    let ax=aim?.x,ay=aim?.y;
-   if(!aim){ax=type==='p'?p.fx:(length?dx/length:p.fx);ay=type==='p'?p.fy:(length?dy/length:p.fy);}
+   // Human actions share the last movement direction; AI may supply an explicit target.
+   if(!aim||!Number.isFinite(ax)||!Number.isFinite(ay)||Math.hypot(ax,ay)<1e-8){ax=p.fx;ay=p.fy;aim=null;}
+   if(!Number.isFinite(ax)||!Number.isFinite(ay)||Math.hypot(ax,ay)<1e-8){ax=length?dx/length:(p.team?-1:1);ay=length?dy/length:0;}
    const n=Math.hypot(ax,ay)||1;
    const power=type==='s'?config.shotImpulse:aim?ballPhysics.passSpeed(n):config.passImpulse;
    G.restarting=false;G.kl=.08;p.cd=config.kickCooldown;
    const ability=type==='s'?p.attributes?.shooting:p.attributes?.passing,factor=clamp((ability??70)/70,.8,1.2);
-   const ux=ax/n,uy=ay/n,along=ball.vx*ux+ball.vy*uy;
-   ball.vx=ux*power*factor+p.vx*.12+(ball.vx-along*ux)*.08;ball.vy=uy*power*factor+p.vy*.12+(ball.vy-along*uy)*.08;
+   const ux=ax/n,uy=ay/n;
+   ball.vx=ux*power*factor;ball.vy=uy*power*factor;
    const speed=Math.hypot(ball.vx,ball.vy);if(speed>config.ballMaxSpeed){ball.vx*=config.ballMaxSpeed/speed;ball.vy*=config.ballMaxSpeed/speed;}ball.kickedBy=p.id;ball.contactProtection=config.recontactProtection;
    touch(p);effects.kick?.(p,type);
    const col=p.team?'#ff2d87':'#c8ff2e';effects.burst?.(ball.x,ball.y,type==='s'?10:6,[col,'#fff'],type==='s'?220:120,.3);
@@ -68,23 +69,23 @@
     if(blocked){i.x=i.y=0;i.shoot=i.pass=false;}
     let l=Math.hypot(i.x,i.y);if(l>1){i.x/=l;i.y/=l;l=1;}
     const sp=p.ctrl==='ai'?config.botMaxSpeeds[G.cfg.diff]:config.playerMaxSpeed;
+    const inReach=interaction.contains(p,ball,view);
     movement.integrate(p,i,dt,sp);p.cd-=dt;p.st=1;
     for(const type of ['shoot','pass']){
      const edge=i[type]&&!p[type+'Held']||Number.isSafeInteger(i[type+'Seq'])&&i[type+'Seq']>(p[type+'Seq']||0);
      if(!blocked&&(edge||i[type]))p[type+'Buffer']=config.kickBuffer;
      p[type+'Held']=!!i[type];if(Number.isSafeInteger(i[type+'Seq']))p[type+'Seq']=i[type+'Seq'];
     }
-    if(p.cd<=0&&interaction.contains(p,ball,view)&&(p.shootBuffer>0||p.passBuffer>0))actions.push({p,type:p.shootBuffer>0?'s':'p',aim:i.aim});
+    if(p.cd<=0&&(inReach||interaction.contains(p,ball,view))&&(p.shootBuffer>0||p.passBuffer>0))actions.push({p,type:p.shootBuffer>0?'s':'p',aim:i.aim,origin:inReach?previous.get(p.id):p});
     p.shootBuffer=(p.shootBuffer||0)-dt;p.passBuffer=(p.passBuffer||0)-dt;
    }
    // A simultaneous action has stable arbitration independent of player order.
    actions.sort((a,b)=>dist(a.p,ball)-dist(b.p,ball)||String(a.p.id).localeCompare(String(b.p.id)));
-   for(const action of actions)if(kick(action.p,action.type,action.aim)){action.p.shootBuffer=action.p.passBuffer=0;break;}
+   for(const action of actions)if(kick(action.p,action.type,action.aim,action.origin)){action.p.shootBuffer=action.p.passBuffer=0;break;}
    separatePlayers(active);
    if(G.restarting){const spot=G.restartSpot||{x:W/2,y:H/2},zone=field.geometry(view).centerRadius+PR;for(const p of active)if(p.team!==G.ko){const dx=p.x-spot.x,dy=p.y-spot.y,d=Math.hypot(dx,dy);if(d<zone){p.x=spot.x+(d?dx/d:(p.team?-1:1))*zone;p.y=spot.y+(d?dy/d:0)*zone;p.vx=p.vy=0;}}}
    contactPlayers.length=0;for(const p of active)if(!G.restarting||p.team===G.ko)contactPlayers.push(p);
-   const bx=ball.x,by=ball.y;if(contacts.resolveContacts(contactPlayers,ball,BR,dt,touch,view))stats.ballContacts++;
-   rotation.roll(ball,ball.x-bx,ball.y-by,BR);
+   if(contacts.resolveContacts(contactPlayers,ball,BR,dt,touch,view))stats.ballContacts++;
    ballPhysics.prepareContacts(ball,G.restarting?contactPlayers:active,touch);
    for(const p of active){p.x=clamp(p.x,PR-config.playerOutsideMargin,W+config.playerOutsideMargin-PR);p.y=clamp(p.y,PR-config.playerOutsideMargin,H+config.playerOutsideMargin-PR);goalColliders.resolve(p,previous.get(p.id),view,PR);}
    field.limitDefense(view,previous);

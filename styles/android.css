@@ -1,1 +1,72 @@
 .maxball-android #home,.maxball-android #portal{padding-left:max(12px,env(safe-area-inset-left));padding-right:max(12px,env(safe-area-inset-right))}.maxball-android #portal{padding-bottom:max(12px,env(safe-area-inset-bottom))}.maxball-android #exit{left:max(10px,env(safe-area-inset-left))}.maxball-android #gset{right:max(10px,env(safe-area-inset-right))}.maxball-android input,.maxball-android textarea{font-size:16px}.maxball-android .lobby-credit,.maxball-android #home::after{right:max(18px,env(safe-area-inset-right))}
+
+/* The viewport belongs to the app; scroll long lobby content inside it. */
+html,body{width:100%;height:100%;padding:0}
+.maxball-android #exit{left:50%;right:auto;transform:translateX(-50%)}
+#game:has(#gpan.on) #game-chat-toggle{visibility:hidden}
+.scr{box-sizing:border-box;width:100%;height:100%;min-height:0}
+#portal{overflow-x:hidden;overflow-y:auto}
+#portal-content{flex-shrink:0}
+.portal-header{flex-shrink:0}
+.control-sizes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:12px}
+.control-sizes label{display:grid;grid-template-columns:1fr auto;gap:8px;font-size:12px}
+.control-sizes input{grid-column:1/-1;width:100%;min-width:0;touch-action:pan-x}
+.control-sizes output,#cpan output{color:#c8ff2e;font-variant-numeric:tabular-nums}
+#cpan label>span{display:flex;justify-content:space-between;gap:8px}
+#cpan>.touch-settings{grid-column:1/-1;padding:6px;border:0;background:transparent}
+#cpan .field{display:flex;align-items:center;gap:10px;margin:0;font-size:11px}
+#cpan .field select{min-width:0;padding:5px}
+#ctl{overflow:hidden;touch-action:none}
+.keyboard-disclosure{grid-column:1/-1;font:12px Rubik,sans-serif}
+.keyboard-disclosure>summary{cursor:pointer;padding:7px 0;color:#c9d8ef}
+.keyboard-disclosure>.keyboard-controls{padding-top:5px}
+
+@media(orientation:landscape) and (max-height:600px){
+ #home.on{display:block;min-height:0;height:100%;padding:0;overflow:hidden}
+ #home .home-top{left:max(12px,env(safe-area-inset-left));right:max(12px,env(safe-area-inset-right));top:10px}
+ #home .home-side{left:max(12px,env(safe-area-inset-left));top:26%;width:25%;gap:5px}
+ #home .home-side button{min-height:32px;height:8.5dvh;padding:4px 10px;font-size:10px}
+ #home .home-features{right:max(12px,env(safe-area-inset-right));top:26%;width:27%;gap:5px}
+ #home .home-feature{min-height:0;height:11dvh;padding:5px 8px;gap:7px;border-radius:9px}
+ #home .feature-copy>span,#home .feature-arrow{display:none}
+ #home .feature-copy strong{font-size:12px}
+ #home .feature-copy small{font-size:7px}
+ #home .feature-icon{width:25px;height:25px;font-size:20px}
+ #home .home-player{top:29%;gap:8px}
+ #home .home-player canvas{width:26dvh;height:26dvh}
+ #home .home-player strong{font-size:12px;padding:4px}
+ #home .home-brand svg{width:12dvh}
+ #home .home-brand h1{font-size:22px;margin:2px 0}
+ #home .home-bottom{left:max(12px,env(safe-area-inset-left));right:max(12px,env(safe-area-inset-right));bottom:13%;gap:6px}
+ #home .home-bottom button{min-height:40px;height:13dvh;padding:5px;font-size:9px;gap:5px}
+ #home .home-bottom button span{font-size:20px}
+ #home .home-bottom button.home-rank{font-size:16px}
+ #home .home-footer{bottom:max(5px,env(safe-area-inset-bottom));left:max(12px,env(safe-area-inset-left));right:max(12px,env(safe-area-inset-right));gap:8px}
+ #home .home-footer details{min-width:0;padding:7px 10px}
+ #home .home-footer>span{font-size:10px}
+ #home::after{display:none}
+ #portal .portal-header{padding:6px max(12px,env(safe-area-inset-left));gap:10px;flex-wrap:nowrap}
+ #portal .portal-header small{display:none}
+ #portal .portal-brand{font-size:19px}
+ #portal .portal-header .action{padding:8px 12px}
+ #portal-nav{padding:5px 12px}
+ #portal-status:empty{display:none}
+ #portal-content{max-width:none;padding:4px max(12px,env(safe-area-inset-left)) 16px}
+ #portal .lobby-cover{padding:10px 0;min-height:0;gap:12px}
+ #portal .lobby-cover h1{font-size:22px;margin:4px 0}
+ #portal .lobby-description{font-size:12px;margin:5px 0}
+ #portal .lobby-emblem{display:none}
+ #portal .lobby-credit{position:static;align-self:end;white-space:nowrap;font-size:8px}
+ #portal .mode-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+ #portal .mode-door{min-height:150px;padding:12px}
+ #portal .mode-door .mode-mark{font-size:24px;margin-bottom:8px}
+ #portal .mode-door h3{font-size:16px}
+ #portal .lobby-teams{grid-template-columns:repeat(2,minmax(0,1fr))}
+ #cpan{width:min(600px,78vw);grid-template-columns:repeat(4,minmax(0,1fr));gap:5px 10px;padding:7px 10px;font-size:11px}
+ #cpan>.btn{grid-row:2;min-height:30px;padding:4px;font-size:12px}
+ #cpan>.touch-settings{grid-column:3/5;grid-row:2;padding:0}
+ #cpan .field{display:grid;grid-template-columns:auto 1fr;font-size:10px;gap:5px}
+ #chint{bottom:4px;font-size:11px;white-space:nowrap}
+ #game-chat-toggle{left:50%;bottom:max(8px,env(safe-area-inset-bottom));transform:translateX(-50%);padding:7px 10px;font-size:11px}
+ .game-chat{left:50%;transform:translateX(-50%);bottom:46px}
+}

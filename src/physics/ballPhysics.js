@@ -29,7 +29,7 @@
       if (side ? previous.x <= line && ball.x > line : previous.x >= line && ball.x < line) {
         const t = (line - previous.x) / (ball.x - previous.x);
         const y = previous.y + (ball.y - previous.y) * t;
-        if (y - BR > GY0 + CONFIG.postRadius && y + BR < GY1 - CONFIG.postRadius) return (side ? 0 : 1)^(field.G?.sidesSwapped&&field.G.phase!=='penalties'?1:0);
+        if (y - BR > GY0 && y + BR < GY1) return (side ? 0 : 1)^(field.G?.sidesSwapped&&field.G.phase!=='penalties'?1:0);
       }
     }
     return null;
@@ -53,8 +53,8 @@
       if (ball.y < BR || ball.y > H - BR) {
         ball.y = clamp(ball.y, BR, H - BR); ball.vy *= -CONFIG.wallBounce; onImpact(Math.abs(ball.vy));
       }
-      const mouth = ball.y > GY0 + CONFIG.postRadius + BR && ball.y < GY1 - CONFIG.postRadius - BR;
-      if (!mouth && G.phase!=='goal' && (ball.x < BR || ball.x > W - BR)) {
+      const mouth = ball.y > GY0 && ball.y < GY1;
+      if (!mouth && G.phase!=='goal' && previous.x>=0 && previous.x<=W && (ball.x < BR || ball.x > W - BR)) {
         ball.x = clamp(ball.x, BR, W - BR); ball.vx *= -CONFIG.wallBounce; onImpact(Math.abs(ball.vx));
       }
       if(G.phase!=='goal')for (const x of [0, W]) for (const y of [GY0, GY1]) {
@@ -62,11 +62,10 @@
         if (impact) onImpact(impact);
       }
       if(!awarded&&(G.phase==='play'||G.phase==='penalties')){const scored=crossedGoal(previous,ball,state);if(scored!==null){awarded=true;onGoal(scored);if(G.phase==='goal'){rotation.roll(ball,ball.x-previous.x,ball.y-previous.y,BR);ball.vx*=.12;ball.vy*=.12;return;}}}
+      rotation.roll(ball,ball.x-previous.x,ball.y-previous.y,BR);
       if(candidates?.length&&(G.phase==='play'||G.phase==='penalties')&&contacts.resolveContacts(candidates,ball,BR,step,notify,state)){
        for(const x of [0,W])for(const y of [GY0,GY1]){const impact=collideCircle(ball,x,y,BR+CONFIG.postRadius,CONFIG.postBounce);if(impact)onImpact(impact);}
       }
-      const dx=ball.x-previous.x,dy=ball.y-previous.y;
-      rotation.roll(ball,dx,dy,BR);
       if (!awarded&&(G.phase === 'play'||G.phase==='penalties')) {
         const team = crossedGoal(previous, ball, state);
         if (team !== null) {awarded=true;onGoal(team);if(G.phase==='goal'){ball.vx*=.12;ball.vy*=.12;return;}}
@@ -81,7 +80,8 @@
     }
     const friction = Math.pow(G.phase==='goal'?.12:CONFIG.friction, dt);
     ball.vx *= friction; ball.vy *= friction;
-    if (Math.hypot(ball.vx, ball.vy) < 45) { const slow = Math.pow(physics.ballDamping, dt); ball.vx *= slow; ball.vy *= slow; }
+    const remaining=Math.hypot(ball.vx,ball.vy),rolling=Math.max(0,remaining-physics.ballRollingResistance*dt);
+    if(remaining){ball.vx*=rolling/remaining;ball.vy*=rolling/remaining;}
     if(Math.hypot(ball.vx,ball.vy)<.5)ball.vx=ball.vy=0;
     ball.rot=(ball.rot||0)+Math.hypot(ball.vx,ball.vy)*dt/BR;
   }
@@ -91,15 +91,24 @@
     for(let i=0;i<count;i++){
       const previousX=out.x,previousY=out.y;out.x+=out.vx*dt;out.y+=out.vy*dt;
       if(out.y<BR||out.y>H-BR){out.y=clamp(out.y,BR,H-BR);out.vy*=-CONFIG.wallBounce;}
-      const mouth=out.y>GY0+BR+CONFIG.postRadius&&out.y<GY1-BR-CONFIG.postRadius;
-      if(!mouth&&(out.x<BR||out.x>W-BR)){out.x=clamp(out.x,BR,W-BR);out.vx*=-CONFIG.wallBounce;}
+      const mouth=out.y>GY0&&out.y<GY1;
+      if(!mouth&&previousX>=0&&previousX<=W&&(out.x<BR||out.x>W-BR)){out.x=clamp(out.x,BR,W-BR);out.vx*=-CONFIG.wallBounce;}
       for(const x of [0,W])for(const y of [GY0,GY1])collideCircle(out,x,y,BR+CONFIG.postRadius,CONFIG.postBounce);
-      out.x=clamp(out.x,-46+BR,W+46-BR);if(visual)rotation.roll(out,out.x-previousX,out.y-previousY,BR);out.vx*=decay;out.vy*=decay;
+      out.x=clamp(out.x,-46+BR,W+46-BR);if(visual)rotation.roll(out,out.x-previousX,out.y-previousY,BR);out.vx*=decay;out.vy*=decay;const speed=Math.hypot(out.vx,out.vy),slow=Math.max(0,speed-physics.ballRollingResistance*dt);if(speed){out.vx*=slow/speed;out.vy*=slow/speed;}
     }
     return out;
   }
   const passSpeed=distance=>Math.max(physics.passMinSpeed,Math.min(physics.passMaxSpeed,110-Math.log(physics.ballFriction)*Math.max(0,distance)));
-  const api = { CONFIG, passSpeed, collideCircle, crossedGoal, moveBall, prepareContacts, predictTrajectory };
+  function travelTime(distance,speed){
+    if(distance<=0)return 0;
+    const drag=-Math.log(CONFIG.friction),resistance=physics.ballRollingResistance,offset=resistance/drag;
+    const stop=Math.log(1+speed/offset)/drag;
+    const travelled=t=>(speed+offset)*(1-Math.exp(-drag*t))/drag-offset*t;
+    if(travelled(stop)<distance)return Infinity;
+    let low=0,high=stop;for(let i=0;i<24;i++){const mid=(low+high)/2;if(travelled(mid)<distance)low=mid;else high=mid;}
+    return (low+high)/2;
+  }
+  const api = { CONFIG, passSpeed, travelTime, collideCircle, crossedGoal, moveBall, prepareContacts, predictTrajectory };
   if (typeof module !== 'undefined') module.exports = api;
   else root.MaxballBall = Object.freeze(api);
 })(globalThis);

@@ -1,8 +1,8 @@
 (function(root){
  'use strict';
  const cache=new Map(),size=96,R=43,tau=Math.PI*2;
- // Same shallow view as the raised goal: height projects upward by about 0.6.
- const tilt=Math.atan(.6),viewCos=Math.cos(tilt),viewSin=Math.sin(tilt);
+ // A top-down ball keeps screen-space rolling aligned with the flat playing field.
+ const viewCos=1,viewSin=0;
  function project(point,q,out,at=0){const x=point[0],y=point[1],z=point[2],[qx,qy,qz,qw]=q,tx=2*(qy*z-qz*y),ty=2*(qz*x-qx*z),tz=2*(qx*y-qy*x),ry=y+qw*ty+qz*tx-qx*tz,rz=z+qw*tz+qx*ty-qy*tx;out[at]=x+qw*tx+qy*tz-qz*ty;out[at+1]=ry*viewCos-rz*viewSin;out[at+2]=ry*viewSin+rz*viewCos;return out;}
  const phi=(1+Math.sqrt(5))/2,vertices=[];
  for(const a of [-1,1])for(const b of [-phi,phi])vertices.push([0,a,b],[a,b,0],[b,0,a]);
@@ -34,12 +34,12 @@
    if(lastLimb&&firstLimb){const a=Math.atan2(lastY,lastX),b=Math.atan2(firstY,firstX),delta=Math.atan2(Math.sin(b-a),Math.cos(b-a));g.arc(0,0,R,a,a+delta,delta<0);}
    g.closePath();g.fillStyle=face.dark?palette.dark:palette.light;g.fill();g.strokeStyle='rgba(36,45,49,.28)';g.lineWidth=.48;g.stroke();
   }
-  const shade=g.createRadialGradient(-R*.32,-R*.38,R*.08,0,0,R*1.12);shade.addColorStop(0,'rgba(255,255,255,.26)');shade.addColorStop(.48,'rgba(255,255,255,0)');shade.addColorStop(.82,'rgba(27,38,43,.1)');shade.addColorStop(1,'rgba(16,27,32,.4)');g.fillStyle=shade;g.fillRect(-R,-R,2*R,2*R);
+  const shade=g.createRadialGradient(-R*.25,-R*.3,R*.1,0,0,R*1.12);shade.addColorStop(0,'rgba(255,255,255,.16)');shade.addColorStop(.48,'rgba(255,255,255,0)');shade.addColorStop(.82,'rgba(27,38,43,.06)');shade.addColorStop(1,'rgba(16,27,32,.24)');g.fillStyle=shade;g.fillRect(-R,-R,2*R,2*R);
   g.strokeStyle='rgba(15,25,29,.6)';g.lineWidth=1;g.beginPath();g.arc(0,0,R-.5,0,tau);g.stroke();
   cache.set(key,canvas);if(cache.size>96)cache.delete(cache.keys().next().value);return canvas;
  }
  function draw(g,ball,radius,skin=0){
-  g.fillStyle='rgba(0,0,0,.22)';g.beginPath();g.ellipse(ball.x+radius*.12,ball.y+radius*.65,radius*.86,radius*.3,0,0,tau);g.fill();
+  g.fillStyle='rgba(0,0,0,.18)';g.beginPath();g.ellipse(ball.x+radius*.08,ball.y+radius*.25,radius*.92,radius*.72,0,0,tau);g.fill();
   const ax=-(ball.rollX||0)/2,ay=-(ball.rollY||0)/2,q=Number.isFinite(ball.qw)?[ball.qx||0,ball.qy||0,ball.qz||0,ball.qw]:[Math.sin(ax)*Math.cos(ay),Math.cos(ax)*Math.sin(ay),-Math.sin(ax)*Math.sin(ay),Math.cos(ax)*Math.cos(ay)];const image=sprite(q,skin);g.drawImage(image,ball.x-radius*size/(R*2),ball.y-radius*size/(R*2),radius*size/R,radius*size/R);
  }
  root.MaxballBallVisual={draw,stats,project(point,q,out=new Float64Array(3)){return project(point,q,out);},clear(){cache.clear();}};

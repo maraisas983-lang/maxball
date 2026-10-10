@@ -1,6 +1,6 @@
 (function(root){
  'use strict';
- let context,musicBus,effectsBus,noise,timer=null,step=0,next=0,background=false;
+ let context,musicBus,effectsBus,noise,timer=null,step=0,next=0,background=false,replaying=false;
  const cooldown=new Map(),notes=[60,64,67,71,67,64,62,67,57,60,64,67,64,60,59,62];
  const prefs=()=>root.MaxballPreferences?.get()||{music:true,sound:true};
  function tone(frequency,start,duration,volume,type,bus,end){
@@ -11,7 +11,7 @@
  }
  function rustle(start,duration,volume,frequency){
   const source=context.createBufferSource(),filter=context.createBiquadFilter(),gain=context.createGain();source.buffer=noise;filter.type='bandpass';filter.frequency.value=frequency;filter.Q.value=.65;
-  gain.gain.setValueAtTime(volume,start);gain.gain.exponentialRampToValueAtTime(.0001,start+duration);
+  gain.gain.setValueAtTime(.0001,start);gain.gain.linearRampToValueAtTime(volume,start+.015);gain.gain.exponentialRampToValueAtTime(.0001,start+duration);
   source.connect(filter).connect(gain).connect(effectsBus);source.onended=()=>{source.disconnect();filter.disconnect();gain.disconnect();};source.start(start);source.stop(start+duration);
  }
  function update(){
@@ -37,9 +37,10 @@
  }
  function effect(kind){
   if(!context||context.state!=='running'||background||document.hidden||!prefs().sound)return;
+  if(replaying&&kind!=='click')return;
   const t=context.currentTime;if(t-(cooldown.get(kind)??-10)<(kind==='click'?.045:.09))return;cooldown.set(kind,t);
   if(kind==='click')tone(850,t,.055,.035,'sine',effectsBus,540);
-  else if(kind==='net'){rustle(t,.32,.22,2300);rustle(t+.055,.2,.1,950);}
+  else if(kind==='net'){rustle(t,.24,.065,1200);}
   else {tone(kind==='pass'?190:135,t,.13,kind==='pass'?.1:.2,'sine',effectsBus,48);rustle(t,.06,.12,800);}
  }
  function pause(){background=true;update();}
@@ -49,5 +50,5 @@
  document.addEventListener('visibilitychange',()=>document.hidden?pause():resume());
  root.addEventListener('maxball:native-pause',pause);root.addEventListener('maxball:native-resume',resume);
  root.addEventListener('maxball-preferences',update);
- root.MaxballAudio={unlock,effect,pause,resume};
+ root.MaxballAudio={unlock,effect,pause,resume,setReplay(value){replaying=!!value;}};
 })(globalThis);

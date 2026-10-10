@@ -21,6 +21,7 @@ test('audio shares a context, separates music/effects, and suspends for native b
  [...scheduled.values()][0]();assert.ok(starts>0);const before=starts;
  prefs.music=false;listeners['maxball-preferences']();ctx.currentTime+=1;[...scheduled.values()][0]();assert.equal(starts,before);
  for(const effect of ['kick','net','click'])env.MaxballAudio.effect(effect);assert.ok(starts>before);
+ const beforeReplay=starts;env.MaxballAudio.setReplay(true);ctx.currentTime+=1;env.MaxballAudio.effect('net');env.MaxballAudio.effect('kick');assert.equal(starts,beforeReplay);env.MaxballAudio.effect('click');assert.ok(starts>beforeReplay);env.MaxballAudio.setReplay(false);ctx.currentTime+=1;env.MaxballAudio.effect('net');assert.ok(starts>beforeReplay+1);
  prefs.sound=false;listeners['maxball-preferences']();const muted=starts;ctx.currentTime+=1;env.MaxballAudio.effect('kick');assert.equal(starts,muted);
  listeners['maxball:native-pause']();assert.equal(ctx.state,'suspended');assert.equal(scheduled.size,0);
  listeners['maxball:native-resume']();assert.equal(ctx.state,'running');assert.equal(scheduled.size,1);

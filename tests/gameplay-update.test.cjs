@@ -73,7 +73,7 @@ test('catalog includes all 21 requested Mamoball teams and contrasting alternati
 });
 test('contact crossing the goal line scores, while contact beside the post remains bounded',()=>{
  const m=new Match({id:'goal-contact',cfg:{n:2}});m.ball.x=m.W+12;m.ball.y=m.H/2;m.ball.vx=100;m.ball.vy=0;m.ball.sweepStart={x:m.W+10,y:m.H/2};m.moveBall(1/60,t=>m.goal(t));assert.deepEqual(m.G.score,[1,0]);
- m.G.phase='play';m.ball={x:m.W+10,y:m.GY0+12,vx:0,vy:0,rot:0};m.moveBall(1/60,t=>m.goal(t));assert.ok(m.ball.x<=m.W-m.BR);assert.deepEqual(m.G.score,[1,0]);
+ m.G.phase='play';m.ball={x:m.W+10,y:m.GY0+12,vx:0,vy:0,rot:0};m.moveBall(1/60,t=>m.goal(t));assert.ok(Math.hypot(m.ball.x-m.W,m.ball.y-m.GY0)>=m.BR+6-.001);assert.ok(m.ball.x>m.W,'a post resolves radially, never teleporting the ball back into the field');assert.deepEqual(m.G.score,[1,0]);
 });
 test('fixed simulation gives matching player and ball positions at 20, 60 and 144 FPS',()=>{
  const {createClock}=require('../src/core/runtime.js'),results=[];
