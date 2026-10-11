@@ -11,15 +11,15 @@ test('contact remains gentler than a pass, and stationary overlaps add no energy
  const speeds=[];for(const speed of [0,60,205]){const p={id:'p',team:0,x:0,y:0,vx:speed,vy:0},b={x:30,y:0,vx:0,vy:0};resolveContacts([p],b,11,1/60);speeds.push(b.vx);assert.ok(b.vx<280);}
  assert.equal(speeds[0],0);assert.ok(speeds[1]>0&&speeds[2]>speeds[1]);assert.ok(speeds[2]<=190);
 });
-test('manual pass follows facing and recontact cannot immediately reverse it',()=>{
+test('manual pass follows contact and a separating ball is not struck again',()=>{
  const {m,p}=practice();p.fx=0;p.fy=-1;m.ball.x=p.x;m.ball.y=p.y-20-m.BR;assert.ok(m.physics.kick(p,'p'));
- assert.equal(m.ball.vx,0);assert.equal(m.ball.vy,-340);
+ assert.equal(m.ball.vx,0);assert.equal(m.ball.vy,-require('../src/core/config.js').physics.passImpulse);
  p.x=m.ball.x;p.y=m.ball.y+20+m.BR-.2;p.vy=205;const before=m.ball.vy;resolveContacts([p],m.ball,m.BR,1/60);assert.equal(m.ball.vy,before);
 });
-test('held shoot repeats only after cooldown; a new sequence survives a short released tap',()=>{
+test('held shoot fires once; a new sequence survives a short released tap',()=>{
  const {m,p}=practice();m.setInput(p.id,{x:0,y:0,shoot:true,shootSeq:1});m.physics.step(1/60);assert.equal(m.stats[p.id].shots,1);
  for(let i=0;i<90;i++){m.ball.x=p.x+20+m.BR-.2;m.ball.y=p.y;m.ball.vx=m.ball.vy=0;m.physics.step(1/60);}
- assert.ok(m.stats[p.id].shots>1&&m.stats[p.id].shots<=10);
+ assert.equal(m.stats[p.id].shots,1);
  const before=m.stats[p.id].shots;p.cd=0;m.G.kl=0;m.setInput(p.id,{x:0,y:0,shoot:false,shootSeq:2});m.physics.step(1/60);assert.equal(m.stats[p.id].shots,before+1);
 });
 test('joystick finger and action fingers remain independent and cancel safely',()=>{

@@ -15,7 +15,7 @@
       "qz": 0.2,
       "qw": 0.9273618495495703
     },
-    "digest": "eddbed4586988175a38f44547aa8707d2b7f71a44d0fad9230fcc4ae1ab897b2"
+    "digest": "644f2db78406b5f2155d1b7e544552392cc4eda1e0fbdb006a54c73feccebb69"
   },
   {
     "q": {
@@ -24,7 +24,7 @@
       "qz": 0.1,
       "qw": 0.7615773105863908
     },
-    "digest": "ca0bfeb28f3fd1f8dbe1ce27c2b0b5a90454d8502306930399beac92e11218f5"
+    "digest": "3e14005c9b9e6686470d33745f6011761c861a3bce9cb7917a5a73c58594c03b"
   },
   {
     "q": {
@@ -33,6 +33,6 @@
       "qz": 0,
       "qw": 0.714142842854285
     },
-    "digest": "7e98e6eab09599a35aa755dee691ed2c0fbba95b5070157ab65ef23cf337909e"
+    "digest": "ebeb3df0fc4422ea65ce0b6593b678d752b5723719c7796c8a5d81b7f1698559"
   }
 ]

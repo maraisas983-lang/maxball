@@ -5,15 +5,16 @@ const {moveBall,predictTrajectory,rolling,travelTime,prepareContacts}=require('.
 const {resolveContacts}=require('../src/physics/contacts.js');
 const {bindJoystick}=require('../src/input/pointerControls.js');
 const {Target,Element,gameHarness}=require('./helpers.cjs');
-test('576 logged shot/pass vectors: 72 angles, precise/full analog, stopped/opposing ball',()=>{assert.equal(directions().length,576);});
-test('rear and lateral balls cannot be shot through the player; last valid heading is stable at rest',()=>{
- for(const angle of [Math.PI,Math.PI/2,-Math.PI/2]){const s=scene(),p=s.P[0],r=cfg.playerRadius+s.BR;s.ball.x=p.x+Math.cos(angle)*r;s.ball.y=p.y+Math.sin(angle)*r;assert.equal(physics(s,{x:0,y:0}).kick(p,'s'),false);assert.equal(Math.hypot(s.ball.vx,s.ball.vy),0);}
- const s=scene();assert.equal(physics(s,{x:0,y:0}).kick(s.P[0],'s'),true);assert.equal(s.ball.vx,cfg.shotImpulse);
+test('576 contact vectors: 72 angles, perpendicular/opposing input, stationary/incoming ball',()=>{assert.equal(directions().length,576);});
+test('rear and lateral contacts kick outward independently of last heading',()=>{
+ for(const angle of [Math.PI,Math.PI/2,-Math.PI/2]){const s=scene(),p=s.P[0],r=cfg.playerRadius+s.BR,x=Math.cos(angle),y=Math.sin(angle);s.ball.x=p.x+x*r;s.ball.y=p.y+y*r;assert.equal(physics(s,{x:0,y:0}).kick(p,'s'),true);assert.ok(s.ball.vx*x+s.ball.vy*y>0);}
+ const s=scene();s.ball.x=s.P[0].x;s.ball.y=s.P[0].y;assert.equal(physics(s,{x:0,y:0}).kick(s.P[0],'s'),false);
 });
-test('short and long analog passes are deterministic, weaker than shots and roll progressively',()=>{
+test('manual pass strength does not depend on joystick magnitude and stops short of half the smallest pitch',()=>{
  const speeds=[];for(const strength of [.05,1]){const s=scene();physics(s,{x:strength,y:0,pass:true}).step(1/60);speeds.push(s.ball.vx);let before=s.ball.vx;for(let i=0;i<900;i++){moveBall(s,1/60);assert.ok(s.ball.vx>=0&&s.ball.vx<=before+1e-8);before=s.ball.vx;}assert.equal(before,0);}
- assert.ok(speeds[1]>speeds[0]*1.5&&speeds[1]<cfg.shotImpulse);
- assert.ok(ranges()[3].distanceAfterOneSecond>500);
+ assert.equal(speeds[0],speeds[1]);assert.ok(speeds[0]<cfg.shotImpulse);
+ const width=require('../src/game/fieldConfig.js').dimensions(1,0).W;
+ assert.ok(rolling(cfg.passImpulse,60).distance<width*.4);assert.ok(rolling(cfg.shotImpulse,60).distance<width*.75);
 });
 test('slow dribbling transfers only proportional motion, without strong repeat impulses or body overlap',()=>{
  for(const strength of [.1,.3,1]){const s=scene(),p=s.P[0],sim=physics(s,{x:strength,y:0});let max=0;for(let i=0;i<240;i++){sim.step(1/60);moveBall(s,1/60);max=Math.max(max,Math.hypot(s.ball.vx,s.ball.vy));assert.ok(Math.hypot(s.ball.x-p.x,s.ball.y-p.y)>=cfg.playerRadius+s.BR-.002);}
