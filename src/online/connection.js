@@ -30,13 +30,14 @@
    const previous=this.lastPrediction,neutral=Math.hypot(input.x,input.y)<.01;
    if(previous?.matchId!==state.matchId){this.lastPrediction=null;this.release=null;this.inputHistory=[];}
    const horizon=Math.max(0,Math.min(.2,(now-(this.lastFrameAt??now)+this.metrics.ping*.5)/1000)),history=this.inputHistory,last=history.at(-1);if(!last)history.push({at:now-horizon*1000,x:input.x,y:input.y});else if(last.x!==input.x||last.y!==input.y)history.push({at:now,x:input.x,y:input.y});while(history.length>64||history.length>2&&history[1].at<now-500)history.shift();
-   const p=neutral?root.MaxballPrediction.predict(state,userId,input,0):root.MaxballPrediction.predictTimeline?root.MaxballPrediction.predictTimeline(state,userId,history,now-horizon*1000,now):root.MaxballPrediction.predict(state,userId,input,horizon);if(!p)return null;
+   let p=neutral?root.MaxballPrediction.predict(state,userId,input,0):root.MaxballPrediction.predictTimeline?root.MaxballPrediction.predictTimeline(state,userId,history,now-horizon*1000,now):root.MaxballPrediction.predict(state,userId,input,horizon);if(!p)return null;
    if(neutral&&state.G.phase==='play'){
     if(previous?.moving&&previous.matchId===state.matchId)this.release={x:previous.p.x,y:previous.p.y,sequence:this.sequence+(this.lastInput?.x===input.x&&this.lastInput?.y===input.y?0:1),until:now+Math.max(200,Math.min(400,this.metrics.ping+100))};
     if(this.release&&(state.acks?.[userId]??-1)<this.release.sequence&&now<this.release.until){p.x=this.release.x;p.y=this.release.y;}else this.release=null;
     p.vx=p.vy=0;
    }else this.release=null;
-   this.lastPrediction={matchId:state.matchId,moving:!neutral,p};return p;
+   if(!neutral&&previous?.matchId===state.matchId&&root.MaxballPrediction.reconcile)p=root.MaxballPrediction.reconcile(state,userId,previous.p,input,(now-previous.at)/1000,p);
+   this.lastPrediction={matchId:state.matchId,moving:!neutral,p,at:now};return p;
   }
   close(){this.closed=true;this.state='DISCONNECTED';clearTimeout(this.retry);clearInterval(this.sender);clearInterval(this.pinger);this.socket?.close();this.decoder.state=null;this.decoder.roster.clear();this.lastPrediction=null;this.release=null;this.inputHistory=[];}
  }

@@ -30,6 +30,18 @@ class Match {
   this.kickoff();if(this.cfg.presentation)ceremony.begin(this);ceremony.official(this,0);this.record('MATCH_STARTED',{});
  }
  record(type,payload){const event={type,time:this.G.elapsed,...payload};this.log.push(event);this.events.emit(type,event);}
+ removePlayer(userId){
+  const p=this.P.find(p=>p.id===userId);if(!p)return;
+  this.retiredPlayers=this.retiredPlayers.filter(q=>q.id!==userId);this.retiredPlayers.push({...p});this.P=this.P.filter(q=>q.id!==userId);this.inputs.delete(userId);this.inputAt.delete(userId);this.activity.delete(userId);this.offside.candidates.clear();this.offside.pending=null;
+  this.substitutionQueue=this.substitutionQueue.filter(s=>s.in.id!==userId&&s.out.id!==userId);if(this.G.substitution&&(this.G.substitution.in.id===userId||this.G.substitution.out.id===userId)){this.G.substitution=null;for(const q of this.P)q.hid=!!q.sentOff;}this.G.pendingSubstitutions=this.substitutionQueue.length;this.G.substitutionWaiting=this.substitutionQueue.map(s=>s.out);
+  this.botRevision=(this.botRevision||0)+1;this.botController?.invalidate(this);this.record('PLAYER_LEFT',{playerId:userId,team:p.team});
+  if(this.G.phase!=='end'&&[0,1].some(team=>!this.P.some(q=>q.team===team&&!q.sentOff))){this.G.winner=this.P.some(q=>q.team===1-p.team&&!q.sentOff)?1-p.team:null;this.finish('TEAM_LEFT');}
+  else if(this.G.phase==='penalties'&&this.penalties&&[this.penalties.state.shooter,this.penalties.state.keeper].includes(userId))this.penalties.prepare();
+ }
+ addPlayer(incoming,team){
+  const slot=Array.from({length:this.cfg.n},(_,i)=>i).find(i=>!this.P.some(p=>p.team===team&&p.slot===i));if(slot===undefined||this.P.some(p=>p.id===incoming.id))throw Error('Time cheio.');
+  const p={...incoming,team,slot,displayName:incoming.name,ctrl:'remote',x:this.W*(team?.72:.28),y:this.H/2+(slot?80:0),vx:0,vy:0,fx:team?-1:1,fy:0,st:1,cd:0,hop:0};this.P.push(p);this.stats[p.id]??=performanceStats.empty();this.retiredPlayers=this.retiredPlayers.filter(q=>q.id!==p.id);this.botRevision=(this.botRevision||0)+1;this.botController?.invalidate(this);return p;
+ }
  kickoff(){this.botRevision=(this.botRevision||0)+1;this.botController?.invalidate(this);ceremony.reset(this);kickoff(this);this.offside.candidates.clear();this.offside.pending=null;}
  pause(userId){if(this.G.pauseState==='PAUSED')return;this.G.pauseState='PAUSED';this.G.pausedBy=userId;this.G.resumeRemaining=0;this.G.official.mode='PAUSED';this.inputs.clear();this.record('REFEREE_PAUSED',{userId});}
  resumeHalf(){if(this.G.phase!=='halftime'||!this.cfg.intermissionLobby)return;this.G.phase='play';this.G.breakRemaining=0;this.G.intermissionEndsAt=null;this.G.ko=1;this.kickoff();this.G.pauseState='PAUSED';this.resume();this.record('SECOND_HALF_STARTED',{score:this.G.score.slice()});}

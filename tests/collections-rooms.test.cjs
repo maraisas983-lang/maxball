@@ -34,16 +34,16 @@ test('collections, passes, nicknames and custom-room permissions',async t=>{
  });
  await t.test('referee cards persist expulsion and prevent replacement',()=>{
   const m=r.rooms.get(room.id).match;m.G.phase='play';m.G.pauseState='PAUSED';r.assignReferee(a,room.id,{playerId:b.id});
-  for(let i=0;i<200;i++)m.update(1/60);assert.equal(m.G.substitution,null);
+  for(let i=0;i<200;i++)m.update(1/60);assert.equal(m.G.substitution??null,null);
   const target=m.P.find(p=>p.ctrl==='ai');assert.throws(()=>r.features.card(a,room.id,{playerId:target.id,color:'YELLOW'}));
   r.features.card(b,room.id,{playerId:target.id,color:'YELLOW'});assert.equal(m.G.cards[target.id].yellow,1);
   r.features.card(b,room.id,{playerId:target.id,color:'YELLOW'});assert.equal(target.sentOff,true);assert.equal(target.inactive,true);
   require('../src/game/kickoff.js').kickoff(m);assert.equal(target.inactive,true);assert.equal(target.hid,true);assert.throws(()=>m.substitute(target.id,{id:'illegal',name:'Illegal'}));
  });
- await t.test('paused owner can move a player out and back with a substitution animation',()=>{
-  const m=r.rooms.get(room.id).match;m.G.phase='play';m.G.pauseState='PAUSED';const team=m.P.find(p=>p.id===a.id).team;
-  r.features.move(a,room.id,{playerId:a.id,destination:'SPECTATORS'});assert.ok(m.G.substitution);assert.ok(r.current(a.id).spectators.some(p=>p.id===a.id));
+ await t.test('paused owner can move a player out without a bot and back into the free slot',()=>{
+  const m=r.rooms.get(room.id).match;m.G.phase='play';m.G.pauseState='PAUSED';const team=m.P.find(p=>p.id===b.id).team;
+  const count=m.P.length;r.features.move(a,room.id,{playerId:b.id,destination:'SPECTATORS'});assert.equal(m.P.length,count-1);assert.equal(m.P.some(p=>p.id===b.id),false);assert.ok(r.current(a.id).spectators.some(p=>p.id===b.id));
   for(let i=0;i<200;i++)m.update(1/60);
-  r.features.move(a,room.id,{playerId:a.id,destination:team?'AWAY':'HOME'});assert.ok(m.G.substitution);assert.equal(m.P.find(p=>p.id===a.id).team,team);assert.equal(r.rooms.get(room.id).originalPlayers.filter(p=>p.id===a.id).length,1);
+  r.features.move(a,room.id,{playerId:b.id,destination:team?'AWAY':'HOME'});assert.equal(m.P.length,count);assert.equal(m.P.find(p=>p.id===b.id).team,team);assert.equal(r.rooms.get(room.id).originalPlayers.filter(p=>p.id===b.id).length,1);
  });
 });

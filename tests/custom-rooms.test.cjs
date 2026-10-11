@@ -21,7 +21,7 @@ test('passwords, host permissions, atomic edits, teams, spectators and host migr
  const started=rooms.start(a.user,room.id);assert.equal(started.roomStatus,'STARTING');assert.throws(()=>rooms.edit(a.user,room.id,{playerId:b.user.id,destination:'HOME'}));
  const match=rooms.rooms.get(room.id).match;for(let i=0;i<180;i++)match.update(1/60);
  C.ws.send(JSON.stringify({type:'input',seq:1,x:1,y:0,shoot:true,pass:false}));await until(()=>C.messages.some(m=>m.type==='snapshot'));assert.equal(match.inputs.has(c.user.id),false);
- rooms.leave(a.user.id);assert.equal(rooms.current(b.user.id).owner,b.user.id);assert.equal(match.P.find(p=>p.id===a.user.id).ctrl,'ai');assert.equal(rooms.current(b.user.id).players.some(p=>p.id===a.user.id),false);
+ rooms.leave(a.user.id);assert.equal(rooms.current(b.user.id).owner,b.user.id);assert.equal(match.P.some(p=>p.id===a.user.id),false);assert.equal(rooms.current(b.user.id).players.some(p=>p.id===a.user.id),false);
  rooms.leave(c.user.id);assert.equal(rooms.current(b.user.id).spectators.length,0);rooms.leave(b.user.id);assert.equal(match.G.reason,'ABANDONED');
 });
 test('custom clubs survive reopening the database and remain owner-scoped',async t=>{

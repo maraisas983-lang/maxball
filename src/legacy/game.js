@@ -484,7 +484,7 @@ function remoteRender(dt,time){
  const previousPhase=G.phase;
  if(previousPhase==='starting'&&state.G.phase==='play'){beep(784,.2,'sine',.08);resetInputs();actionSeq.shoot=actionSeq.pass=0;}
  G={...state.G,mode:'online',remote:true,paused:G.paused,cfg:state.cfg,sk:state.cfg.teams?[22,23]:[state.cfg.sk0,state.cfg.sk1],shake:G.shake||0,flash:Math.max(0,(G.flash||0)-dt*2),earn:0};
- P=state.P;for(const p of P)p.ctrl=p.id===remoteUser?'p1':'ai';const controlled=P.find(p=>p.id===remoteUser),free=G.phase==='play'&&!G.pauseState&&!G.restarting&&controlled&&Math.hypot(controlled.x-state.ball.x,controlled.y-state.ball.y)>85&&!P.some(p=>p!==controlled&&!p.inactive&&Math.hypot(p.x-controlled.x,p.y-controlled.y)<90);const predicted=free?window.MaxballPortal?.connection.predict(remoteUser):null;if(predicted){const local=P.find(p=>p.id===remoteUser);if(local)Object.assign(local,{x:predicted.x,y:predicted.y,vx:predicted.vx,vy:predicted.vy});}ball=state.ball;HT=P.find(p=>p.id===remoteUser)?.team||0;
+ P=state.P;for(const p of P)p.ctrl=p.id===remoteUser?'p1':'ai';const controlled=P.find(p=>p.id===remoteUser),free=G.phase==='play'&&!G.pauseState&&!G.restarting&&controlled&&!controlled.inactive;const predicted=free?window.MaxballPortal?.connection.predict(remoteUser):null;if(predicted){const local=P.find(p=>p.id===remoteUser);if(local)Object.assign(local,{x:predicted.x,y:predicted.y,vx:predicted.vx,vy:predicted.vy});}ball=state.ball;HT=P.find(p=>p.id===remoteUser)?.team||0;
  W=state.W;H=state.H;GY0=state.GY0;GY1=state.GY1;BR=state.BR;
  if(previousPhase==='goal'&&G.phase!=='goal'){goalReplay.reset(true);resetInputs();}
  if(G.phase==='play')goalReplay.capture(dt,simulationState());
