@@ -21,7 +21,9 @@
  const projected=faces.map(face=>new Float64Array(face.samples.length*3));
  const stats={hits:0,misses:0};
  function sprite(q,skin=0){const palette=root.MaxballCollections?.balls[skin]||{light:'#fafbf9',dark:'#202833'};
-  const sign=q[3]<0?-1:1,values=q.map(v=>Math.round(v*sign*256)/256),norm=Math.hypot(...values)||1; q=values.map(v=>v/norm);const key=skin+':'+values.join(':');let canvas=cache.get(key);if(canvas){stats.hits++;cache.delete(key);cache.set(key,canvas);return canvas;}
+  // Finer orientation buckets keep slow dribbling smooth without changing the
+  // physical quaternion. The cache stays bounded at 96 small canvas sprites.
+  const sign=q[3]<0?-1:1,values=q.map(v=>Math.round(v*sign*1024)/1024),norm=Math.hypot(...values)||1; q=values.map(v=>v/norm);const key=skin+':'+values.join(':');let canvas=cache.get(key);if(canvas){stats.hits++;cache.delete(key);cache.set(key,canvas);return canvas;}
   stats.misses++;if(cache.size>=96){const oldest=cache.keys().next().value;canvas=cache.get(oldest);cache.delete(oldest);}else{canvas=document.createElement('canvas');canvas.width=canvas.height=size;}
   const g=canvas.getContext('2d');if(g.reset)g.reset();else canvas.width=size;
 

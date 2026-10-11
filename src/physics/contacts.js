@@ -1,11 +1,12 @@
 (function(root){
  'use strict';
  const config=(typeof module!=='undefined'?require('../core/config.js'):root.MaxballConfig).physics;
+ const rotation=typeof module!=='undefined'?require('./ballRotation.js'):root.MaxballBallRotation;
  function normal(ball,p,out){const dx=ball.x-p.x,dy=ball.y-p.y,d=Math.hypot(dx,dy);out.d=d;if(d>1e-8){out.x=dx/d;out.y=dy/d;}else{const vx=p.vx-ball.vx,vy=p.vy-ball.vy,s=Math.hypot(vx,vy);out.x=s?vx/s:(p.team?-1:1);out.y=s?vy/s:0;}return out;}
  // Reuse scratch memory; the synchronous solver never allocates per iteration.
  const scratch=[];
  function resolveContacts(players,ball,radius,dt,touch=()=>{},field){
-  const distance=config.playerRadius+radius,incomingSpeed=Math.hypot(ball.vx,ball.vy);let count=0,impulseX=0,impulseY=0,touched=null,best=Infinity,driveBudget=0;
+  const startX=ball.x,startY=ball.y,distance=config.playerRadius+radius,incomingSpeed=Math.hypot(ball.vx,ball.vy);let count=0,impulseX=0,impulseY=0,touched=null,best=Infinity,driveBudget=0;
   for(let i=0;i<players.length;i++){
    const p=players[i];if(p.inactive||(ball.x-p.x)**2+(ball.y-p.y)**2>=distance*distance)continue;const n=normal(ball,p,scratch[i]??={x:0,y:0,d:0});if(n.d>=distance-.001)continue;count++;
    if(n.d<best||n.d===best&&String(p.id??p.num)<String(touched?.id??touched?.num)){touched=p;best=n.d;}
@@ -51,6 +52,10 @@
   // Contacts may reflect an incoming shot or transfer player motion, but repeated
   // normals in a tackle must not compound into energy beyond either source.
   const speed=Math.hypot(ball.vx,ball.vy),limit=Math.min(config.ballMaxSpeed,Math.max(incomingSpeed,driveBudget));if(speed>limit){ball.vx*=limit/speed;ball.vy*=limit/speed;}
+  // Continuous player-driven displacement is real rolling too. Idle overlap
+  // repair and substep depenetration (dt=0) must not generate artificial spin.
+  const dx=ball.x-startX,dy=ball.y-startY,travel=Math.hypot(dx,dy),driven=Math.min(travel,driveBudget*dt);
+  if(driven>0)rotation.roll(ball,dx*driven/travel,dy*driven/travel,radius);
   touch(touched);
   return true;
  }
