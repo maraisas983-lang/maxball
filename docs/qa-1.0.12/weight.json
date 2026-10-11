@@ -1,0 +1,19 @@
+{
+  "previousMass": 1.8,
+  "mass": 1.9080000000000001,
+  "increasePercent": 6,
+  "contact": {
+    "playerIncomingSpeed": 130,
+    "previousBallOutgoingSpeed": 91.00000000000001,
+    "ballOutgoingSpeed": 88.99755501222494,
+    "changePercent": -2.200488997555028
+  },
+  "preserved": {
+    "friction": 0.6,
+    "rollingResistance": 9,
+    "passSpeed": 250,
+    "shotSpeed": 360,
+    "wallReturn": 0.7462,
+    "dbWindow": 0.18
+  }
+}

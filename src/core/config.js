@@ -2,7 +2,7 @@
  const config=Object.freeze({
   physics:Object.freeze({
    // World units: the entire visible disc, including its rim, is 40 units wide.
-   playerRadius:20,ballRadius:20*.42*1.02,playerMass:3,ballMass:1.8,
+   playerRadius:20,ballRadius:20*.42*1.02,playerMass:3,ballMass:1.8*1.06,
    playerMaxSpeed:150,botMaxSpeeds:Object.freeze([132,142,150]),
    playerAcceleration:36,playerTurnResponse:48,inputEpsilon:.01,
    playerOutsideMargin:70,
