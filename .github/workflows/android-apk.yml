@@ -3,7 +3,8 @@ on:
   workflow_dispatch:
     inputs:
       server_url:
-        description: 'Origem HTTPS do MAXBALL; vazio gera edição local offline'
+        description: 'Origem HTTPS do MAXBALL; vazio usa o servidor padrão'
+        default: 'https://maxball.onrender.com'
         required: false
         type: string
 permissions:

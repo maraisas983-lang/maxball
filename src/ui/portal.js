@@ -47,7 +47,7 @@
   const register=button('Criar conta com esses dados',async()=>{
    if(!login.reportValidity()||!check.checked)return;
    const values=Object.fromEntries(new FormData(login));if(values.password.length<12){portal.error(new Error('Para criar uma conta, use uma senha de pelo menos 12 caracteres.'));return;}
-   const result=await api('/auth/register','POST',payload(values));if(result.confirmationRequired){portal.status('Confirme seu e-mail e depois entre na conta.');return;}await loggedIn();
+   const result=await api('/auth/register','POST',payload(values));if(result.confirmationRequired){const message='Confirme seu e-mail pelo link recebido e depois entre na conta.';portal.status(message);if(root.MaxballEntry?.visible)root.MaxballEntry.notice(message);return;}await loggedIn();
   },'secondary');
   const sync=()=>{login.querySelector('[type=submit]').disabled=register.disabled=!check.checked;};check.onchange=sync;sync();
   container.append(el('article',{class:'login-card'},[el('p',{class:'eyebrow',text:'ENTRE PARA O MAXBALL'}),el('h2',{text:page==='support'?'Entre para acessar seus chamados.':'Entre em campo.'}),note('Sua conta guarda carreira, troféus e cosméticos. Treino e Local estão disponíveis sem login.'),login,register,note('Cadastro: senha com pelo menos 12 caracteres.')]));

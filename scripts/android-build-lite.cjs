@@ -3,8 +3,8 @@ const fs=require('node:fs'),path=require('node:path'),{spawnSync}=require('node:
 const {buildAssets}=require('./android-assets.cjs');
 const root=path.resolve(__dirname,'..'),tools=path.join(root,'.work/android-toolchain'),project=path.join(root,'android'),win=process.platform==='win32',exe=win?'.exe':'';
 function build(){
- const server=process.env.MAXBALL_SERVER_URL||'';
- if(server&&!/^https:\/\/[A-Za-z0-9.-]+(?::[0-9]+)?\/?$/.test(server))throw Error('MAXBALL_SERVER_URL deve ser uma origem HTTPS sem caminhos ou credenciais.');
+ const server=require('./android-server.cjs').serverUrl();
+ console.log(server?'APK online: '+server:'APK local: contas e multiplayer indisponíveis.');
  let home=process.env.JAVA_HOME;const portable=path.join(tools,'jdk');
  if(!home&&fs.existsSync(portable)){const folder=fs.readdirSync(portable).find(n=>fs.existsSync(path.join(portable,n,'bin','java'+exe)));if(folder)home=path.join(portable,folder);}
  const sdk=process.env.ANDROID_HOME||process.env.ANDROID_SDK_ROOT||path.join(tools,'sdk');

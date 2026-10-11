@@ -1,0 +1,11 @@
+{
+  "signupRequests": 1,
+  "confirmationVisible": true,
+  "androidUserAgent": true,
+  "viewport": {
+    "width": 740,
+    "height": 360
+  },
+  "errors": [],
+  "provider": "mock Supabase; no real confirmation email sent"
+}

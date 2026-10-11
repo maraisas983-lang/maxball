@@ -6,7 +6,7 @@
  function paint(){auth.replaceChildren();if(portal.account){auth.append(el('h2',{text:'Bem-vindo, '+portal.account.profile.display_name}),button('Entrar no lobby',enter));}else{portal.renderLogin(auth);}auth.append(button('Treinar sem conta',()=>root.MaxballPortal.open('training'),'secondary'));}
  function enter(){auth.replaceChildren();root.MaxballGame.show('home');root.MaxballHome.refresh();}
  function open(){root.MaxballGame.show('entry');if(!loading)paint();}
- root.MaxballEntry={open,enter,get visible(){return entry.classList.contains('on');},error(error){status.textContent=error.message;status.classList.add('error');}};
+ root.MaxballEntry={open,enter,get visible(){return entry.classList.contains('on');},notice(message){status.textContent=message;status.classList.remove('error');},error(error){status.textContent=error.message;status.classList.add('error');}};
  open();document.body.classList.add('maxball-ready');document.querySelector('#boot-screen')?.remove();
  let completed=0;const tasks=[portal.ready,portal.loadAuth(),document.fonts?.ready||Promise.resolve()].map(task=>Promise.resolve(task).finally(()=>{progress.value=Math.round(++completed/3*100);percent.textContent=progress.value+'%';}));Promise.allSettled(tasks).then(results=>{loading=false;progress.value=100;if(results[1].status==='rejected'){root.MaxballEntry.error(results[1].reason);auth.replaceChildren(button('Tentar novamente',()=>location.reload()),button('Treinar sem conta',()=>portal.open('training'),'secondary'));return;}status.textContent='Pronto para entrar em campo';if(portal.account)enter();else paint();});
 })(globalThis);

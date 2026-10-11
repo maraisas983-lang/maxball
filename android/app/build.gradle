@@ -1,5 +1,7 @@
 plugins { id 'com.android.application' }
-def gameServer = providers.gradleProperty('MAXBALL_SERVER_URL').orElse('').get().trim()
+def defaultServer = new groovy.json.JsonSlurper().parse(file('../server.json')).url
+def offlineBuild = providers.gradleProperty('MAXBALL_OFFLINE').orElse(providers.environmentVariable('MAXBALL_OFFLINE')).orElse('0').get() == '1'
+def gameServer = offlineBuild ? '' : (providers.gradleProperty('MAXBALL_SERVER_URL').orElse(providers.environmentVariable('MAXBALL_SERVER_URL')).orElse(defaultServer).get().trim() ?: defaultServer)
 if (gameServer && (!gameServer.startsWith('https://') || !(gameServer ==~ /https:\/\/[A-Za-z0-9.-]+(?::[0-9]+)?\/?/))) {
     throw new GradleException('MAXBALL_SERVER_URL deve ser a origem HTTPS do servidor, sem caminhos, chaves ou credenciais.')
 }
@@ -10,8 +12,8 @@ android {
         applicationId 'com.maxball.game'
         minSdk 26
         targetSdk 35
-        versionCode 20
-        versionName '1.0.19'
+        versionCode 21
+        versionName '1.0.20'
         buildConfigField 'String', 'SERVER_URL', '"' + gameServer + '"'
     }
     buildFeatures { buildConfig true }
