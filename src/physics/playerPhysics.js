@@ -26,19 +26,20 @@
    if(G.kl>0||p.cd>0||G.restarting&&p.team!==G.ko||p.inactive)return false;
    const dx=ball.x-p.x,dy=ball.y-p.y,length=Math.hypot(dx,dy);
    if(!interaction.contains(origin,ball,view))return false;
-   let ax=aim?.x,ay=aim?.y;
-   // Movement updates heading from the current input before actions are evaluated.
-   // With no input, keep that heading; AI may supply a target displacement.
-   if(!aim||!Number.isFinite(ax)||!Number.isFinite(ay)||Math.hypot(ax,ay)<1e-8){ax=p.fx;ay=p.fy;aim=null;}
-   if(!Number.isFinite(ax)||!Number.isFinite(ay)||Math.hypot(ax,ay)<1e-8){ax=p.team?-1:1;ay=0;}
-   const n=Math.hypot(ax,ay)||1;
-   const ux=ax/n,uy=ay/n;
-   // A real forward contact is required. Never disable the kicker's collider.
-   if(length<1e-8||(dx*ux+dy*uy)/length<config.kickFrontCos)return false;
-   const power=type==='s'?config.shotImpulse:aim?ballPhysics.passSpeed(n):config.passMinSpeed+(config.passImpulse-config.passMinSpeed)*clamp(p.aimStrength??1,0,1);
+   // Both actions use the real contact normal, never heading or joystick aim.
+   // A coincident centre has no reliable normal: separate first, then retry.
+   if(length<1e-8)return false;
+   const ux=dx/length,uy=dy/length;
+   const targetDistance=aim&&Math.hypot(aim.x,aim.y);
+   const power=type==='s'?config.shotImpulse:Number.isFinite(targetDistance)?ballPhysics.passSpeed(targetDistance):config.passImpulse;
    G.restarting=false;G.kl=.08;p.cd=config.kickCooldown;
    const ability=type==='s'?p.attributes?.shooting:p.attributes?.passing,factor=clamp((ability??70)/70,.8,1.2);
-   ball.vx=ux*power*factor;ball.vy=uy*power*factor;
+   // Retain a bounded contribution of incoming normal/tangential momentum.
+   // This is one contact impulse, not an accumulating acceleration while held.
+   const target=power*factor,normal=ball.vx*ux+ball.vy*uy,tangent=-ball.vx*uy+ball.vy*ux;
+   const outgoing=target+clamp(normal*config.kickMomentum,-target*config.kickMomentum,target*config.kickMomentum);
+   const side=clamp(tangent*config.kickTangentRetention,-target*config.kickTangentLimit,target*config.kickTangentLimit);
+   ball.vx=ux*outgoing-uy*side;ball.vy=uy*outgoing+ux*side;
    const speed=Math.hypot(ball.vx,ball.vy);if(speed>config.ballMaxSpeed){ball.vx*=config.ballMaxSpeed/speed;ball.vy*=config.ballMaxSpeed/speed;}ball.kickedBy=p.id;
    touch(p);effects.kick?.(p,type);
    const col=p.team?'#ff2d87':'#c8ff2e';effects.burst?.(ball.x,ball.y,type==='s'?10:6,[col,'#fff'],type==='s'?220:120,.3);
@@ -76,7 +77,8 @@
     movement.integrate(p,i,dt,sp);p.cd-=dt;p.st=1;
     for(const type of ['shoot','pass']){
      const edge=i[type]&&!p[type+'Held']||Number.isSafeInteger(i[type+'Seq'])&&i[type+'Seq']>(p[type+'Seq']||0);
-     if(!blocked&&(edge||i[type]))p[type+'Buffer']=config.kickBuffer;
+     // Bots schedule autonomous attempts; human buttons are strictly edge-triggered.
+     if(!blocked&&(edge||p.ctrl==='ai'&&i[type]))p[type+'Buffer']=config.kickBuffer;
      p[type+'Held']=!!i[type];if(Number.isSafeInteger(i[type+'Seq']))p[type+'Seq']=i[type+'Seq'];
     }
     if(p.cd<=0&&(inReach||interaction.contains(p,ball,view))&&(p.shootBuffer>0||p.passBuffer>0))actions.push({p,type:p.shootBuffer>0?'s':'p',aim:i.aim,origin:inReach?previous.get(p.id):p});

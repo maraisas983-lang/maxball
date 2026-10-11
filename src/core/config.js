@@ -11,7 +11,8 @@
    ballFriction:.65,ballRollingResistance:12,
    wallRestitution:.65,postRestitution:.48,postRadius:6,
    contactRestitution:.22,contactMaxPushSpeed:170,contactResponse:24,contactIterations:8,
-   kickCooldown:.18,kickReach:1,kickFrontCos:.5,kickBuffer:.12
+   kickCooldown:.18,kickReach:1,kickBuffer:.12,
+   kickMomentum:.1,kickTangentRetention:.2,kickTangentLimit:.15
   }),
   field:Object.freeze({areaDepth:200,areaPadding:100,centerRadius:105}),
   input:Object.freeze({deadzone:.08}),
