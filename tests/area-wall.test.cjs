@@ -2,8 +2,8 @@ const test=require('node:test'),assert=require('node:assert/strict');
 const cfg=require('../src/core/config.js').physics,interaction=require('../src/physics/interaction.js');
 const {moveBall,rolling}=require('../src/physics/ballPhysics.js'),{createPhysics}=require('../src/physics/playerPhysics.js');
 const {scene}=require('./gameplay-calibration.cjs'),protocol=require('../src/online/protocol.js');
-test('ball grows exactly 2% and action area diameter grows another 5% over the previous 21-unit radius',()=>{
- assert.ok(Math.abs(cfg.ballRadius/(20*.42)-1.02)<1e-12);
+test('ball grows another 6% and action area keeps the previous 22.05-unit radius',()=>{
+ assert.ok(Math.abs(cfg.ballRadius/(20*.42*1.02)-1.06)<1e-12);
  assert.ok(Math.abs(interaction.areaRadius()/21-1.05)<1e-12);
  const s=scene(),p=s.P[0],r=interaction.areaRadius()+s.BR;
  s.ball.x=p.x+r-.000001;assert.ok(interaction.contains(p,s.ball,s));

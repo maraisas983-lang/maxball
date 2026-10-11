@@ -1,0 +1,39 @@
+{
+  "results": [
+    {
+      "control": "touch",
+      "gestureDelayMs": 150,
+      "passes": 1,
+      "shots": 1,
+      "vx": 376.0551726977522,
+      "vy": 0,
+      "cooldown": 0.16333333333333333,
+      "distance": 81.5503332502999,
+      "lastPlayer": "local-0-10",
+      "playerId": "local-0-10"
+    },
+    {
+      "control": "keyboard",
+      "gestureDelayMs": 150,
+      "passes": 1,
+      "shots": 1,
+      "vx": 376.2617667987123,
+      "vy": 0,
+      "cooldown": 0.16333333333333333,
+      "distance": 77.73714912289188,
+      "lastPlayer": "local-0-10",
+      "playerId": "local-0-10"
+    }
+  ],
+  "touchTimes": [
+    {
+      "id": "bP",
+      "at": 2954.199999809265
+    },
+    {
+      "id": "bS",
+      "at": 3094.399999856949
+    }
+  ],
+  "errors": []
+}

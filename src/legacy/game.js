@@ -456,7 +456,7 @@ $('#pcp').onclick=()=>{try{navigator.clipboard.writeText(save.fid)}catch(e){}toa
 $('#lnm').onclick=()=>{save.num=save.num<=1?99:save.num-1;$('#lnv').textContent=save.num;if(LK)LK.me.num=save.num;persist()};
 $('#lnp').onclick=()=>{save.num=save.num>=99?1:save.num+1;$('#lnv').textContent=save.num;if(LK)LK.me.num=save.num;persist()};
 $('#lnok').onclick=()=>$('#lnum').classList.remove('on');
-document.querySelectorAll('.emo button').forEach(b=>b.onclick=()=>{if(!LK)return;LK.me.say=b.textContent;LK.me.sayT=3;const o=LK.bots[Math.random()*LK.bots.length|0];if(o)setTimeout(()=>{o.say=['👏','🔥','😂','👍'][Math.random()*4|0];o.sayT=3},700)});
+$('#legacy-emote-toggle').onclick=()=>{if(!LK)return;window.MaxballSocial?.openEmotes($('#lock'),emoji=>{LK.me.say=emoji;LK.me.sayT=3;});};
 function rFr(){$('#fid').textContent=save.fid;const l=$('#frl');l.innerHTML='';if(!save.fr.length){l.textContent='Nenhum amigo ainda. Adicione pelo nome ou código.';return}
  save.fr.forEach((f,i)=>{const d=document.createElement('div');d.className='fr';const a=document.createElement('span');a.textContent=f;const m=document.createElement('small');m.textContent='Offline';const b=document.createElement('button');b.className='chip';b.textContent='Remover';b.onclick=()=>{save.fr.splice(i,1);persist();rFr()};d.append(a,m,b);l.append(d)})}
 function fAdd(){const i=$('#fin'),v=i.value.trim();if(v.length<2)return toast('Digite pelo menos 2 caracteres');if(save.fr.some(f=>f.toLowerCase()==v.toLowerCase()))return toast('Já está na lista');if(save.fr.length>=50)return toast('Lista cheia');save.fr.push(v);i.value='';persist();rFr();toast('Amigo adicionado')}

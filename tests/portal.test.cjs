@@ -58,7 +58,7 @@ test('account UI creates career, purchases/equips, renders admin and plays a ser
  await until(()=>window.document.querySelector('#game').classList.contains('on'),'live match');
  await until(()=>window.MaxballGame.input()!==null,'remote controls');
  const room=[...app.rooms.rooms.values()][0];assert.equal(room.kind,'CAREER');
- window.document.dispatchEvent(new window.KeyboardEvent('keydown',{code:'KeyT',bubbles:true}));await until(()=>window.document.querySelectorAll('.emote-bar button').length===4,'in-game chat and equipped slots');
+ window.document.dispatchEvent(new window.KeyboardEvent('keydown',{code:'KeyT',bubbles:true}));await until(()=>window.document.querySelector('.match-chat input'),'bottom in-game chat');assert.equal(window.document.querySelector('.game-chat .emote-bar'),null);assert.ok(window.document.querySelector('#game-emote-toggle'));
  const chat=window.document.querySelector('.game-chat');chat.querySelector('input').value='<img src=x onerror=alert(1)>';chat.querySelector('form').dispatchEvent(new window.Event('submit',{bubbles:true,cancelable:true}));await until(()=>chat.querySelector('.chat-history').textContent.includes('<img src=x onerror=alert(1)>'),'server chat delivered');assert.equal(chat.querySelector('.chat-history img'),null);
  window.dispatchEvent(new window.KeyboardEvent('keydown',{code:'KeyW',bubbles:true}));assert.equal(window.MaxballGame.input().x,0);assert.equal(window.MaxballGame.input().y,0);window.document.dispatchEvent(new window.KeyboardEvent('keydown',{code:'Escape',bubbles:true}));assert.equal(window.document.querySelector('.game-chat'),null);assert.equal(window.document.querySelector('#game.on')!==null,true);
  // Advance the authoritative clock to completion; the client never submits a result.

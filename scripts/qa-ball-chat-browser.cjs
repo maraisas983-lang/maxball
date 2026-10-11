@@ -1,0 +1,22 @@
+const {chromium}=require('../.work/browser/node_modules/playwright'),{createApp}=require('../server/app.cjs'),{once}=require('node:events'),assert=require('node:assert/strict'),fs=require('node:fs');
+(async()=>{
+ const origin='http://127.0.0.1:4422',out='docs/qa-1.0.13',app=createApp({databasePath:':memory:',origin,logger:{warn(){},error:console.error}});let browser;fs.mkdirSync(out,{recursive:true});
+ try{
+  const registered=await app.auth.register({username:'chat_preview',password:'preview-password-123'}),user=registered.user;app.db.transaction(()=>app.economy.change(user.id,100,'ADMIN_GRANT','preview','preview'));app.economy.purchase(user.id,{itemId:'emote-1',requestId:'preview-emote'});await app.rooms.create(user,{name:'Preview',n:1,time:600});
+  app.server.listen(4422,'127.0.0.1');await once(app.server,'listening');browser=await chromium.launch({headless:true,executablePath:process.env.MAXBALL_BROWSER||'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',args:['--disable-gpu','--renderer-process-limit=1','--js-flags=--max-old-space-size=96']});
+  const context=await browser.newContext({viewport:{width:740,height:360},hasTouch:true});await context.addCookies([{name:'maxball_session',value:registered.token,url:origin}]);const page=await context.newPage(),errors=[],results=[];page.on('pageerror',e=>errors.push(e.message));await page.goto(origin);await page.waitForFunction(()=>window.MaxballGame);
+  await page.evaluate(async()=>{await MaxballPortal.refreshAccount();MaxballGame.startLocal('train',{n:1});const s=MaxballGame.state();s.G.phase='play';s.G.restarting=false;});
+  await page.locator('#game-chat-toggle').click();await page.locator('.match-chat input').fill('Bola maior, jogo fluido');await page.locator('.match-chat button[type=submit]').click();await page.waitForFunction(()=>document.querySelector('.chat-history').textContent.includes('Bola maior, jogo fluido'));
+  assert.equal(await page.locator('.game-chat .emote-bar').count(),0);await page.locator('[aria-label="Fechar chat"]').click();
+  for(const viewport of [{width:740,height:360},{width:915,height:412},{width:568,height:320},{width:1280,height:720}]){
+   await page.setViewportSize(viewport);await page.waitForTimeout(200);const rect=await page.locator('#match-social-dock').boundingBox();assert.ok(rect.y>viewport.height*.8);assert.ok(rect.x>=0&&rect.x+rect.width<=viewport.width+.1);assert.ok(rect.y+rect.height<=viewport.height+.1);
+   for(const id of ['#joy','#bP','#bS']){const c=await page.locator(id).boundingBox();if(c)assert.ok(rect.x+rect.width<=c.x||c.x+c.width<=rect.x||rect.y+rect.height<=c.y||c.y+c.height<=rect.y,'chat dock overlaps '+id+' at '+viewport.width);}
+   const size=await page.evaluate(()=>({radius:MaxballConfig.physics.ballRadius,mass:MaxballConfig.physics.ballMass,friction:MaxballConfig.physics.ballFriction,dbWindow:MaxballConfig.physics.dbWindow,preview:document.querySelector('.match-chat-preview').textContent}));assert.ok(Math.abs(size.radius-9.08208)<1e-9);assert.match(size.preview,/Bola maior/);results.push({viewport,dock:rect,...size});await page.screenshot({path:out+'/bottom-chat-'+viewport.width+'.png'});
+  }
+  await page.setViewportSize({width:740,height:360});await page.locator('#game-emote-toggle').click();await page.locator('.emote-grid button[aria-label="Fogo"]').waitFor();assert.equal(await page.locator('.emote-grid button').count(),2);assert.equal(await page.locator('.game-chat').count(),0);await page.screenshot({path:out+'/owned-emotes-mobile.png'});await page.locator('.emote-grid button[aria-label="Fogo"]').click();await page.waitForFunction(()=>!document.querySelector('#game-emote-picker'));
+  // Exercise the real server route too: the owned fire emote is not equipped.
+  await page.evaluate(async()=>{await MaxballPortal.api('/emotes/use','POST',{itemId:'emote-1'});});
+  await page.locator('#game-chat-toggle').click();await page.screenshot({path:out+'/chat-open-mobile.png'});assert.equal(await page.locator('.game-chat .emote-grid').count(),0);await page.keyboard.press('Escape');assert.equal(await page.locator('.game-chat').count(),0);
+  assert.deepEqual(errors,[]);fs.writeFileSync(out+'/browser.json',JSON.stringify({results,ownedEmotes:2,chatHasEmotes:false,serverOwnedEmoteAccepted:true,errors},null,2)+'\n');console.log('PASS bottom chat at four viewport sizes, separate owned emotes and authenticated server use');
+ }finally{await browser?.close();await app.close();}
+})().catch(e=>{console.error(e);process.exitCode=1;});

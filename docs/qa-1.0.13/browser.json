@@ -1,0 +1,76 @@
+{
+  "results": [
+    {
+      "viewport": {
+        "width": 740,
+        "height": 360
+      },
+      "dock": {
+        "x": 214.6015625,
+        "y": 319,
+        "width": 310.796875,
+        "height": 36
+      },
+      "radius": 9.082080000000001,
+      "mass": 1.9080000000000001,
+      "friction": 0.6,
+      "dbWindow": 0.18,
+      "preview": "chat_preview: Bola maior, jogo fluido"
+    },
+    {
+      "viewport": {
+        "width": 915,
+        "height": 412
+      },
+      "dock": {
+        "x": 265.3515625,
+        "y": 371,
+        "width": 384.296875,
+        "height": 36
+      },
+      "radius": 9.082080000000001,
+      "mass": 1.9080000000000001,
+      "friction": 0.6,
+      "dbWindow": 0.18,
+      "preview": "chat_preview: Bola maior, jogo fluido"
+    },
+    {
+      "viewport": {
+        "width": 568,
+        "height": 320
+      },
+      "dock": {
+        "x": 170.40625,
+        "y": 279,
+        "width": 227.1875,
+        "height": 36
+      },
+      "radius": 9.082080000000001,
+      "mass": 1.9080000000000001,
+      "friction": 0.6,
+      "dbWindow": 0.18,
+      "preview": "chat_preview: Bola maior, jogo fluido"
+    },
+    {
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "dock": {
+        "x": 371.203125,
+        "y": 679,
+        "width": 537.59375,
+        "height": 36
+      },
+      "radius": 9.082080000000001,
+      "mass": 1.9080000000000001,
+      "friction": 0.6,
+      "dbWindow": 0.18,
+      "preview": "chat_preview: Bola maior, jogo fluido"
+    }
+  ],
+  "ownedEmotes": 2,
+  "chatHasEmotes": false,
+  "serverOwnedEmoteAccepted": true,
+  "errors": []
+}

@@ -12,7 +12,15 @@ function createSocial(db,rooms,auth){
   const current=rooms.current(user.id);rooms.socialBroadcast(current?.id||'lobby',{type:'chat',message:row},recipient=>(channel!=='coaches'||current.coaches.some(p=>p.id===recipient))&&!db.one('SELECT 1 FROM chat_mutes WHERE user_id=? AND target_id=?',recipient,user.id));return row;
  }
  function mute(user,body){object(body,['playerId','muted']);const target=text(body.playerId,'Jogador',1,100);if(typeof body.muted!=='boolean'||target===user.id||!db.one('SELECT 1 FROM users WHERE id=?',target))fail('MUTE','Jogador inválido.');if(body.muted)db.run('INSERT OR IGNORE INTO chat_mutes VALUES(?,?)',user.id,target);else db.run('DELETE FROM chat_mutes WHERE user_id=? AND target_id=?',user.id,target);return history(user.id);}
- function use(user,body){object(body,['slot']);const slot=integer(body.slot,'Slot',0,3),room=rooms.current(user.id);if(!room||!room.players.some(p=>p.id===user.id))fail('EMOTE_ROOM','Entre em uma equipe para usar emotes.',409);const item=slots(user.id).find(e=>e.slot===slot);if(!item)fail('EMOTE','Equipe um emote nesse slot.',409);const now=Date.now();if(now-(lastEmote.get(user.id)||0)<3000)fail('EMOTE_RATE','Aguarde para usar outro emote.',429);lastEmote.set(user.id,now);if(lastEmote.size>5000)for(const [uid,time] of lastEmote)if(now-time>60000)lastEmote.delete(uid);const event={type:'emote',room:room.id,playerId:user.id,emoji:item.emoji,expiresAt:now+2500};rooms.socialBroadcast(room.id,event);return {ok:true};}
+ function use(user,body){
+  object(body,['slot','itemId']);if(body.slot!==undefined&&body.itemId!==undefined)fail('EMOTE','Escolha um emote.');
+  const room=rooms.current(user.id);if(!room||!room.players.some(p=>p.id===user.id))fail('EMOTE_ROOM','Entre em uma equipe para usar emotes.',409);
+  let item;
+  if(body.itemId!==undefined){const itemId=text(body.itemId,'Emote',1,100);item=db.one("SELECT s.id,s.asset_index FROM inventory i JOIN shop_items s ON s.id=i.item_id WHERE i.user_id=? AND s.id=? AND s.category='EMOTE'",user.id,itemId);if(!item)fail('EMOTE_OWNERSHIP','Você não possui esse emote.',403);item.emoji=emotes[item.asset_index]?.emoji;}
+  else item=slots(user.id).find(e=>e.slot===integer(body.slot,'Slot',0,3));
+  if(!item?.emoji)fail('EMOTE','Equipe um emote nesse slot.',409);
+  const now=Date.now();if(now-(lastEmote.get(user.id)||0)<3000)fail('EMOTE_RATE','Aguarde para usar outro emote.',429);lastEmote.set(user.id,now);if(lastEmote.size>5000)for(const [uid,time] of lastEmote)if(now-time>60000)lastEmote.delete(uid);const event={type:'emote',room:room.id,playerId:user.id,emoji:item.emoji,expiresAt:now+2500};rooms.socialBroadcast(room.id,event);return {ok:true};
+ }
  function system(room,message){const row={id:id(),room_id:room,user_id:null,name:'Sistema',body:message,kind:'SYSTEM',created_at:Date.now()};db.run('INSERT INTO chat_messages VALUES(?,?,?,?,?,?,?)',...Object.values(row));rooms.socialBroadcast(room,{type:'chat',message:row});}
  rooms.setSocial?.(system);
  return {history,send,mute,use,slots};
