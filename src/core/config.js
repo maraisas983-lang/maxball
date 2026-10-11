@@ -7,13 +7,15 @@
    playerAcceleration:36,playerTurnResponse:48,inputEpsilon:.01,
    playerOutsideMargin:70,
    // Measured in field units/second; calibrated against the smallest pitch.
-   shotImpulse:360,passImpulse:280,passMinSpeed:220,passMaxSpeed:320,passArrivalSpeed:180,ballMaxSpeed:440,
-   ballFriction:.65,ballRollingResistance:8,
+   shotImpulse:360,passImpulse:250,passMinSpeed:200,passMaxSpeed:290,passArrivalSpeed:160,ballMaxSpeed:440,
+   ballFriction:.60,ballRollingResistance:9,
    wallRestitution:.45,postRestitution:.32,postRadius:6,
    contactRestitution:.12,contactBounceThreshold:24,contactSlop:.0001,
    contactIterations:32,contactVelocityIterations:48,
    kickCooldown:.18,kickGlobalCooldown:.08,kickReach:1,kickBuffer:.12,
-   dbWindow:.1,dbReach:30,
+   // Covers a human pass-shot gesture and its next fixed simulation tick.
+   // Only this player's uninterrupted pass can use the follow-through reach.
+   dbWindow:.18,dbReach:60,
    kickMomentum:.1,kickTangentRetention:.2,kickTangentLimit:.15
   }),
   field:Object.freeze({areaDepth:200,areaPadding:100,centerRadius:105}),

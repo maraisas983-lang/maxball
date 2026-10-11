@@ -38,18 +38,20 @@ test('exact free roll agrees across timesteps, stops continuously and shares the
  const slow=rolling(.1,1);assert.equal(slow.speed,0);assert.ok(slow.distance>0&&slow.distance<.01);
 });
 
-test('smoother rolling retains more momentum at low speed and after a pass without increasing launch power',()=>{
- const former=speed=>{const drag=-Math.log(.55),offset=12/drag;return Math.max(0,(speed+offset)*.55-offset);};
+test('controlled rolling remains gradual, below 1.0.8 travel and above the old abrupt stop',()=>{
+ const previous=(speed,dt)=>{const drag=-Math.log(.65),offset=8/drag,t=Math.min(dt,Math.log1p(speed/offset)/drag);return {speed:Math.max(0,(speed+offset)*Math.exp(-drag*t)-offset),distance:(speed+offset)*(-Math.expm1(-drag*t))/drag-offset*t};};
  for(const speed of [40,cfg.passImpulse,cfg.shotImpulse]){
-  assert.equal(rolling(speed,0).speed,speed);
-  assert.ok(rolling(speed,1).speed>former(speed)*1.2);
-  assert.ok(rolling(speed,1).speed<speed);
+  assert.equal(rolling(speed,0).speed,speed);assert.ok(rolling(speed,1).speed>0);
+  assert.ok(rolling(speed,1).speed<previous(speed,1).speed);
+  assert.ok(rolling(speed,60).distance<previous(speed,60).distance);
   assert.equal(rolling(speed,60).speed,0);
  }
- assert.equal(cfg.playerMaxSpeed,150);assert.equal(cfg.passImpulse,280);assert.equal(cfg.shotImpulse,360);assert.equal(cfg.dbWindow,.1);
+ assert.equal(cfg.playerMaxSpeed,150);assert.equal(cfg.passImpulse,250);assert.equal(cfg.shotImpulse,360);
+ const slow=rolling(40,60);assert.ok(slow.distance>30&&slow.distance<40);
  const s=scene();s.P=[];s.ball.vx=40;const start=s.ball.x;for(let i=0;i<180;i++)moveBall(s,1/60);
- assert.ok(s.ball.x-start>43&&s.ball.x-start<44);assert.equal(s.ball.vx,0);
+ assert.ok(Math.abs(s.ball.x-start-slow.distance)<1e-8);assert.equal(s.ball.vx,0);
 });
+
 test('real joystick mapping and desktop keyboard share screen/world axes in all eight directions',()=>{
  const h=gameHarness();h.api.start('train');const p=h.api.state.P[0],host=new Target(),node=new Element('div','joy'),knob=new Element(),value={x:0,y:0};bindJoystick(node,knob,value,host);
  for(let i=0;i<8;i++){const x=Math.cos(i*Math.PI/4),y=Math.sin(i*Math.PI/4);node.onpointerdown({pointerId:1,clientX:500+x*320,clientY:280+y*320});
