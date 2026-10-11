@@ -1,0 +1,41 @@
+{
+  "note": "Headless Chromium, touch viewport 740x360, DPR 3; synthetic WebSocket delay 150 ms in each direction. Not a physical device or WAN FPS measurement.",
+  "quality": "medium",
+  "pixelRatio": 1.5,
+  "canvas": {
+    "width": 1110
+  },
+  "ping": 320,
+  "meter": {
+    "fps": 60.00600060006,
+    "minFps": 1.1999040076793854,
+    "averageFps": 47.23647995239157,
+    "frameMs": 16.665000000000003,
+    "p95FrameMs": 16.80000000000109,
+    "cost": {
+      "physics": {
+        "meanMs": 0.30686498834012027,
+        "updatesPerSecond": 54.179374643556734
+      },
+      "render": {
+        "meanMs": 1.0157480221095048,
+        "updatesPerSecond": 47.23647995239157
+      },
+      "network": {
+        "meanMs": 4.700000047683716,
+        "updatesPerSecond": 0.1239802623422351
+      },
+      "ai": {
+        "meanMs": 0.4600000164725564,
+        "updatesPerSecond": 6.81891442882293
+      }
+    },
+    "entities": 2,
+    "particles": 0,
+    "collisionsPerSecond": 0,
+    "managedObjectsPerSecond": 0,
+    "heapBytes": 5167953,
+    "listeners": 1
+  },
+  "errors": []
+}

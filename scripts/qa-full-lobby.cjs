@@ -1,6 +1,6 @@
 const {chromium}=require('../.work/browser/node_modules/playwright'),{createApp}=require('../server/app.cjs'),{once}=require('node:events'),assert=require('node:assert/strict'),fs=require('node:fs');
 (async()=>{
- const origin='http://127.0.0.1:4423',out='docs/qa-1.0.14',app=createApp({databasePath:':memory:',origin,logger:{warn(){},error:console.error}});let browser;fs.mkdirSync(out,{recursive:true});
+ const origin='http://127.0.0.1:4423',out=process.env.MAXBALL_QA_OUTPUT||'docs/qa-1.0.14',app=createApp({databasePath:':memory:',origin,logger:{warn(){},error:console.error}});let browser;fs.mkdirSync(out,{recursive:true});
  try{
   const a=await app.auth.register({username:'lobby_mobile',password:'mobile-preview-123'});app.db.run("UPDATE profiles SET display_name='JogadorMax12345',shirt_name='JogadorMax12345' WHERE user_id=?",a.user.id);app.db.run('UPDATE wallets SET balance=999999999 WHERE user_id=?',a.user.id);
   app.server.listen(4423,'127.0.0.1');await once(app.server,'listening');browser=await chromium.launch({headless:true,executablePath:process.env.MAXBALL_BROWSER||'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',args:['--disable-gpu','--renderer-process-limit=1','--js-flags=--max-old-space-size=96']});

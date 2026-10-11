@@ -105,3 +105,10 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
  #home .home-wallet button:not(:first-child){flex:none;width:28px;padding:0;font-size:20px}
 }
 @media(pointer:fine){#home-fullscreen{display:none}}
+
+/* Compact the menus only; the viewport and touch controls keep their size. */
+@media(pointer:coarse){
+ #home .home-top,#home .home-brand,#home .home-side,#home .home-features,#home .home-player,#home .home-bottom,#home .home-footer,#portal>.portal-header,#portal>#portal-nav,#portal>#portal-content,#portal>#portal-status{zoom:.92}
+ #home .home-top button,#home .home-side button,#home .home-bottom button{box-shadow:none}
+ #home .home-feature{box-shadow:none}
+}

@@ -1,0 +1,3473 @@
+{
+  "results": [
+    {
+      "width": 568,
+      "height": 240,
+      "screen": {
+        "x": 0,
+        "y": 0,
+        "right": 568,
+        "bottom": 240,
+        "width": 568,
+        "height": 240
+      },
+      "scrollWidth": 568,
+      "scrollHeight": 240,
+      "clientHeight": 240,
+      "groups": [
+        {
+          "selector": ".home-profile",
+          "x": 10,
+          "y": 6.921875,
+          "right": 146.734375,
+          "bottom": 46.09375,
+          "width": 136.734375,
+          "height": 39.171875
+        },
+        {
+          "selector": ".home-wallet",
+          "x": 400.203125,
+          "y": 12.71875,
+          "right": 557.984375,
+          "bottom": 40.3125,
+          "width": 157.78125,
+          "height": 27.59375
+        },
+        {
+          "selector": ".home-brand",
+          "x": 243.96875,
+          "y": 8.125,
+          "right": 303.0625,
+          "bottom": 44.890625,
+          "width": 59.09375,
+          "height": 36.765625
+        },
+        {
+          "selector": ".home-side",
+          "x": 10,
+          "y": 53.03125,
+          "right": 146.234375,
+          "bottom": 162.734375,
+          "width": 136.234375,
+          "height": 109.703125
+        },
+        {
+          "selector": ".home-features",
+          "x": 400.796875,
+          "y": 53.03125,
+          "right": 557.984375,
+          "bottom": 162.734375,
+          "width": 157.1875,
+          "height": 109.703125
+        },
+        {
+          "selector": ".home-player",
+          "x": 218.5,
+          "y": 68.875,
+          "right": 328.515625,
+          "bottom": 146.875,
+          "width": 110.015625,
+          "height": 78
+        },
+        {
+          "selector": ".home-bottom",
+          "x": 10,
+          "y": 168.734375,
+          "right": 557.984375,
+          "bottom": 205.203125,
+          "width": 547.984375,
+          "height": 36.46875
+        },
+        {
+          "selector": ".home-footer",
+          "x": 10,
+          "y": 211.203125,
+          "right": 557.984375,
+          "bottom": 234,
+          "width": 547.984375,
+          "height": 22.796875
+        }
+      ],
+      "buttons": [
+        {
+          "label": "1JogadorMax12345MiniBall · 0 troféus0 / 250",
+          "x": 10,
+          "y": 6.921875,
+          "right": 146.734375,
+          "bottom": 46.09375,
+          "width": 136.734375,
+          "height": 39.171875
+        },
+        {
+          "label": "◆999999999+",
+          "x": 400.203125,
+          "y": 12.71875,
+          "right": 502.828125,
+          "bottom": 40.3125,
+          "width": 102.625,
+          "height": 27.59375
+        },
+        {
+          "label": "⚙",
+          "x": 506.5,
+          "y": 12.71875,
+          "right": 530.40625,
+          "bottom": 40.3125,
+          "width": 23.90625,
+          "height": 27.59375
+        },
+        {
+          "label": "⛶",
+          "x": 534.078125,
+          "y": 12.71875,
+          "right": 557.984375,
+          "bottom": 40.3125,
+          "width": 23.90625,
+          "height": 27.59375
+        },
+        {
+          "label": "♜ RANKING ›",
+          "x": 10,
+          "y": 53.03125,
+          "right": 76.28125,
+          "bottom": 106.046875,
+          "width": 66.28125,
+          "height": 53.015625
+        },
+        {
+          "label": "♟ SUPORTE ›",
+          "x": 79.953125,
+          "y": 53.03125,
+          "right": 146.234375,
+          "bottom": 106.046875,
+          "width": 66.28125,
+          "height": 53.015625
+        },
+        {
+          "label": "☷ CONTROLES ›",
+          "x": 10,
+          "y": 109.71875,
+          "right": 76.28125,
+          "bottom": 162.734375,
+          "width": 66.28125,
+          "height": 53.015625
+        },
+        {
+          "label": "★ GALERIA ›",
+          "x": 79.953125,
+          "y": 109.71875,
+          "right": 146.234375,
+          "bottom": 162.734375,
+          "width": 66.28125,
+          "height": 53.015625
+        },
+        {
+          "label": "‹",
+          "x": 218.5,
+          "y": 96.828125,
+          "right": 240.578125,
+          "bottom": 118.90625,
+          "width": 22.078125,
+          "height": 22.078125
+        },
+        {
+          "label": "›",
+          "x": 306.4375,
+          "y": 96.828125,
+          "right": 328.515625,
+          "bottom": 118.90625,
+          "width": 22.078125,
+          "height": 22.078125
+        },
+        {
+          "label": "▰LOJA",
+          "x": 10,
+          "y": 168.734375,
+          "right": 97.5,
+          "bottom": 205.203125,
+          "width": 87.5,
+          "height": 36.46875
+        },
+        {
+          "label": "▣INVENTÁRIO",
+          "x": 102.09375,
+          "y": 168.734375,
+          "right": 189.59375,
+          "bottom": 205.203125,
+          "width": 87.5,
+          "height": 36.46875
+        },
+        {
+          "label": "⬡CLUBES",
+          "x": 194.1875,
+          "y": 168.734375,
+          "right": 281.6875,
+          "bottom": 205.203125,
+          "width": 87.5,
+          "height": 36.46875
+        },
+        {
+          "label": "▥MODO CARREIRA",
+          "x": 286.28125,
+          "y": 168.734375,
+          "right": 373.78125,
+          "bottom": 205.203125,
+          "width": 87.5,
+          "height": 36.46875
+        },
+        {
+          "label": "♟SALA PERSONALIZADA",
+          "x": 378.375,
+          "y": 168.734375,
+          "right": 465.875,
+          "bottom": 205.203125,
+          "width": 87.5,
+          "height": 36.46875
+        },
+        {
+          "label": "▶JOGAR ›",
+          "x": 470.46875,
+          "y": 168.734375,
+          "right": 557.96875,
+          "bottom": 205.203125,
+          "width": 87.5,
+          "height": 36.46875
+        },
+        {
+          "label": "Chat",
+          "x": 10,
+          "y": 213.921875,
+          "right": 29.921875,
+          "bottom": 231.265625,
+          "width": 19.921875,
+          "height": 17.34375
+        },
+        {
+          "label": "Privacidade",
+          "x": 471.40625,
+          "y": 213.921875,
+          "right": 520.25,
+          "bottom": 231.265625,
+          "width": 48.84375,
+          "height": 17.34375
+        },
+        {
+          "label": "Termos",
+          "x": 527.609375,
+          "y": 213.921875,
+          "right": 557.984375,
+          "bottom": 231.265625,
+          "width": 30.375,
+          "height": 17.34375
+        },
+        {
+          "label": "★RECOMPENSASMaxPass50 níveis de recompensas. Conquiste seu estilo em campo.›",
+          "x": 400.796875,
+          "y": 53.03125,
+          "right": 557.984375,
+          "bottom": 86.53125,
+          "width": 157.1875,
+          "height": 33.5
+        },
+        {
+          "label": "🏆COMPETIÇÃOCampeonatosInscreva seu clube e dispute as rodadas.›",
+          "x": 400.796875,
+          "y": 91.125,
+          "right": 557.984375,
+          "bottom": 124.625,
+          "width": 157.1875,
+          "height": 33.5
+        },
+        {
+          "label": "✦SEU ESTILOCriar skinsMonte seu uniforme, cores e identidade.›",
+          "x": 400.796875,
+          "y": 129.21875,
+          "right": 557.984375,
+          "bottom": 162.71875,
+          "width": 157.1875,
+          "height": 33.5
+        }
+      ]
+    },
+    {
+      "width": 640,
+      "height": 280,
+      "screen": {
+        "x": 0,
+        "y": 0,
+        "right": 640,
+        "bottom": 280,
+        "width": 640,
+        "height": 280
+      },
+      "scrollWidth": 640,
+      "scrollHeight": 280,
+      "clientHeight": 280,
+      "groups": [
+        {
+          "selector": ".home-profile",
+          "x": 10,
+          "y": 10.53125,
+          "right": 165.453125,
+          "bottom": 49.703125,
+          "width": 155.453125,
+          "height": 39.171875
+        },
+        {
+          "selector": ".home-wallet",
+          "x": 450.609375,
+          "y": 15.953125,
+          "right": 629.984375,
+          "bottom": 44.28125,
+          "width": 179.375,
+          "height": 28.328125
+        },
+        {
+          "selector": ".home-brand",
+          "x": 278.515625,
+          "y": 10.265625,
+          "right": 337.609375,
+          "bottom": 49.96875,
+          "width": 59.09375,
+          "height": 39.703125
+        },
+        {
+          "selector": ".home-side",
+          "x": 10,
+          "y": 60.234375,
+          "right": 164.953125,
+          "bottom": 192.328125,
+          "width": 154.953125,
+          "height": 132.09375
+        },
+        {
+          "selector": ".home-features",
+          "x": 451.1875,
+          "y": 60.234375,
+          "right": 630,
+          "bottom": 192.328125,
+          "width": 178.8125,
+          "height": 132.09375
+        },
+        {
+          "selector": ".home-player",
+          "x": 248.640625,
+          "y": 82.859375,
+          "right": 367.484375,
+          "bottom": 169.6875,
+          "width": 118.84375,
+          "height": 86.828125
+        },
+        {
+          "selector": ".home-bottom",
+          "x": 10,
+          "y": 198.328125,
+          "right": 630,
+          "bottom": 241.203125,
+          "width": 620,
+          "height": 42.875
+        },
+        {
+          "selector": ".home-footer",
+          "x": 10,
+          "y": 247.203125,
+          "right": 630,
+          "bottom": 274,
+          "width": 620,
+          "height": 26.796875
+        }
+      ],
+      "buttons": [
+        {
+          "label": "1JogadorMax12345MiniBall · 0 troféus0 / 250",
+          "x": 10,
+          "y": 10.53125,
+          "right": 165.453125,
+          "bottom": 49.703125,
+          "width": 155.453125,
+          "height": 39.171875
+        },
+        {
+          "label": "◆999999999+",
+          "x": 450.609375,
+          "y": 15.953125,
+          "right": 574.828125,
+          "bottom": 44.28125,
+          "width": 124.21875,
+          "height": 28.328125
+        },
+        {
+          "label": "⚙",
+          "x": 578.5,
+          "y": 15.953125,
+          "right": 602.40625,
+          "bottom": 44.28125,
+          "width": 23.90625,
+          "height": 28.328125
+        },
+        {
+          "label": "⛶",
+          "x": 606.078125,
+          "y": 15.953125,
+          "right": 629.984375,
+          "bottom": 44.28125,
+          "width": 23.90625,
+          "height": 28.328125
+        },
+        {
+          "label": "♜ RANKING ›",
+          "x": 10,
+          "y": 60.234375,
+          "right": 85.640625,
+          "bottom": 124.4375,
+          "width": 75.640625,
+          "height": 64.203125
+        },
+        {
+          "label": "♟ SUPORTE ›",
+          "x": 89.3125,
+          "y": 60.234375,
+          "right": 164.953125,
+          "bottom": 124.4375,
+          "width": 75.640625,
+          "height": 64.203125
+        },
+        {
+          "label": "☷ CONTROLES ›",
+          "x": 10,
+          "y": 128.109375,
+          "right": 85.640625,
+          "bottom": 192.328125,
+          "width": 75.640625,
+          "height": 64.21875
+        },
+        {
+          "label": "★ GALERIA ›",
+          "x": 89.3125,
+          "y": 128.109375,
+          "right": 164.953125,
+          "bottom": 192.328125,
+          "width": 75.640625,
+          "height": 64.21875
+        },
+        {
+          "label": "‹",
+          "x": 248.640625,
+          "y": 115.234375,
+          "right": 270.71875,
+          "bottom": 137.3125,
+          "width": 22.078125,
+          "height": 22.078125
+        },
+        {
+          "label": "›",
+          "x": 345.40625,
+          "y": 115.234375,
+          "right": 367.484375,
+          "bottom": 137.3125,
+          "width": 22.078125,
+          "height": 22.078125
+        },
+        {
+          "label": "▰LOJA",
+          "x": 10,
+          "y": 198.328125,
+          "right": 109.5,
+          "bottom": 241.203125,
+          "width": 99.5,
+          "height": 42.875
+        },
+        {
+          "label": "▣INVENTÁRIO",
+          "x": 114.09375,
+          "y": 198.328125,
+          "right": 213.59375,
+          "bottom": 241.203125,
+          "width": 99.5,
+          "height": 42.875
+        },
+        {
+          "label": "⬡CLUBES",
+          "x": 218.1875,
+          "y": 198.328125,
+          "right": 317.703125,
+          "bottom": 241.203125,
+          "width": 99.515625,
+          "height": 42.875
+        },
+        {
+          "label": "▥MODO CARREIRA",
+          "x": 322.296875,
+          "y": 198.328125,
+          "right": 421.796875,
+          "bottom": 241.203125,
+          "width": 99.5,
+          "height": 42.875
+        },
+        {
+          "label": "♟SALA PERSONALIZADA",
+          "x": 426.390625,
+          "y": 198.328125,
+          "right": 525.890625,
+          "bottom": 241.203125,
+          "width": 99.5,
+          "height": 42.875
+        },
+        {
+          "label": "▶JOGAR ›",
+          "x": 530.484375,
+          "y": 198.328125,
+          "right": 630,
+          "bottom": 241.203125,
+          "width": 99.515625,
+          "height": 42.875
+        },
+        {
+          "label": "Chat",
+          "x": 10,
+          "y": 251.921875,
+          "right": 29.921875,
+          "bottom": 269.265625,
+          "width": 19.921875,
+          "height": 17.34375
+        },
+        {
+          "label": "Privacidade",
+          "x": 543.421875,
+          "y": 251.921875,
+          "right": 592.265625,
+          "bottom": 269.265625,
+          "width": 48.84375,
+          "height": 17.34375
+        },
+        {
+          "label": "Termos",
+          "x": 599.625,
+          "y": 251.921875,
+          "right": 630,
+          "bottom": 269.265625,
+          "width": 30.375,
+          "height": 17.34375
+        },
+        {
+          "label": "★RECOMPENSASMaxPass50 níveis de recompensas. Conquiste seu estilo em campo.›",
+          "x": 451.1875,
+          "y": 60.234375,
+          "right": 630,
+          "bottom": 101.203125,
+          "width": 178.8125,
+          "height": 40.96875
+        },
+        {
+          "label": "🏆COMPETIÇÃOCampeonatosInscreva seu clube e dispute as rodadas.›",
+          "x": 451.1875,
+          "y": 105.796875,
+          "right": 630,
+          "bottom": 146.765625,
+          "width": 178.8125,
+          "height": 40.96875
+        },
+        {
+          "label": "✦SEU ESTILOCriar skinsMonte seu uniforme, cores e identidade.›",
+          "x": 451.1875,
+          "y": 151.359375,
+          "right": 630,
+          "bottom": 192.328125,
+          "width": 178.8125,
+          "height": 40.96875
+        }
+      ]
+    },
+    {
+      "width": 568,
+      "height": 320,
+      "screen": {
+        "x": 0,
+        "y": 0,
+        "right": 568,
+        "bottom": 320,
+        "width": 568,
+        "height": 320
+      },
+      "scrollWidth": 568,
+      "scrollHeight": 320,
+      "clientHeight": 320,
+      "groups": [
+        {
+          "selector": ".home-profile",
+          "x": 10,
+          "y": 14.125,
+          "right": 146.734375,
+          "bottom": 53.296875,
+          "width": 136.734375,
+          "height": 39.171875
+        },
+        {
+          "selector": ".home-wallet",
+          "x": 400.203125,
+          "y": 17.53125,
+          "right": 557.984375,
+          "bottom": 49.90625,
+          "width": 157.78125,
+          "height": 32.375
+        },
+        {
+          "selector": ".home-brand",
+          "x": 243.96875,
+          "y": 12.203125,
+          "right": 303.0625,
+          "bottom": 55.21875,
+          "width": 59.09375,
+          "height": 43.015625
+        },
+        {
+          "selector": ".home-side",
+          "x": 10,
+          "y": 67.4375,
+          "right": 146.234375,
+          "bottom": 221.9375,
+          "width": 136.234375,
+          "height": 154.5
+        },
+        {
+          "selector": ".home-features",
+          "x": 400.796875,
+          "y": 67.4375,
+          "right": 557.984375,
+          "bottom": 221.9375,
+          "width": 157.1875,
+          "height": 154.5
+        },
+        {
+          "selector": ".home-player",
+          "x": 208.203125,
+          "y": 96.859375,
+          "right": 338.8125,
+          "bottom": 192.515625,
+          "width": 130.609375,
+          "height": 95.65625
+        },
+        {
+          "selector": ".home-bottom",
+          "x": 10,
+          "y": 227.9375,
+          "right": 557.984375,
+          "bottom": 277.203125,
+          "width": 547.984375,
+          "height": 49.265625
+        },
+        {
+          "selector": ".home-footer",
+          "x": 10,
+          "y": 283.203125,
+          "right": 557.984375,
+          "bottom": 314,
+          "width": 547.984375,
+          "height": 30.796875
+        }
+      ],
+      "buttons": [
+        {
+          "label": "1JogadorMax12345MiniBall · 0 troféus0 / 250",
+          "x": 10,
+          "y": 14.125,
+          "right": 146.734375,
+          "bottom": 53.296875,
+          "width": 136.734375,
+          "height": 39.171875
+        },
+        {
+          "label": "◆999999999+",
+          "x": 400.203125,
+          "y": 17.53125,
+          "right": 497.671875,
+          "bottom": 49.90625,
+          "width": 97.46875,
+          "height": 32.375
+        },
+        {
+          "label": "⚙",
+          "x": 501.34375,
+          "y": 17.53125,
+          "right": 527.828125,
+          "bottom": 49.90625,
+          "width": 26.484375,
+          "height": 32.375
+        },
+        {
+          "label": "⛶",
+          "x": 531.5,
+          "y": 17.53125,
+          "right": 557.984375,
+          "bottom": 49.90625,
+          "width": 26.484375,
+          "height": 32.375
+        },
+        {
+          "label": "♜ RANKING ›",
+          "x": 10,
+          "y": 67.4375,
+          "right": 146.234375,
+          "bottom": 103.296875,
+          "width": 136.234375,
+          "height": 35.859375
+        },
+        {
+          "label": "♟ SUPORTE ›",
+          "x": 10,
+          "y": 106.96875,
+          "right": 146.234375,
+          "bottom": 142.84375,
+          "width": 136.234375,
+          "height": 35.875
+        },
+        {
+          "label": "☷ CONTROLES ›",
+          "x": 10,
+          "y": 146.515625,
+          "right": 146.234375,
+          "bottom": 182.390625,
+          "width": 136.234375,
+          "height": 35.875
+        },
+        {
+          "label": "★ GALERIA ›",
+          "x": 10,
+          "y": 186.0625,
+          "right": 146.234375,
+          "bottom": 221.9375,
+          "width": 136.234375,
+          "height": 35.875
+        },
+        {
+          "label": "‹",
+          "x": 208.203125,
+          "y": 132.90625,
+          "right": 231.75,
+          "bottom": 156.453125,
+          "width": 23.546875,
+          "height": 23.546875
+        },
+        {
+          "label": "›",
+          "x": 315.265625,
+          "y": 132.90625,
+          "right": 338.8125,
+          "bottom": 156.453125,
+          "width": 23.546875,
+          "height": 23.546875
+        },
+        {
+          "label": "▰LOJA",
+          "x": 10,
+          "y": 227.9375,
+          "right": 97.5,
+          "bottom": 277.203125,
+          "width": 87.5,
+          "height": 49.265625
+        },
+        {
+          "label": "▣INVENTÁRIO",
+          "x": 102.09375,
+          "y": 227.9375,
+          "right": 189.59375,
+          "bottom": 277.203125,
+          "width": 87.5,
+          "height": 49.265625
+        },
+        {
+          "label": "⬡CLUBES",
+          "x": 194.1875,
+          "y": 227.9375,
+          "right": 281.6875,
+          "bottom": 277.203125,
+          "width": 87.5,
+          "height": 49.265625
+        },
+        {
+          "label": "▥MODO CARREIRA",
+          "x": 286.28125,
+          "y": 227.9375,
+          "right": 373.78125,
+          "bottom": 277.203125,
+          "width": 87.5,
+          "height": 49.265625
+        },
+        {
+          "label": "♟SALA PERSONALIZADA",
+          "x": 378.375,
+          "y": 227.9375,
+          "right": 465.875,
+          "bottom": 277.203125,
+          "width": 87.5,
+          "height": 49.265625
+        },
+        {
+          "label": "▶JOGAR ›",
+          "x": 470.46875,
+          "y": 227.9375,
+          "right": 557.96875,
+          "bottom": 277.203125,
+          "width": 87.5,
+          "height": 49.265625
+        },
+        {
+          "label": "Chat",
+          "x": 10,
+          "y": 289.921875,
+          "right": 29.921875,
+          "bottom": 307.265625,
+          "width": 19.921875,
+          "height": 17.34375
+        },
+        {
+          "label": "Privacidade",
+          "x": 471.40625,
+          "y": 289.921875,
+          "right": 520.25,
+          "bottom": 307.265625,
+          "width": 48.84375,
+          "height": 17.34375
+        },
+        {
+          "label": "Termos",
+          "x": 527.609375,
+          "y": 289.921875,
+          "right": 557.984375,
+          "bottom": 307.265625,
+          "width": 30.375,
+          "height": 17.34375
+        },
+        {
+          "label": "★RECOMPENSASMaxPass50 níveis de recompensas. Conquiste seu estilo em campo.›",
+          "x": 400.796875,
+          "y": 67.4375,
+          "right": 557.984375,
+          "bottom": 115.875,
+          "width": 157.1875,
+          "height": 48.4375
+        },
+        {
+          "label": "🏆COMPETIÇÃOCampeonatosInscreva seu clube e dispute as rodadas.›",
+          "x": 400.796875,
+          "y": 120.46875,
+          "right": 557.984375,
+          "bottom": 168.90625,
+          "width": 157.1875,
+          "height": 48.4375
+        },
+        {
+          "label": "✦SEU ESTILOCriar skinsMonte seu uniforme, cores e identidade.›",
+          "x": 400.796875,
+          "y": 173.5,
+          "right": 557.984375,
+          "bottom": 221.9375,
+          "width": 157.1875,
+          "height": 48.4375
+        }
+      ]
+    },
+    {
+      "width": 740,
+      "height": 360,
+      "screen": {
+        "x": 0,
+        "y": 0,
+        "right": 740,
+        "bottom": 360,
+        "width": 740,
+        "height": 360
+      },
+      "scrollWidth": 740,
+      "scrollHeight": 360,
+      "clientHeight": 360,
+      "groups": [
+        {
+          "selector": ".home-profile",
+          "x": 10,
+          "y": 17.078125,
+          "right": 191.453125,
+          "bottom": 57.53125,
+          "width": 181.453125,
+          "height": 40.453125
+        },
+        {
+          "selector": ".home-wallet",
+          "x": 520.609375,
+          "y": 19.09375,
+          "right": 729.984375,
+          "bottom": 55.515625,
+          "width": 209.375,
+          "height": 36.421875
+        },
+        {
+          "selector": ".home-brand",
+          "x": 325.65625,
+          "y": 13.953125,
+          "right": 386.484375,
+          "bottom": 60.65625,
+          "width": 60.828125,
+          "height": 46.703125
+        },
+        {
+          "selector": ".home-side",
+          "x": 10,
+          "y": 74.625,
+          "right": 190.953125,
+          "bottom": 251.53125,
+          "width": 180.953125,
+          "height": 176.90625
+        },
+        {
+          "selector": ".home-features",
+          "x": 521.1875,
+          "y": 74.625,
+          "right": 730,
+          "bottom": 251.53125,
+          "width": 208.8125,
+          "height": 176.90625
+        },
+        {
+          "selector": ".home-player",
+          "x": 283.40625,
+          "y": 110.328125,
+          "right": 428.734375,
+          "bottom": 215.828125,
+          "width": 145.328125,
+          "height": 105.5
+        },
+        {
+          "selector": ".home-bottom",
+          "x": 10,
+          "y": 257.53125,
+          "right": 730,
+          "bottom": 313.203125,
+          "width": 720,
+          "height": 55.671875
+        },
+        {
+          "selector": ".home-footer",
+          "x": 10,
+          "y": 319.203125,
+          "right": 730,
+          "bottom": 354,
+          "width": 720,
+          "height": 34.796875
+        }
+      ],
+      "buttons": [
+        {
+          "label": "1JogadorMax12345MiniBall · 0 troféus0 / 250",
+          "x": 10,
+          "y": 17.078125,
+          "right": 191.453125,
+          "bottom": 57.53125,
+          "width": 181.453125,
+          "height": 40.453125
+        },
+        {
+          "label": "◆999999999+",
+          "x": 520.609375,
+          "y": 19.09375,
+          "right": 663.046875,
+          "bottom": 55.515625,
+          "width": 142.4375,
+          "height": 36.421875
+        },
+        {
+          "label": "⚙",
+          "x": 666.71875,
+          "y": 19.09375,
+          "right": 696.515625,
+          "bottom": 55.515625,
+          "width": 29.796875,
+          "height": 36.421875
+        },
+        {
+          "label": "⛶",
+          "x": 700.1875,
+          "y": 19.09375,
+          "right": 729.984375,
+          "bottom": 55.515625,
+          "width": 29.796875,
+          "height": 36.421875
+        },
+        {
+          "label": "♜ RANKING ›",
+          "x": 10,
+          "y": 74.625,
+          "right": 190.953125,
+          "bottom": 116.09375,
+          "width": 180.953125,
+          "height": 41.46875
+        },
+        {
+          "label": "♟ SUPORTE ›",
+          "x": 10,
+          "y": 119.765625,
+          "right": 190.953125,
+          "bottom": 161.234375,
+          "width": 180.953125,
+          "height": 41.46875
+        },
+        {
+          "label": "☷ CONTROLES ›",
+          "x": 10,
+          "y": 164.90625,
+          "right": 190.953125,
+          "bottom": 206.375,
+          "width": 180.953125,
+          "height": 41.46875
+        },
+        {
+          "label": "★ GALERIA ›",
+          "x": 10,
+          "y": 210.046875,
+          "right": 190.953125,
+          "bottom": 251.53125,
+          "width": 180.953125,
+          "height": 41.484375
+        },
+        {
+          "label": "‹",
+          "x": 283.40625,
+          "y": 149.828125,
+          "right": 309.890625,
+          "bottom": 176.3125,
+          "width": 26.484375,
+          "height": 26.484375
+        },
+        {
+          "label": "›",
+          "x": 402.25,
+          "y": 149.828125,
+          "right": 428.734375,
+          "bottom": 176.3125,
+          "width": 26.484375,
+          "height": 26.484375
+        },
+        {
+          "label": "▰LOJA",
+          "x": 10,
+          "y": 257.53125,
+          "right": 126.171875,
+          "bottom": 313.203125,
+          "width": 116.171875,
+          "height": 55.671875
+        },
+        {
+          "label": "▣INVENTÁRIO",
+          "x": 130.765625,
+          "y": 257.53125,
+          "right": 246.9375,
+          "bottom": 313.203125,
+          "width": 116.171875,
+          "height": 55.671875
+        },
+        {
+          "label": "⬡CLUBES",
+          "x": 251.53125,
+          "y": 257.53125,
+          "right": 367.703125,
+          "bottom": 313.203125,
+          "width": 116.171875,
+          "height": 55.671875
+        },
+        {
+          "label": "▥MODO CARREIRA",
+          "x": 372.296875,
+          "y": 257.53125,
+          "right": 488.46875,
+          "bottom": 313.203125,
+          "width": 116.171875,
+          "height": 55.671875
+        },
+        {
+          "label": "♟SALA PERSONALIZADA",
+          "x": 493.0625,
+          "y": 257.53125,
+          "right": 609.234375,
+          "bottom": 313.203125,
+          "width": 116.171875,
+          "height": 55.671875
+        },
+        {
+          "label": "▶JOGAR ›",
+          "x": 613.828125,
+          "y": 257.53125,
+          "right": 730,
+          "bottom": 313.203125,
+          "width": 116.171875,
+          "height": 55.671875
+        },
+        {
+          "label": "Chat",
+          "x": 10,
+          "y": 327.921875,
+          "right": 29.921875,
+          "bottom": 345.265625,
+          "width": 19.921875,
+          "height": 17.34375
+        },
+        {
+          "label": "Privacidade",
+          "x": 643.421875,
+          "y": 327.921875,
+          "right": 692.265625,
+          "bottom": 345.265625,
+          "width": 48.84375,
+          "height": 17.34375
+        },
+        {
+          "label": "Termos",
+          "x": 699.625,
+          "y": 327.921875,
+          "right": 730,
+          "bottom": 345.265625,
+          "width": 30.375,
+          "height": 17.34375
+        },
+        {
+          "label": "★RECOMPENSASMaxPass50 níveis de recompensas. Conquiste seu estilo em campo.›",
+          "x": 521.1875,
+          "y": 74.625,
+          "right": 730,
+          "bottom": 130.53125,
+          "width": 208.8125,
+          "height": 55.90625
+        },
+        {
+          "label": "🏆COMPETIÇÃOCampeonatosInscreva seu clube e dispute as rodadas.›",
+          "x": 521.1875,
+          "y": 135.125,
+          "right": 730,
+          "bottom": 191.03125,
+          "width": 208.8125,
+          "height": 55.90625
+        },
+        {
+          "label": "✦SEU ESTILOCriar skinsMonte seu uniforme, cores e identidade.›",
+          "x": 521.1875,
+          "y": 195.625,
+          "right": 730,
+          "bottom": 251.53125,
+          "width": 208.8125,
+          "height": 55.90625
+        }
+      ]
+    },
+    {
+      "width": 844,
+      "height": 390,
+      "screen": {
+        "x": 0,
+        "y": 0,
+        "right": 844,
+        "bottom": 390,
+        "width": 844,
+        "height": 390
+      },
+      "scrollWidth": 844,
+      "scrollHeight": 390,
+      "clientHeight": 390,
+      "groups": [
+        {
+          "selector": ".home-profile",
+          "x": 10,
+          "y": 18.40625,
+          "right": 218.5,
+          "bottom": 61.625,
+          "width": 208.5,
+          "height": 43.21875
+        },
+        {
+          "selector": ".home-wallet",
+          "x": 593.40625,
+          "y": 20.28125,
+          "right": 833.984375,
+          "bottom": 59.734375,
+          "width": 240.578125,
+          "height": 39.453125
+        },
+        {
+          "selector": ".home-brand",
+          "x": 372.890625,
+          "y": 14.859375,
+          "right": 439.09375,
+          "bottom": 65.15625,
+          "width": 66.203125,
+          "height": 50.296875
+        },
+        {
+          "selector": ".home-side",
+          "x": 10,
+          "y": 80.03125,
+          "right": 218,
+          "bottom": 273.734375,
+          "width": 208,
+          "height": 193.703125
+        },
+        {
+          "selector": ".home-features",
+          "x": 594,
+          "y": 80.03125,
+          "right": 834,
+          "bottom": 273.734375,
+          "width": 240,
+          "height": 193.703125
+        },
+        {
+          "selector": ".home-player",
+          "x": 327.796875,
+          "y": 120.3125,
+          "right": 484.1875,
+          "bottom": 233.4375,
+          "width": 156.390625,
+          "height": 113.125
+        },
+        {
+          "selector": ".home-bottom",
+          "x": 10,
+          "y": 279.734375,
+          "right": 834,
+          "bottom": 340.203125,
+          "width": 824,
+          "height": 60.46875
+        },
+        {
+          "selector": ".home-footer",
+          "x": 10,
+          "y": 346.203125,
+          "right": 834,
+          "bottom": 384,
+          "width": 824,
+          "height": 37.796875
+        }
+      ],
+      "buttons": [
+        {
+          "label": "1JogadorMax12345MiniBall · 0 troféus0 / 250",
+          "x": 10,
+          "y": 18.40625,
+          "right": 218.5,
+          "bottom": 61.625,
+          "width": 208.5,
+          "height": 43.21875
+        },
+        {
+          "label": "◆999999999+",
+          "x": 593.40625,
+          "y": 20.28125,
+          "right": 762.078125,
+          "bottom": 59.734375,
+          "width": 168.671875,
+          "height": 39.453125
+        },
+        {
+          "label": "⚙",
+          "x": 765.75,
+          "y": 20.28125,
+          "right": 798.03125,
+          "bottom": 59.734375,
+          "width": 32.28125,
+          "height": 39.453125
+        },
+        {
+          "label": "⛶",
+          "x": 801.703125,
+          "y": 20.28125,
+          "right": 833.984375,
+          "bottom": 59.734375,
+          "width": 32.28125,
+          "height": 39.453125
+        },
+        {
+          "label": "♜ RANKING ›",
+          "x": 10,
+          "y": 80.03125,
+          "right": 218,
+          "bottom": 125.703125,
+          "width": 208,
+          "height": 45.671875
+        },
+        {
+          "label": "♟ SUPORTE ›",
+          "x": 10,
+          "y": 129.375,
+          "right": 218,
+          "bottom": 175.046875,
+          "width": 208,
+          "height": 45.671875
+        },
+        {
+          "label": "☷ CONTROLES ›",
+          "x": 10,
+          "y": 178.71875,
+          "right": 218,
+          "bottom": 224.390625,
+          "width": 208,
+          "height": 45.671875
+        },
+        {
+          "label": "★ GALERIA ›",
+          "x": 10,
+          "y": 228.0625,
+          "right": 218,
+          "bottom": 273.734375,
+          "width": 208,
+          "height": 45.671875
+        },
+        {
+          "label": "‹",
+          "x": 327.796875,
+          "y": 162.515625,
+          "right": 356.5,
+          "bottom": 191.21875,
+          "width": 28.703125,
+          "height": 28.703125
+        },
+        {
+          "label": "›",
+          "x": 455.484375,
+          "y": 162.515625,
+          "right": 484.1875,
+          "bottom": 191.21875,
+          "width": 28.703125,
+          "height": 28.703125
+        },
+        {
+          "label": "▰LOJA",
+          "x": 10,
+          "y": 279.734375,
+          "right": 143.5,
+          "bottom": 340.203125,
+          "width": 133.5,
+          "height": 60.46875
+        },
+        {
+          "label": "▣INVENTÁRIO",
+          "x": 148.09375,
+          "y": 279.734375,
+          "right": 281.59375,
+          "bottom": 340.203125,
+          "width": 133.5,
+          "height": 60.46875
+        },
+        {
+          "label": "⬡CLUBES",
+          "x": 286.1875,
+          "y": 279.734375,
+          "right": 419.6875,
+          "bottom": 340.203125,
+          "width": 133.5,
+          "height": 60.46875
+        },
+        {
+          "label": "▥MODO CARREIRA",
+          "x": 424.28125,
+          "y": 279.734375,
+          "right": 557.796875,
+          "bottom": 340.203125,
+          "width": 133.515625,
+          "height": 60.46875
+        },
+        {
+          "label": "♟SALA PERSONALIZADA",
+          "x": 562.390625,
+          "y": 279.734375,
+          "right": 695.890625,
+          "bottom": 340.203125,
+          "width": 133.5,
+          "height": 60.46875
+        },
+        {
+          "label": "▶JOGAR ›",
+          "x": 700.484375,
+          "y": 279.734375,
+          "right": 833.984375,
+          "bottom": 340.203125,
+          "width": 133.5,
+          "height": 60.46875
+        },
+        {
+          "label": "Chat",
+          "x": 10,
+          "y": 356.421875,
+          "right": 31.578125,
+          "bottom": 373.765625,
+          "width": 21.578125,
+          "height": 17.34375
+        },
+        {
+          "label": "Privacidade",
+          "x": 740.8125,
+          "y": 356.421875,
+          "right": 793.734375,
+          "bottom": 373.765625,
+          "width": 52.921875,
+          "height": 17.34375
+        },
+        {
+          "label": "Termos",
+          "x": 801.09375,
+          "y": 356.421875,
+          "right": 834,
+          "bottom": 373.765625,
+          "width": 32.90625,
+          "height": 17.34375
+        },
+        {
+          "label": "★RECOMPENSASMaxPass50 níveis de recompensas. Conquiste seu estilo em campo.›",
+          "x": 594,
+          "y": 80.03125,
+          "right": 834,
+          "bottom": 141.53125,
+          "width": 240,
+          "height": 61.5
+        },
+        {
+          "label": "🏆COMPETIÇÃOCampeonatosInscreva seu clube e dispute as rodadas.›",
+          "x": 594,
+          "y": 146.125,
+          "right": 834,
+          "bottom": 207.625,
+          "width": 240,
+          "height": 61.5
+        },
+        {
+          "label": "✦SEU ESTILOCriar skinsMonte seu uniforme, cores e identidade.›",
+          "x": 594,
+          "y": 212.21875,
+          "right": 834,
+          "bottom": 273.71875,
+          "width": 240,
+          "height": 61.5
+        }
+      ]
+    },
+    {
+      "width": 915,
+      "height": 412,
+      "screen": {
+        "x": 0,
+        "y": 0,
+        "right": 915,
+        "bottom": 412,
+        "width": 915,
+        "height": 412
+      },
+      "scrollWidth": 915,
+      "scrollHeight": 412,
+      "clientHeight": 412,
+      "groups": [
+        {
+          "selector": ".home-profile",
+          "x": 10,
+          "y": 19.375,
+          "right": 236.953125,
+          "bottom": 64.609375,
+          "width": 226.953125,
+          "height": 45.234375
+        },
+        {
+          "selector": ".home-wallet",
+          "x": 643.109375,
+          "y": 21.15625,
+          "right": 905,
+          "bottom": 62.84375,
+          "width": 261.890625,
+          "height": 41.6875
+        },
+        {
+          "selector": ".home-brand",
+          "x": 405.015625,
+          "y": 15.53125,
+          "right": 475.125,
+          "bottom": 68.453125,
+          "width": 70.109375,
+          "height": 52.921875
+        },
+        {
+          "selector": ".home-side",
+          "x": 10,
+          "y": 84,
+          "right": 236.453125,
+          "bottom": 290,
+          "width": 226.453125,
+          "height": 206
+        },
+        {
+          "selector": ".home-features",
+          "x": 643.6875,
+          "y": 84,
+          "right": 905,
+          "bottom": 290,
+          "width": 261.3125,
+          "height": 206
+        },
+        {
+          "selector": ".home-player",
+          "x": 357.828125,
+          "y": 127.5,
+          "right": 522.296875,
+          "bottom": 246.484375,
+          "width": 164.46875,
+          "height": 118.984375
+        },
+        {
+          "selector": ".home-bottom",
+          "x": 10,
+          "y": 296,
+          "right": 905,
+          "bottom": 360,
+          "width": 895,
+          "height": 64
+        },
+        {
+          "selector": ".home-footer",
+          "x": 10,
+          "y": 366,
+          "right": 905,
+          "bottom": 406,
+          "width": 895,
+          "height": 40
+        }
+      ],
+      "buttons": [
+        {
+          "label": "1JogadorMax12345MiniBall · 0 troféus0 / 250",
+          "x": 10,
+          "y": 19.375,
+          "right": 236.953125,
+          "bottom": 64.609375,
+          "width": 226.953125,
+          "height": 45.234375
+        },
+        {
+          "label": "◆999999999+",
+          "x": 643.109375,
+          "y": 21.15625,
+          "right": 829.4375,
+          "bottom": 62.84375,
+          "width": 186.328125,
+          "height": 41.6875
+        },
+        {
+          "label": "⚙",
+          "x": 833.109375,
+          "y": 21.15625,
+          "right": 867.21875,
+          "bottom": 62.84375,
+          "width": 34.109375,
+          "height": 41.6875
+        },
+        {
+          "label": "⛶",
+          "x": 870.890625,
+          "y": 21.15625,
+          "right": 905,
+          "bottom": 62.84375,
+          "width": 34.109375,
+          "height": 41.6875
+        },
+        {
+          "label": "♜ RANKING ›",
+          "x": 10,
+          "y": 84,
+          "right": 236.453125,
+          "bottom": 132.734375,
+          "width": 226.453125,
+          "height": 48.734375
+        },
+        {
+          "label": "♟ SUPORTE ›",
+          "x": 10,
+          "y": 136.40625,
+          "right": 236.453125,
+          "bottom": 185.15625,
+          "width": 226.453125,
+          "height": 48.75
+        },
+        {
+          "label": "☷ CONTROLES ›",
+          "x": 10,
+          "y": 188.828125,
+          "right": 236.453125,
+          "bottom": 237.578125,
+          "width": 226.453125,
+          "height": 48.75
+        },
+        {
+          "label": "★ GALERIA ›",
+          "x": 10,
+          "y": 241.25,
+          "right": 236.453125,
+          "bottom": 290,
+          "width": 226.453125,
+          "height": 48.75
+        },
+        {
+          "label": "‹",
+          "x": 357.828125,
+          "y": 171.828125,
+          "right": 388.140625,
+          "bottom": 202.140625,
+          "width": 30.3125,
+          "height": 30.3125
+        },
+        {
+          "label": "›",
+          "x": 491.984375,
+          "y": 171.828125,
+          "right": 522.296875,
+          "bottom": 202.140625,
+          "width": 30.3125,
+          "height": 30.3125
+        },
+        {
+          "label": "▰LOJA",
+          "x": 10,
+          "y": 296,
+          "right": 155.328125,
+          "bottom": 360,
+          "width": 145.328125,
+          "height": 64
+        },
+        {
+          "label": "▣INVENTÁRIO",
+          "x": 159.921875,
+          "y": 296,
+          "right": 305.265625,
+          "bottom": 360,
+          "width": 145.34375,
+          "height": 64
+        },
+        {
+          "label": "⬡CLUBES",
+          "x": 309.859375,
+          "y": 296,
+          "right": 455.203125,
+          "bottom": 360,
+          "width": 145.34375,
+          "height": 64
+        },
+        {
+          "label": "▥MODO CARREIRA",
+          "x": 459.796875,
+          "y": 296,
+          "right": 605.125,
+          "bottom": 360,
+          "width": 145.328125,
+          "height": 64
+        },
+        {
+          "label": "♟SALA PERSONALIZADA",
+          "x": 609.71875,
+          "y": 296,
+          "right": 755.0625,
+          "bottom": 360,
+          "width": 145.34375,
+          "height": 64
+        },
+        {
+          "label": "▶JOGAR ›",
+          "x": 759.65625,
+          "y": 296,
+          "right": 905,
+          "bottom": 360,
+          "width": 145.34375,
+          "height": 64
+        },
+        {
+          "label": "Chat",
+          "x": 10,
+          "y": 376.828125,
+          "right": 32.78125,
+          "bottom": 395.171875,
+          "width": 22.78125,
+          "height": 18.34375
+        },
+        {
+          "label": "Privacidade",
+          "x": 807.046875,
+          "y": 376.828125,
+          "right": 862.90625,
+          "bottom": 395.171875,
+          "width": 55.859375,
+          "height": 18.34375
+        },
+        {
+          "label": "Termos",
+          "x": 870.265625,
+          "y": 376.828125,
+          "right": 905,
+          "bottom": 395.171875,
+          "width": 34.734375,
+          "height": 18.34375
+        },
+        {
+          "label": "★RECOMPENSASMaxPass50 níveis de recompensas. Conquiste seu estilo em campo.›",
+          "x": 643.6875,
+          "y": 84,
+          "right": 905,
+          "bottom": 149.59375,
+          "width": 261.3125,
+          "height": 65.59375
+        },
+        {
+          "label": "🏆COMPETIÇÃOCampeonatosInscreva seu clube e dispute as rodadas.›",
+          "x": 643.6875,
+          "y": 154.1875,
+          "right": 905,
+          "bottom": 219.796875,
+          "width": 261.3125,
+          "height": 65.609375
+        },
+        {
+          "label": "✦SEU ESTILOCriar skinsMonte seu uniforme, cores e identidade.›",
+          "x": 643.6875,
+          "y": 224.390625,
+          "right": 905,
+          "bottom": 289.984375,
+          "width": 261.3125,
+          "height": 65.59375
+        }
+      ]
+    },
+    {
+      "width": 1024,
+      "height": 600,
+      "screen": {
+        "x": 0,
+        "y": 0,
+        "right": 1024,
+        "bottom": 600,
+        "width": 1024,
+        "height": 600
+      },
+      "scrollWidth": 1024,
+      "scrollHeight": 600,
+      "clientHeight": 600,
+      "groups": [
+        {
+          "selector": ".home-profile",
+          "x": 10,
+          "y": 33.15625,
+          "right": 265.296875,
+          "bottom": 84.65625,
+          "width": 255.296875,
+          "height": 51.5
+        },
+        {
+          "selector": ".home-wallet",
+          "x": 719.40625,
+          "y": 36.828125,
+          "right": 1014,
+          "bottom": 80.984375,
+          "width": 294.59375,
+          "height": 44.15625
+        },
+        {
+          "selector": ".home-brand",
+          "x": 440.59375,
+          "y": 22.125,
+          "right": 544.1875,
+          "bottom": 95.6875,
+          "width": 103.59375,
+          "height": 73.5625
+        },
+        {
+          "selector": ".home-side",
+          "x": 10,
+          "y": 117.828125,
+          "right": 264.796875,
+          "bottom": 429.125,
+          "width": 254.796875,
+          "height": 311.296875
+        },
+        {
+          "selector": ".home-features",
+          "x": 720,
+          "y": 117.828125,
+          "right": 1014,
+          "bottom": 429.125,
+          "width": 294,
+          "height": 311.296875
+        },
+        {
+          "selector": ".home-player",
+          "x": 386.609375,
+          "y": 192.234375,
+          "right": 598.171875,
+          "bottom": 354.71875,
+          "width": 211.5625,
+          "height": 162.484375
+        },
+        {
+          "selector": ".home-bottom",
+          "x": 10,
+          "y": 435.125,
+          "right": 1014,
+          "bottom": 529.203125,
+          "width": 1004,
+          "height": 94.078125
+        },
+        {
+          "selector": ".home-footer",
+          "x": 10,
+          "y": 535.203125,
+          "right": 1014,
+          "bottom": 594,
+          "width": 1004,
+          "height": 58.796875
+        }
+      ],
+      "buttons": [
+        {
+          "label": "1JogadorMax12345MiniBall · 0 troféus0 / 250",
+          "x": 10,
+          "y": 33.15625,
+          "right": 265.296875,
+          "bottom": 84.65625,
+          "width": 255.296875,
+          "height": 51.5
+        },
+        {
+          "label": "◆999999999+",
+          "x": 719.40625,
+          "y": 36.828125,
+          "right": 933.0625,
+          "bottom": 80.984375,
+          "width": 213.65625,
+          "height": 44.15625
+        },
+        {
+          "label": "⚙",
+          "x": 936.734375,
+          "y": 36.828125,
+          "right": 973.53125,
+          "bottom": 80.984375,
+          "width": 36.796875,
+          "height": 44.15625
+        },
+        {
+          "label": "⛶",
+          "x": 977.203125,
+          "y": 36.828125,
+          "right": 1014,
+          "bottom": 80.984375,
+          "width": 36.796875,
+          "height": 44.15625
+        },
+        {
+          "label": "♜ RANKING ›",
+          "x": 10,
+          "y": 117.828125,
+          "right": 264.796875,
+          "bottom": 192.890625,
+          "width": 254.796875,
+          "height": 75.0625
+        },
+        {
+          "label": "♟ SUPORTE ›",
+          "x": 10,
+          "y": 196.5625,
+          "right": 264.796875,
+          "bottom": 271.640625,
+          "width": 254.796875,
+          "height": 75.078125
+        },
+        {
+          "label": "☷ CONTROLES ›",
+          "x": 10,
+          "y": 275.3125,
+          "right": 264.796875,
+          "bottom": 350.375,
+          "width": 254.796875,
+          "height": 75.0625
+        },
+        {
+          "label": "★ GALERIA ›",
+          "x": 10,
+          "y": 354.046875,
+          "right": 264.796875,
+          "bottom": 429.125,
+          "width": 254.796875,
+          "height": 75.078125
+        },
+        {
+          "label": "‹",
+          "x": 386.609375,
+          "y": 256.921875,
+          "right": 419.71875,
+          "bottom": 290.03125,
+          "width": 33.109375,
+          "height": 33.109375
+        },
+        {
+          "label": "›",
+          "x": 565.0625,
+          "y": 256.921875,
+          "right": 598.171875,
+          "bottom": 290.03125,
+          "width": 33.109375,
+          "height": 33.109375
+        },
+        {
+          "label": "▰LOJA",
+          "x": 10,
+          "y": 435.125,
+          "right": 173.5,
+          "bottom": 529.203125,
+          "width": 163.5,
+          "height": 94.078125
+        },
+        {
+          "label": "▣INVENTÁRIO",
+          "x": 178.09375,
+          "y": 435.125,
+          "right": 341.59375,
+          "bottom": 529.203125,
+          "width": 163.5,
+          "height": 94.078125
+        },
+        {
+          "label": "⬡CLUBES",
+          "x": 346.1875,
+          "y": 435.125,
+          "right": 509.6875,
+          "bottom": 529.203125,
+          "width": 163.5,
+          "height": 94.078125
+        },
+        {
+          "label": "▥MODO CARREIRA",
+          "x": 514.28125,
+          "y": 435.125,
+          "right": 677.796875,
+          "bottom": 529.203125,
+          "width": 163.515625,
+          "height": 94.078125
+        },
+        {
+          "label": "♟SALA PERSONALIZADA",
+          "x": 682.390625,
+          "y": 435.125,
+          "right": 845.890625,
+          "bottom": 529.203125,
+          "width": 163.5,
+          "height": 94.078125
+        },
+        {
+          "label": "▶JOGAR ›",
+          "x": 850.484375,
+          "y": 435.125,
+          "right": 1013.984375,
+          "bottom": 529.203125,
+          "width": 163.5,
+          "height": 94.078125
+        },
+        {
+          "label": "Chat",
+          "x": 10,
+          "y": 554.421875,
+          "right": 36.5625,
+          "bottom": 574.765625,
+          "width": 26.5625,
+          "height": 20.34375
+        },
+        {
+          "label": "Privacidade",
+          "x": 901.015625,
+          "y": 554.421875,
+          "right": 966.140625,
+          "bottom": 574.765625,
+          "width": 65.125,
+          "height": 20.34375
+        },
+        {
+          "label": "Termos",
+          "x": 973.5,
+          "y": 554.421875,
+          "right": 1014,
+          "bottom": 574.765625,
+          "width": 40.5,
+          "height": 20.34375
+        },
+        {
+          "label": "★RECOMPENSASMaxPass50 níveis de recompensas. Conquiste seu estilo em campo.›",
+          "x": 720,
+          "y": 117.828125,
+          "right": 1014,
+          "bottom": 218.53125,
+          "width": 294,
+          "height": 100.703125
+        },
+        {
+          "label": "🏆COMPETIÇÃOCampeonatosInscreva seu clube e dispute as rodadas.›",
+          "x": 720,
+          "y": 223.125,
+          "right": 1014,
+          "bottom": 323.828125,
+          "width": 294,
+          "height": 100.703125
+        },
+        {
+          "label": "✦SEU ESTILOCriar skinsMonte seu uniforme, cores e identidade.›",
+          "x": 720,
+          "y": 328.421875,
+          "right": 1014,
+          "bottom": 429.125,
+          "width": 294,
+          "height": 100.703125
+        }
+      ]
+    },
+    {
+      "width": 1024,
+      "height": 768,
+      "screen": {
+        "x": 0,
+        "y": 0,
+        "right": 1024,
+        "bottom": 768,
+        "width": 1024,
+        "height": 768
+      },
+      "scrollWidth": 1024,
+      "scrollHeight": 768,
+      "clientHeight": 768,
+      "groups": [
+        {
+          "selector": ".home-profile",
+          "x": 10,
+          "y": 48.28125,
+          "right": 265.296875,
+          "bottom": 99.78125,
+          "width": 255.296875,
+          "height": 51.5
+        },
+        {
+          "selector": ".home-wallet",
+          "x": 719.40625,
+          "y": 51.953125,
+          "right": 1014,
+          "bottom": 96.109375,
+          "width": 294.59375,
+          "height": 44.15625
+        },
+        {
+          "selector": ".home-brand",
+          "x": 438.375,
+          "y": 36.796875,
+          "right": 546.40625,
+          "bottom": 111.28125,
+          "width": 108.03125,
+          "height": 74.484375
+        },
+        {
+          "selector": ".home-side",
+          "x": 10,
+          "y": 148.078125,
+          "right": 264.796875,
+          "bottom": 553.453125,
+          "width": 254.796875,
+          "height": 405.375
+        },
+        {
+          "selector": ".home-features",
+          "x": 720,
+          "y": 148.078125,
+          "right": 1014,
+          "bottom": 553.453125,
+          "width": 294,
+          "height": 405.375
+        },
+        {
+          "selector": ".home-player",
+          "x": 368.0625,
+          "y": 250.96875,
+          "right": 616.71875,
+          "bottom": 450.546875,
+          "width": 248.65625,
+          "height": 199.578125
+        },
+        {
+          "selector": ".home-bottom",
+          "x": 10,
+          "y": 559.453125,
+          "right": 1014,
+          "bottom": 680.40625,
+          "width": 1004,
+          "height": 120.953125
+        },
+        {
+          "selector": ".home-footer",
+          "x": 10,
+          "y": 686.40625,
+          "right": 1014,
+          "bottom": 762,
+          "width": 1004,
+          "height": 75.59375
+        }
+      ],
+      "buttons": [
+        {
+          "label": "1JogadorMax12345MiniBall · 0 troféus0 / 250",
+          "x": 10,
+          "y": 48.28125,
+          "right": 265.296875,
+          "bottom": 99.78125,
+          "width": 255.296875,
+          "height": 51.5
+        },
+        {
+          "label": "◆999999999+",
+          "x": 719.40625,
+          "y": 51.953125,
+          "right": 933.0625,
+          "bottom": 96.109375,
+          "width": 213.65625,
+          "height": 44.15625
+        },
+        {
+          "label": "⚙",
+          "x": 936.734375,
+          "y": 51.953125,
+          "right": 973.53125,
+          "bottom": 96.109375,
+          "width": 36.796875,
+          "height": 44.15625
+        },
+        {
+          "label": "⛶",
+          "x": 977.203125,
+          "y": 51.953125,
+          "right": 1014,
+          "bottom": 96.109375,
+          "width": 36.796875,
+          "height": 44.15625
+        },
+        {
+          "label": "♜ RANKING ›",
+          "x": 10,
+          "y": 148.078125,
+          "right": 264.796875,
+          "bottom": 246.65625,
+          "width": 254.796875,
+          "height": 98.578125
+        },
+        {
+          "label": "♟ SUPORTE ›",
+          "x": 10,
+          "y": 250.328125,
+          "right": 264.796875,
+          "bottom": 348.921875,
+          "width": 254.796875,
+          "height": 98.59375
+        },
+        {
+          "label": "☷ CONTROLES ›",
+          "x": 10,
+          "y": 352.59375,
+          "right": 264.796875,
+          "bottom": 451.1875,
+          "width": 254.796875,
+          "height": 98.59375
+        },
+        {
+          "label": "★ GALERIA ›",
+          "x": 10,
+          "y": 454.859375,
+          "right": 264.796875,
+          "bottom": 553.453125,
+          "width": 254.796875,
+          "height": 98.59375
+        },
+        {
+          "label": "‹",
+          "x": 368.0625,
+          "y": 334.203125,
+          "right": 401.171875,
+          "bottom": 367.3125,
+          "width": 33.109375,
+          "height": 33.109375
+        },
+        {
+          "label": "›",
+          "x": 583.609375,
+          "y": 334.203125,
+          "right": 616.71875,
+          "bottom": 367.3125,
+          "width": 33.109375,
+          "height": 33.109375
+        },
+        {
+          "label": "▰LOJA",
+          "x": 10,
+          "y": 559.453125,
+          "right": 173.5,
+          "bottom": 680.40625,
+          "width": 163.5,
+          "height": 120.953125
+        },
+        {
+          "label": "▣INVENTÁRIO",
+          "x": 178.09375,
+          "y": 559.453125,
+          "right": 341.59375,
+          "bottom": 680.40625,
+          "width": 163.5,
+          "height": 120.953125
+        },
+        {
+          "label": "⬡CLUBES",
+          "x": 346.1875,
+          "y": 559.453125,
+          "right": 509.6875,
+          "bottom": 680.40625,
+          "width": 163.5,
+          "height": 120.953125
+        },
+        {
+          "label": "▥MODO CARREIRA",
+          "x": 514.28125,
+          "y": 559.453125,
+          "right": 677.796875,
+          "bottom": 680.40625,
+          "width": 163.515625,
+          "height": 120.953125
+        },
+        {
+          "label": "♟SALA PERSONALIZADA",
+          "x": 682.390625,
+          "y": 559.453125,
+          "right": 845.890625,
+          "bottom": 680.40625,
+          "width": 163.5,
+          "height": 120.953125
+        },
+        {
+          "label": "▶JOGAR ›",
+          "x": 850.484375,
+          "y": 559.453125,
+          "right": 1013.984375,
+          "bottom": 680.40625,
+          "width": 163.5,
+          "height": 120.953125
+        },
+        {
+          "label": "Chat",
+          "x": 10,
+          "y": 714.03125,
+          "right": 36.5625,
+          "bottom": 734.375,
+          "width": 26.5625,
+          "height": 20.34375
+        },
+        {
+          "label": "Privacidade",
+          "x": 901.015625,
+          "y": 714.03125,
+          "right": 966.140625,
+          "bottom": 734.375,
+          "width": 65.125,
+          "height": 20.34375
+        },
+        {
+          "label": "Termos",
+          "x": 973.5,
+          "y": 714.03125,
+          "right": 1014,
+          "bottom": 734.375,
+          "width": 40.5,
+          "height": 20.34375
+        },
+        {
+          "label": "★RECOMPENSASMaxPass50 níveis de recompensas. Conquiste seu estilo em campo.›",
+          "x": 720,
+          "y": 148.078125,
+          "right": 1014,
+          "bottom": 280.140625,
+          "width": 294,
+          "height": 132.0625
+        },
+        {
+          "label": "🏆COMPETIÇÃOCampeonatosInscreva seu clube e dispute as rodadas.›",
+          "x": 720,
+          "y": 284.734375,
+          "right": 1014,
+          "bottom": 416.796875,
+          "width": 294,
+          "height": 132.0625
+        },
+        {
+          "label": "✦SEU ESTILOCriar skinsMonte seu uniforme, cores e identidade.›",
+          "x": 720,
+          "y": 421.390625,
+          "right": 1014,
+          "bottom": 553.453125,
+          "width": 294,
+          "height": 132.0625
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "height": 720,
+      "screen": {
+        "x": 0,
+        "y": 0,
+        "right": 1280,
+        "bottom": 720,
+        "width": 1280,
+        "height": 720
+      },
+      "scrollWidth": 1280,
+      "scrollHeight": 720,
+      "clientHeight": 720,
+      "groups": [
+        {
+          "selector": ".home-profile",
+          "x": 32,
+          "y": 32.390625,
+          "right": 326.15625,
+          "bottom": 108.71875,
+          "width": 294.15625,
+          "height": 76.328125
+        },
+        {
+          "selector": ".home-wallet",
+          "x": 895.640625,
+          "y": 32.390625,
+          "right": 1248,
+          "bottom": 84.421875,
+          "width": 352.359375,
+          "height": 52.03125
+        },
+        {
+          "selector": ".home-brand",
+          "x": 566.3359375,
+          "y": 28.796875,
+          "right": 713.6640625,
+          "bottom": 155.375,
+          "width": 147.328125,
+          "height": 126.578125
+        },
+        {
+          "selector": ".home-side",
+          "x": 32,
+          "y": 187.1875,
+          "right": 352,
+          "bottom": 458.71875,
+          "width": 320,
+          "height": 271.53125
+        },
+        {
+          "selector": ".home-features",
+          "x": 902.40625,
+          "y": 187.1875,
+          "right": 1248,
+          "bottom": 483.125,
+          "width": 345.59375,
+          "height": 295.9375
+        },
+        {
+          "selector": ".home-player",
+          "x": 485.03125,
+          "y": 244.796875,
+          "right": 794.96875,
+          "bottom": 473.875,
+          "width": 309.9375,
+          "height": 229.078125
+        },
+        {
+          "selector": ".home-bottom",
+          "x": 32,
+          "y": 552.96875,
+          "right": 1248,
+          "bottom": 619.203125,
+          "width": 1216,
+          "height": 66.234375
+        },
+        {
+          "selector": ".home-footer",
+          "x": 32,
+          "y": 650.546875,
+          "right": 1248,
+          "bottom": 687.609375,
+          "width": 1216,
+          "height": 37.0625
+        }
+      ],
+      "buttons": [
+        {
+          "label": "1JogadorMax12345MiniBall · 0 troféus0 / 250",
+          "x": 32,
+          "y": 32.390625,
+          "right": 326.15625,
+          "bottom": 108.71875,
+          "width": 294.15625,
+          "height": 76.328125
+        },
+        {
+          "label": "◆999999999+",
+          "x": 895.640625,
+          "y": 32.390625,
+          "right": 1136.90625,
+          "bottom": 84.421875,
+          "width": 241.265625,
+          "height": 52.03125
+        },
+        {
+          "label": "⚙",
+          "x": 1149.78125,
+          "y": 32.390625,
+          "right": 1187.171875,
+          "bottom": 84.421875,
+          "width": 37.390625,
+          "height": 52.03125
+        },
+        {
+          "label": "⛶",
+          "x": 1200.046875,
+          "y": 32.390625,
+          "right": 1248,
+          "bottom": 84.421875,
+          "width": 47.953125,
+          "height": 52.03125
+        },
+        {
+          "label": "♜ RANKING ›",
+          "x": 32,
+          "y": 187.1875,
+          "right": 352,
+          "bottom": 246.796875,
+          "width": 320,
+          "height": 59.609375
+        },
+        {
+          "label": "♟ SUPORTE ›",
+          "x": 32,
+          "y": 257.828125,
+          "right": 352,
+          "bottom": 317.4375,
+          "width": 320,
+          "height": 59.609375
+        },
+        {
+          "label": "☷ CONTROLES ›",
+          "x": 32,
+          "y": 328.46875,
+          "right": 352,
+          "bottom": 388.078125,
+          "width": 320,
+          "height": 59.609375
+        },
+        {
+          "label": "★ GALERIA ›",
+          "x": 32,
+          "y": 399.109375,
+          "right": 352,
+          "bottom": 458.71875,
+          "width": 320,
+          "height": 59.609375
+        },
+        {
+          "label": "‹",
+          "x": 485.03125,
+          "y": 337.25,
+          "right": 529.1875,
+          "bottom": 381.40625,
+          "width": 44.15625,
+          "height": 44.15625
+        },
+        {
+          "label": "›",
+          "x": 750.8125,
+          "y": 337.25,
+          "right": 794.96875,
+          "bottom": 381.40625,
+          "width": 44.15625,
+          "height": 44.15625
+        },
+        {
+          "label": "▰LOJA",
+          "x": 32,
+          "y": 552.96875,
+          "right": 186.1875,
+          "bottom": 619.203125,
+          "width": 154.1875,
+          "height": 66.234375
+        },
+        {
+          "label": "▣INVENTÁRIO",
+          "x": 195.375,
+          "y": 552.96875,
+          "right": 394.921875,
+          "bottom": 619.203125,
+          "width": 199.546875,
+          "height": 66.234375
+        },
+        {
+          "label": "⬡CLUBES",
+          "x": 404.109375,
+          "y": 552.96875,
+          "right": 558.296875,
+          "bottom": 619.203125,
+          "width": 154.1875,
+          "height": 66.234375
+        },
+        {
+          "label": "▥MODO CARREIRA",
+          "x": 567.484375,
+          "y": 552.96875,
+          "right": 776.109375,
+          "bottom": 619.203125,
+          "width": 208.625,
+          "height": 66.234375
+        },
+        {
+          "label": "♟SALA PERSONALIZADA",
+          "x": 785.296875,
+          "y": 552.96875,
+          "right": 1002.984375,
+          "bottom": 619.203125,
+          "width": 217.6875,
+          "height": 66.234375
+        },
+        {
+          "label": "▶JOGAR ›",
+          "x": 1012.171875,
+          "y": 552.96875,
+          "right": 1247.984375,
+          "bottom": 619.203125,
+          "width": 235.8125,
+          "height": 66.234375
+        },
+        {
+          "label": "Chat",
+          "x": 32,
+          "y": 655.5625,
+          "right": 76.21875,
+          "bottom": 682.59375,
+          "width": 44.21875,
+          "height": 27.03125
+        },
+        {
+          "label": "Privacidade",
+          "x": 1077.359375,
+          "y": 655.5625,
+          "right": 1169.796875,
+          "bottom": 682.59375,
+          "width": 92.4375,
+          "height": 27.03125
+        },
+        {
+          "label": "Termos",
+          "x": 1186.34375,
+          "y": 655.5625,
+          "right": 1248,
+          "bottom": 682.59375,
+          "width": 61.65625,
+          "height": 27.03125
+        },
+        {
+          "label": "★RECOMPENSASMaxPass50 níveis de recompensas. Conquiste seu estilo em campo.›",
+          "x": 902.40625,
+          "y": 187.1875,
+          "right": 1248,
+          "bottom": 288.84375,
+          "width": 345.59375,
+          "height": 101.65625
+        },
+        {
+          "label": "🏆COMPETIÇÃOCampeonatosInscreva seu clube e dispute as rodadas.›",
+          "x": 902.40625,
+          "y": 299.875,
+          "right": 1248,
+          "bottom": 385.984375,
+          "width": 345.59375,
+          "height": 86.109375
+        },
+        {
+          "label": "✦SEU ESTILOCriar skinsMonte seu uniforme, cores e identidade.›",
+          "x": 902.40625,
+          "y": 397.015625,
+          "right": 1248,
+          "bottom": 483.125,
+          "width": 345.59375,
+          "height": 86.109375
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "screen": {
+        "x": 0,
+        "y": 0,
+        "right": 390,
+        "bottom": 844,
+        "width": 390,
+        "height": 844
+      },
+      "scrollWidth": 390,
+      "scrollHeight": 956,
+      "clientHeight": 844,
+      "groups": [
+        {
+          "selector": ".home-profile",
+          "x": 12,
+          "y": 12,
+          "right": 191.3125,
+          "bottom": 66.234375,
+          "width": 179.3125,
+          "height": 54.234375
+        },
+        {
+          "selector": ".home-wallet",
+          "x": 198.671875,
+          "y": 12,
+          "right": 378,
+          "bottom": 53.390625,
+          "width": 179.328125,
+          "height": 41.390625
+        },
+        {
+          "selector": ".home-brand",
+          "x": 12,
+          "y": 86.234375,
+          "right": 378,
+          "bottom": 181.890625,
+          "width": 366,
+          "height": 95.65625
+        },
+        {
+          "selector": ".home-side",
+          "x": 12,
+          "y": 570.9375,
+          "right": 378,
+          "bottom": 673.734375,
+          "width": 366,
+          "height": 102.796875
+        },
+        {
+          "selector": ".home-features",
+          "x": 12,
+          "y": 403.515625,
+          "right": 378,
+          "bottom": 550.9375,
+          "width": 366,
+          "height": 147.421875
+        },
+        {
+          "selector": ".home-player",
+          "x": 12,
+          "y": 201.890625,
+          "right": 378,
+          "bottom": 383.515625,
+          "width": 366,
+          "height": 181.625
+        },
+        {
+          "selector": ".home-bottom",
+          "x": 12,
+          "y": 693.734375,
+          "right": 378,
+          "bottom": 834.5625,
+          "width": 366,
+          "height": 140.828125
+        },
+        {
+          "selector": ".home-footer",
+          "x": 12,
+          "y": 854.5625,
+          "right": 378,
+          "bottom": 944.1875,
+          "width": 366,
+          "height": 89.625
+        }
+      ],
+      "buttons": [
+        {
+          "label": "1JogadorMax12345MiniBall · 0 troféus0 / 250",
+          "x": 12,
+          "y": 12,
+          "right": 191.3125,
+          "bottom": 66.234375,
+          "width": 179.3125,
+          "height": 54.234375
+        },
+        {
+          "label": "◆999999999+",
+          "x": 198.671875,
+          "y": 12,
+          "right": 319.15625,
+          "bottom": 53.390625,
+          "width": 120.484375,
+          "height": 41.390625
+        },
+        {
+          "label": "⚙",
+          "x": 322.828125,
+          "y": 12,
+          "right": 348.578125,
+          "bottom": 53.390625,
+          "width": 25.75,
+          "height": 41.390625
+        },
+        {
+          "label": "⛶",
+          "x": 352.25,
+          "y": 12,
+          "right": 378,
+          "bottom": 53.390625,
+          "width": 25.75,
+          "height": 41.390625
+        },
+        {
+          "label": "♜ RANKING ›",
+          "x": 12,
+          "y": 570.9375,
+          "right": 191.3125,
+          "bottom": 618.65625,
+          "width": 179.3125,
+          "height": 47.71875
+        },
+        {
+          "label": "♟ SUPORTE ›",
+          "x": 198.671875,
+          "y": 570.9375,
+          "right": 378,
+          "bottom": 618.65625,
+          "width": 179.328125,
+          "height": 47.71875
+        },
+        {
+          "label": "☷ CONTROLES ›",
+          "x": 12,
+          "y": 626.015625,
+          "right": 191.3125,
+          "bottom": 673.734375,
+          "width": 179.3125,
+          "height": 47.71875
+        },
+        {
+          "label": "★ GALERIA ›",
+          "x": 198.671875,
+          "y": 626.015625,
+          "right": 378,
+          "bottom": 673.734375,
+          "width": 179.328125,
+          "height": 47.71875
+        },
+        {
+          "label": "‹",
+          "x": 60.03125,
+          "y": 270.625,
+          "right": 104.1875,
+          "bottom": 314.78125,
+          "width": 44.15625,
+          "height": 44.15625
+        },
+        {
+          "label": "›",
+          "x": 285.8125,
+          "y": 270.625,
+          "right": 329.96875,
+          "bottom": 314.78125,
+          "width": 44.15625,
+          "height": 44.15625
+        },
+        {
+          "label": "▰LOJA",
+          "x": 12,
+          "y": 693.734375,
+          "right": 129.09375,
+          "bottom": 754.96875,
+          "width": 117.09375,
+          "height": 61.234375
+        },
+        {
+          "label": "▣INVENTÁRIO",
+          "x": 136.453125,
+          "y": 693.734375,
+          "right": 253.546875,
+          "bottom": 754.96875,
+          "width": 117.09375,
+          "height": 61.234375
+        },
+        {
+          "label": "⬡CLUBES",
+          "x": 260.90625,
+          "y": 693.734375,
+          "right": 378,
+          "bottom": 754.96875,
+          "width": 117.09375,
+          "height": 61.234375
+        },
+        {
+          "label": "▥MODO CARREIRA",
+          "x": 12,
+          "y": 762.328125,
+          "right": 129.09375,
+          "bottom": 834.5625,
+          "width": 117.09375,
+          "height": 72.234375
+        },
+        {
+          "label": "♟SALA PERSONALIZADA",
+          "x": 136.453125,
+          "y": 762.328125,
+          "right": 253.546875,
+          "bottom": 834.5625,
+          "width": 117.09375,
+          "height": 72.234375
+        },
+        {
+          "label": "▶JOGAR ›",
+          "x": 260.90625,
+          "y": 762.328125,
+          "right": 378,
+          "bottom": 834.5625,
+          "width": 117.09375,
+          "height": 72.234375
+        },
+        {
+          "label": "Chat",
+          "x": 12,
+          "y": 855.3125,
+          "right": 56.21875,
+          "bottom": 882.34375,
+          "width": 44.21875,
+          "height": 27.03125
+        },
+        {
+          "label": "Privacidade",
+          "x": 112.4375,
+          "y": 917.15625,
+          "right": 204.875,
+          "bottom": 944.1875,
+          "width": 92.4375,
+          "height": 27.03125
+        },
+        {
+          "label": "Termos",
+          "x": 215.90625,
+          "y": 917.15625,
+          "right": 277.5625,
+          "bottom": 944.1875,
+          "width": 61.65625,
+          "height": 27.03125
+        },
+        {
+          "label": "★RECOMPENSASMaxPass50 níveis de recompensas. Conquiste seu estilo em campo.›",
+          "x": 12,
+          "y": 403.515625,
+          "right": 129.09375,
+          "bottom": 550.9375,
+          "width": 117.09375,
+          "height": 147.421875
+        },
+        {
+          "label": "🏆COMPETIÇÃOCampeonatosInscreva seu clube e dispute as rodadas.›",
+          "x": 136.453125,
+          "y": 403.515625,
+          "right": 253.546875,
+          "bottom": 550.9375,
+          "width": 117.09375,
+          "height": 147.421875
+        },
+        {
+          "label": "✦SEU ESTILOCriar skinsMonte seu uniforme, cores e identidade.›",
+          "x": 260.90625,
+          "y": 403.515625,
+          "right": 378,
+          "bottom": 550.9375,
+          "width": 117.09375,
+          "height": 147.421875
+        }
+      ]
+    },
+    {
+      "width": 844,
+      "height": 390,
+      "screen": {
+        "x": 0,
+        "y": 0,
+        "right": 844,
+        "bottom": 390,
+        "width": 844,
+        "height": 390
+      },
+      "scrollWidth": 844,
+      "scrollHeight": 390,
+      "clientHeight": 390,
+      "groups": [
+        {
+          "selector": ".home-profile",
+          "x": 10,
+          "y": 18.40625,
+          "right": 218.5,
+          "bottom": 61.625,
+          "width": 208.5,
+          "height": 43.21875
+        },
+        {
+          "selector": ".home-wallet",
+          "x": 593.40625,
+          "y": 20.28125,
+          "right": 833.984375,
+          "bottom": 59.734375,
+          "width": 240.578125,
+          "height": 39.453125
+        },
+        {
+          "selector": ".home-brand",
+          "x": 372.890625,
+          "y": 14.859375,
+          "right": 439.09375,
+          "bottom": 65.15625,
+          "width": 66.203125,
+          "height": 50.296875
+        },
+        {
+          "selector": ".home-side",
+          "x": 10,
+          "y": 80.03125,
+          "right": 218,
+          "bottom": 273.734375,
+          "width": 208,
+          "height": 193.703125
+        },
+        {
+          "selector": ".home-features",
+          "x": 594,
+          "y": 80.03125,
+          "right": 834,
+          "bottom": 273.734375,
+          "width": 240,
+          "height": 193.703125
+        },
+        {
+          "selector": ".home-player",
+          "x": 327.796875,
+          "y": 120.3125,
+          "right": 484.1875,
+          "bottom": 233.4375,
+          "width": 156.390625,
+          "height": 113.125
+        },
+        {
+          "selector": ".home-bottom",
+          "x": 10,
+          "y": 279.734375,
+          "right": 834,
+          "bottom": 340.203125,
+          "width": 824,
+          "height": 60.46875
+        },
+        {
+          "selector": ".home-footer",
+          "x": 10,
+          "y": 346.203125,
+          "right": 834,
+          "bottom": 384,
+          "width": 824,
+          "height": 37.796875
+        }
+      ],
+      "buttons": [
+        {
+          "label": "1JogadorMax12345MiniBall · 0 troféus0 / 250",
+          "x": 10,
+          "y": 18.40625,
+          "right": 218.5,
+          "bottom": 61.625,
+          "width": 208.5,
+          "height": 43.21875
+        },
+        {
+          "label": "◆999999999+",
+          "x": 593.40625,
+          "y": 20.28125,
+          "right": 762.078125,
+          "bottom": 59.734375,
+          "width": 168.671875,
+          "height": 39.453125
+        },
+        {
+          "label": "⚙",
+          "x": 765.75,
+          "y": 20.28125,
+          "right": 798.03125,
+          "bottom": 59.734375,
+          "width": 32.28125,
+          "height": 39.453125
+        },
+        {
+          "label": "⛶",
+          "x": 801.703125,
+          "y": 20.28125,
+          "right": 833.984375,
+          "bottom": 59.734375,
+          "width": 32.28125,
+          "height": 39.453125
+        },
+        {
+          "label": "♜ RANKING ›",
+          "x": 10,
+          "y": 80.03125,
+          "right": 218,
+          "bottom": 125.703125,
+          "width": 208,
+          "height": 45.671875
+        },
+        {
+          "label": "♟ SUPORTE ›",
+          "x": 10,
+          "y": 129.375,
+          "right": 218,
+          "bottom": 175.046875,
+          "width": 208,
+          "height": 45.671875
+        },
+        {
+          "label": "☷ CONTROLES ›",
+          "x": 10,
+          "y": 178.71875,
+          "right": 218,
+          "bottom": 224.390625,
+          "width": 208,
+          "height": 45.671875
+        },
+        {
+          "label": "★ GALERIA ›",
+          "x": 10,
+          "y": 228.0625,
+          "right": 218,
+          "bottom": 273.734375,
+          "width": 208,
+          "height": 45.671875
+        },
+        {
+          "label": "‹",
+          "x": 327.796875,
+          "y": 162.515625,
+          "right": 356.5,
+          "bottom": 191.21875,
+          "width": 28.703125,
+          "height": 28.703125
+        },
+        {
+          "label": "›",
+          "x": 455.484375,
+          "y": 162.515625,
+          "right": 484.1875,
+          "bottom": 191.21875,
+          "width": 28.703125,
+          "height": 28.703125
+        },
+        {
+          "label": "▰LOJA",
+          "x": 10,
+          "y": 279.734375,
+          "right": 143.5,
+          "bottom": 340.203125,
+          "width": 133.5,
+          "height": 60.46875
+        },
+        {
+          "label": "▣INVENTÁRIO",
+          "x": 148.09375,
+          "y": 279.734375,
+          "right": 281.59375,
+          "bottom": 340.203125,
+          "width": 133.5,
+          "height": 60.46875
+        },
+        {
+          "label": "⬡CLUBES",
+          "x": 286.1875,
+          "y": 279.734375,
+          "right": 419.6875,
+          "bottom": 340.203125,
+          "width": 133.5,
+          "height": 60.46875
+        },
+        {
+          "label": "▥MODO CARREIRA",
+          "x": 424.28125,
+          "y": 279.734375,
+          "right": 557.796875,
+          "bottom": 340.203125,
+          "width": 133.515625,
+          "height": 60.46875
+        },
+        {
+          "label": "♟SALA PERSONALIZADA",
+          "x": 562.390625,
+          "y": 279.734375,
+          "right": 695.890625,
+          "bottom": 340.203125,
+          "width": 133.5,
+          "height": 60.46875
+        },
+        {
+          "label": "▶JOGAR ›",
+          "x": 700.484375,
+          "y": 279.734375,
+          "right": 833.984375,
+          "bottom": 340.203125,
+          "width": 133.5,
+          "height": 60.46875
+        },
+        {
+          "label": "Chat",
+          "x": 10,
+          "y": 356.421875,
+          "right": 31.578125,
+          "bottom": 373.765625,
+          "width": 21.578125,
+          "height": 17.34375
+        },
+        {
+          "label": "Privacidade",
+          "x": 740.8125,
+          "y": 356.421875,
+          "right": 793.734375,
+          "bottom": 373.765625,
+          "width": 52.921875,
+          "height": 17.34375
+        },
+        {
+          "label": "Termos",
+          "x": 801.09375,
+          "y": 356.421875,
+          "right": 834,
+          "bottom": 373.765625,
+          "width": 32.90625,
+          "height": 17.34375
+        },
+        {
+          "label": "★RECOMPENSASMaxPass50 níveis de recompensas. Conquiste seu estilo em campo.›",
+          "x": 594,
+          "y": 80.03125,
+          "right": 834,
+          "bottom": 141.53125,
+          "width": 240,
+          "height": 61.5
+        },
+        {
+          "label": "🏆COMPETIÇÃOCampeonatosInscreva seu clube e dispute as rodadas.›",
+          "x": 594,
+          "y": 146.125,
+          "right": 834,
+          "bottom": 207.625,
+          "width": 240,
+          "height": 61.5
+        },
+        {
+          "label": "✦SEU ESTILOCriar skinsMonte seu uniforme, cores e identidade.›",
+          "x": 594,
+          "y": 212.21875,
+          "right": 834,
+          "bottom": 273.71875,
+          "width": 240,
+          "height": 61.5
+        }
+      ]
+    },
+    {
+      "width": 740,
+      "height": 300,
+      "screen": {
+        "x": 0,
+        "y": 0,
+        "right": 740,
+        "bottom": 300,
+        "width": 740,
+        "height": 300
+      },
+      "scrollWidth": 740,
+      "scrollHeight": 300,
+      "clientHeight": 300,
+      "groups": [
+        {
+          "selector": ".home-profile",
+          "x": 10,
+          "y": 12.328125,
+          "right": 191.453125,
+          "bottom": 51.5,
+          "width": 181.453125,
+          "height": 39.171875
+        },
+        {
+          "selector": ".home-wallet",
+          "x": 520.609375,
+          "y": 16.734375,
+          "right": 729.984375,
+          "bottom": 47.09375,
+          "width": 209.375,
+          "height": 30.359375
+        },
+        {
+          "selector": ".home-brand",
+          "x": 326.515625,
+          "y": 11.234375,
+          "right": 385.609375,
+          "bottom": 52.59375,
+          "width": 59.09375,
+          "height": 41.359375
+        },
+        {
+          "selector": ".home-side",
+          "x": 10,
+          "y": 63.828125,
+          "right": 190.953125,
+          "bottom": 207.125,
+          "width": 180.953125,
+          "height": 143.296875
+        },
+        {
+          "selector": ".home-features",
+          "x": 521.1875,
+          "y": 63.828125,
+          "right": 730,
+          "bottom": 207.125,
+          "width": 208.8125,
+          "height": 143.296875
+        },
+        {
+          "selector": ".home-player",
+          "x": 294.4375,
+          "y": 89.84375,
+          "right": 417.703125,
+          "bottom": 181.09375,
+          "width": 123.265625,
+          "height": 91.25
+        },
+        {
+          "selector": ".home-bottom",
+          "x": 10,
+          "y": 213.125,
+          "right": 730,
+          "bottom": 259.203125,
+          "width": 720,
+          "height": 46.078125
+        },
+        {
+          "selector": ".home-footer",
+          "x": 10,
+          "y": 265.203125,
+          "right": 730,
+          "bottom": 294,
+          "width": 720,
+          "height": 28.796875
+        }
+      ],
+      "buttons": [
+        {
+          "label": "1JogadorMax12345MiniBall · 0 troféus0 / 250",
+          "x": 10,
+          "y": 12.328125,
+          "right": 191.453125,
+          "bottom": 51.5,
+          "width": 181.453125,
+          "height": 39.171875
+        },
+        {
+          "label": "◆999999999+",
+          "x": 520.609375,
+          "y": 16.734375,
+          "right": 672.984375,
+          "bottom": 47.09375,
+          "width": 152.375,
+          "height": 30.359375
+        },
+        {
+          "label": "⚙",
+          "x": 676.65625,
+          "y": 16.734375,
+          "right": 701.484375,
+          "bottom": 47.09375,
+          "width": 24.828125,
+          "height": 30.359375
+        },
+        {
+          "label": "⛶",
+          "x": 705.15625,
+          "y": 16.734375,
+          "right": 729.984375,
+          "bottom": 47.09375,
+          "width": 24.828125,
+          "height": 30.359375
+        },
+        {
+          "label": "♜ RANKING ›",
+          "x": 10,
+          "y": 63.828125,
+          "right": 190.953125,
+          "bottom": 96.890625,
+          "width": 180.953125,
+          "height": 33.0625
+        },
+        {
+          "label": "♟ SUPORTE ›",
+          "x": 10,
+          "y": 100.5625,
+          "right": 190.953125,
+          "bottom": 133.640625,
+          "width": 180.953125,
+          "height": 33.078125
+        },
+        {
+          "label": "☷ CONTROLES ›",
+          "x": 10,
+          "y": 137.3125,
+          "right": 190.953125,
+          "bottom": 170.375,
+          "width": 180.953125,
+          "height": 33.0625
+        },
+        {
+          "label": "★ GALERIA ›",
+          "x": 10,
+          "y": 174.046875,
+          "right": 190.953125,
+          "bottom": 207.125,
+          "width": 180.953125,
+          "height": 33.078125
+        },
+        {
+          "label": "‹",
+          "x": 294.4375,
+          "y": 124.421875,
+          "right": 316.515625,
+          "bottom": 146.5,
+          "width": 22.078125,
+          "height": 22.078125
+        },
+        {
+          "label": "›",
+          "x": 395.625,
+          "y": 124.421875,
+          "right": 417.703125,
+          "bottom": 146.5,
+          "width": 22.078125,
+          "height": 22.078125
+        },
+        {
+          "label": "▰LOJA",
+          "x": 10,
+          "y": 213.125,
+          "right": 126.171875,
+          "bottom": 259.203125,
+          "width": 116.171875,
+          "height": 46.078125
+        },
+        {
+          "label": "▣INVENTÁRIO",
+          "x": 130.765625,
+          "y": 213.125,
+          "right": 246.9375,
+          "bottom": 259.203125,
+          "width": 116.171875,
+          "height": 46.078125
+        },
+        {
+          "label": "⬡CLUBES",
+          "x": 251.53125,
+          "y": 213.125,
+          "right": 367.703125,
+          "bottom": 259.203125,
+          "width": 116.171875,
+          "height": 46.078125
+        },
+        {
+          "label": "▥MODO CARREIRA",
+          "x": 372.296875,
+          "y": 213.125,
+          "right": 488.46875,
+          "bottom": 259.203125,
+          "width": 116.171875,
+          "height": 46.078125
+        },
+        {
+          "label": "♟SALA PERSONALIZADA",
+          "x": 493.0625,
+          "y": 213.125,
+          "right": 609.234375,
+          "bottom": 259.203125,
+          "width": 116.171875,
+          "height": 46.078125
+        },
+        {
+          "label": "▶JOGAR ›",
+          "x": 613.828125,
+          "y": 213.125,
+          "right": 730,
+          "bottom": 259.203125,
+          "width": 116.171875,
+          "height": 46.078125
+        },
+        {
+          "label": "Chat",
+          "x": 10,
+          "y": 270.921875,
+          "right": 29.921875,
+          "bottom": 288.265625,
+          "width": 19.921875,
+          "height": 17.34375
+        },
+        {
+          "label": "Privacidade",
+          "x": 643.421875,
+          "y": 270.921875,
+          "right": 692.265625,
+          "bottom": 288.265625,
+          "width": 48.84375,
+          "height": 17.34375
+        },
+        {
+          "label": "Termos",
+          "x": 699.625,
+          "y": 270.921875,
+          "right": 730,
+          "bottom": 288.265625,
+          "width": 30.375,
+          "height": 17.34375
+        },
+        {
+          "label": "★RECOMPENSASMaxPass50 níveis de recompensas. Conquiste seu estilo em campo.›",
+          "x": 521.1875,
+          "y": 63.828125,
+          "right": 730,
+          "bottom": 108.53125,
+          "width": 208.8125,
+          "height": 44.703125
+        },
+        {
+          "label": "🏆COMPETIÇÃOCampeonatosInscreva seu clube e dispute as rodadas.›",
+          "x": 521.1875,
+          "y": 113.125,
+          "right": 730,
+          "bottom": 157.828125,
+          "width": 208.8125,
+          "height": 44.703125
+        },
+        {
+          "label": "✦SEU ESTILOCriar skinsMonte seu uniforme, cores e identidade.›",
+          "x": 521.1875,
+          "y": 162.421875,
+          "right": 730,
+          "bottom": 207.125,
+          "width": 208.8125,
+          "height": 44.703125
+        }
+      ]
+    }
+  ],
+  "errors": []
+}
