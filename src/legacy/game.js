@@ -135,14 +135,16 @@ function beep(f,d,t='square',v=.06,s=0){if(window.MaxballAudio&&d===.1&&(f===180
 
 /* ---------- entrada ---------- */
 addEventListener('contextmenu',e=>e.preventDefault());
+const localActionFlashes=new Map();
+function flashAction(ctrl='p1'){if(!G||!['play','penalties'].includes(G.phase))return;const id=ctrl==='p1'&&G.remote&&remoteUser?remoteUser:P.find(p=>p.ctrl===ctrl)?.id;if(id)localActionFlashes.set(id,performance.now()+MaxballConfig.physics.actionFlashDuration*1000);}
 const actionSeq={shoot:0,pass:0},keys={},tj={x:0,y:0},tb={s:0,p:0,r:0};
-addEventListener('keydown',e=>{if(window.MaxballSocial?.isOpen)return;if(e.target.isContentEditable||/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName))return;if(!e.repeat&&!keys[e.code]){if(MaxballKeyboard.codes(save.keyboard,'shoot',G?.mode==='local').includes(e.code))actionSeq.shoot++;if(MaxballKeyboard.codes(save.keyboard,'pass',G?.mode==='local').includes(e.code))actionSeq.pass++;}keys[e.code]=1;if(G&&(G.phase=='intro'||G.phase=='count')&&(e.code==='Enter'||MaxballKeyboard.pressed(save.keyboard,'shoot',{[e.code]:1})||MaxballKeyboard.pressed(save.keyboard,'pass',{[e.code]:1})))skipIntro();if(G&&(/Arrow|Space/.test(e.code)||['shoot','pass','shoot2','pass2'].some(a=>MaxballKeyboard.codes(save.keyboard,a).includes(e.code))))e.preventDefault()});
+addEventListener('keydown',e=>{if(window.MaxballSocial?.isOpen)return;if(e.target.isContentEditable||/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName))return;if(!e.repeat&&!keys[e.code]){if(MaxballKeyboard.codes(save.keyboard,'shoot',G?.mode==='local').includes(e.code)){actionSeq.shoot++;flashAction();}if(MaxballKeyboard.codes(save.keyboard,'pass',G?.mode==='local').includes(e.code)){actionSeq.pass++;flashAction();}if(G?.mode==='local'&&['shoot2','pass2'].some(a=>MaxballKeyboard.codes(save.keyboard,a).includes(e.code)))flashAction('p2');}keys[e.code]=1;if(G&&(G.phase=='intro'||G.phase=='count')&&(e.code==='Enter'||MaxballKeyboard.pressed(save.keyboard,'shoot',{[e.code]:1})||MaxballKeyboard.pressed(save.keyboard,'pass',{[e.code]:1})))skipIntro();if(G&&(/Arrow|Space/.test(e.code)||['shoot','pass','shoot2','pass2'].some(a=>MaxballKeyboard.codes(save.keyboard,a).includes(e.code))))e.preventDefault()});
 addEventListener('keyup',e=>keys[e.code]=0);
 const joy=$('#joy'),knob=$('#knob');
 let jid=null;
 const joystickBinding=MaxballPointers.bindJoystick(joy,knob,tj);
 const jend=()=>joystickBinding.reset();
-const actionBindings=[['#bS','s','shoot'],['#bP','p','pass']].map(([selector,key,action])=>MaxballPointers.bindAction($(selector),value=>tb[key]=+value,()=>{actionSeq[action]++;aud();}));
+const actionBindings=[['#bS','s','shoot'],['#bP','p','pass']].map(([selector,key,action])=>MaxballPointers.bindAction($(selector),value=>tb[key]=+value,()=>{actionSeq[action]++;flashAction();aud();}));
 /* ---------- vestiário ---------- */
 const LW=960,LH2=540,LR=18,LNU=[[7,8,5,4,1],[9,11,6,3,1]],lx=$('#lcv').getContext('2d'),lcv=$('#lcv');
 const LRECTS=[{x:0,y:0,w:960,h:140},{x:190,y:330,w:230,h:34},{x:540,y:330,w:230,h:34},{x:700,y:170,w:150,h:70},{x:395,y:190,w:170,h:38}];
@@ -322,6 +324,8 @@ function draw(){cx.setTransform(1,0,0,1,0,0);cx.fillStyle='#0a0f2c';cx.fillRect(
 
  P.forEach(p=>{if(p.hid||p.inactive||!visiblePlayer(p))return;cx.fillStyle='rgba(0,0,0,.3)';cx.beginPath();cx.ellipse(p.x,p.y+PR*.75,PR,PR*.5,0,0,7);cx.fill()});
  P.forEach((p,i)=>{if(p.hid||p.inactive||!visiblePlayer(p))return;const hop=G.phase==='end'&&G.score[p.team]>G.score[1-p.team]?Math.abs(Math.sin((typeof performance==='undefined'?G.pt:performance.now()/1000)*7+p.num))*7:p.hop,y=p.y-hop,col=p.team?c1:c0;
+  const flash=!G.paused&&!G.pauseState&&['play','penalties'].includes(G.phase)?Math.max(p.actionFlash||0,Math.max(0,(localActionFlashes.get(p.id)||0)-performance.now())/1000):0,areaRadius=MaxballInteraction.areaRadius();
+  cx.save();cx.fillStyle=flash>0?'rgba(255,255,255,.24)':'rgba(255,255,255,.035)';cx.strokeStyle=flash>0?'rgba(255,255,255,.95)':'rgba(255,255,255,.17)';cx.lineWidth=1;cx.beginPath();cx.arc(p.x,p.y,areaRadius-.5,0,Math.PI*2);cx.fill();cx.stroke();cx.restore();
   if(p.hop>2){cx.strokeStyle=col;cx.lineWidth=3;cx.globalAlpha=.6;cx.beginPath();cx.arc(p.x,p.y,PR+8+p.hop,0,7);cx.stroke();cx.globalAlpha=1}
   const actionScale=1+(window.MaxballPreferences?.get().effects===false?0:.035*Math.sin(Math.PI*clamp((p.cd||0)/MaxballConfig.physics.kickCooldown,0,1))),spriteRadius=PR*48/47*actionScale;
   cx.drawImage(pSpr(p.kit??G.sk[p.team]),p.x-spriteRadius,y-spriteRadius,spriteRadius*2,spriteRadius*2);
@@ -422,6 +426,7 @@ addEventListener('resize',rsz);addEventListener('maxball-preferences',()=>{parti
 const ljs={x:0,y:0},lj=$('#ljoy'),lkn=lj.firstElementChild;
 const lockerJoystick=MaxballPointers.bindJoystick(lj,lkn,ljs);
 function resetInputs(){
+ localActionFlashes.clear();
  for(const code of Object.keys(keys))delete keys[code];
  tj.x=tj.y=ljs.x=ljs.y=0;
  tb.s=tb.p=tb.r=0;joystickBinding.reset();actionBindings.forEach(b=>b.reset());careerButtons.pass=careerButtons.shot=false;

@@ -2,17 +2,17 @@
  const config=Object.freeze({
   physics:Object.freeze({
    // World units: the entire visible disc, including its rim, is 40 units wide.
-   playerRadius:20,ballRadius:20*.42,playerMass:3,ballMass:1.8,
+   playerRadius:20,ballRadius:20*.42*1.02,playerMass:3,ballMass:1.8,
    playerMaxSpeed:150,botMaxSpeeds:Object.freeze([132,142,150]),
    playerAcceleration:36,playerTurnResponse:48,inputEpsilon:.01,
    playerOutsideMargin:70,
    // Measured in field units/second; calibrated against the smallest pitch.
    shotImpulse:360,passImpulse:250,passMinSpeed:200,passMaxSpeed:290,passArrivalSpeed:160,ballMaxSpeed:440,
    ballFriction:.60,ballRollingResistance:9,
-   wallRestitution:.45,postRestitution:.32,postRadius:6,
+   wallRestitution:.82,postRestitution:.32,postRadius:6,
    contactRestitution:.12,contactBounceThreshold:24,contactSlop:.0001,
    contactIterations:32,contactVelocityIterations:48,
-   kickCooldown:.18,kickGlobalCooldown:.08,kickReach:1,kickBuffer:.12,
+   kickCooldown:.18,kickGlobalCooldown:.08,kickReach:20*.05,kickBuffer:.12,actionFlashDuration:.18,
    // Covers a human pass-shot gesture and its next fixed simulation tick.
    // Only this player's uninterrupted pass can use the follow-through reach.
    dbWindow:.18,dbReach:60,

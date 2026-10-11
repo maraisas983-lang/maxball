@@ -79,10 +79,11 @@
     let l=Math.hypot(i.x,i.y);if(l>1){i.x/=l;i.y/=l;l=1;}
     const sp=p.ctrl==='ai'?config.botMaxSpeeds[G.cfg.diff]:config.playerMaxSpeed;
     const inReach=interaction.contains(p,ball,view);
-    movement.integrate(p,i,dt,sp);p.cd-=dt;p.st=1;
+    movement.integrate(p,i,dt,sp);p.cd-=dt;p.st=1;p.actionFlash=Math.max(0,(p.actionFlash||0)-dt);
     for(const type of ['shoot','pass']){
      const edge=i[type]&&!p[type+'Held']||Number.isSafeInteger(i[type+'Seq'])&&i[type+'Seq']>(p[type+'Seq']||0);
      i[type+'Edge']=!blocked&&edge;
+     if(i[type+'Edge'])p.actionFlash=config.actionFlashDuration;
      // Bots schedule autonomous attempts; human buttons are strictly edge-triggered.
      if(!blocked&&(edge||p.ctrl==='ai'&&i[type]))p[type+'Buffer']=config.kickBuffer;
      p[type+'Held']=!!i[type];if(Number.isSafeInteger(i[type+'Seq']))p[type+'Seq']=i[type+'Seq'];

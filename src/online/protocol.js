@@ -1,6 +1,6 @@
 (function(root){
  'use strict';
- const fields=['x','y','vx','vy','fx','fy','st','cd','hop','inactive','hid'];
+ const fields=['x','y','vx','vy','fx','fy','st','cd','hop','inactive','hid','actionFlash'];
  const staticFields=['id','name','displayName','team','num','slot','ctrl','position','kit','sentOff','celebration'],ballFields=['x','y','vx','vy','rot','rollX','rollY','qx','qy','qz','qw','last','trail'];
  const round=v=>typeof v==='number'?Math.round(v*100)/100:v;
  function snapshot(match,tick=0){

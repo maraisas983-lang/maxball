@@ -1,0 +1,36 @@
+{
+  "result": {
+    "ballRadius": 8.568000000000001,
+    "playerRadius": 20,
+    "areaRadius": 21,
+    "paint": {
+      "idle": 52,
+      "flash": 15
+    },
+    "stats": {
+      "goals": 0,
+      "assists": 0,
+      "shots": 0,
+      "passes": 0,
+      "inputs": 0,
+      "shotsOnTarget": 0,
+      "saves": 0,
+      "keyPasses": 0,
+      "interceptions": 0,
+      "recoveries": 0,
+      "tackles": 0,
+      "chancesCreated": 0,
+      "successfulPasses": 0,
+      "turnovers": 0,
+      "errors": 0,
+      "fouls": 0,
+      "goalsConceded": 0
+    },
+    "wallReturn": {
+      "vx": 0,
+      "vy": 282.1761049855227,
+      "restitution": 0.82
+    }
+  },
+  "errors": []
+}

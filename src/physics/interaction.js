@@ -1,8 +1,10 @@
 (function(root){
  'use strict';
  const config=(typeof module!=='undefined'?require('../core/config.js'):root.MaxballConfig).physics;
- // The ring is the exact maximum distance between player and ball centres.
- function radius(state){return config.playerRadius+(state.BR??config.ballRadius)+config.kickReach;}
+ // The visible area extends 5% beyond the disc. A kick reaches the ball when
+ // its physical edge intersects that area; the ball hitbox is not inflated.
+ function areaRadius(){return config.playerRadius+config.kickReach;}
+ function radius(state){return areaRadius()+(state.BR??config.ballRadius);}
  function contains(player,ball,state){const r=radius(state);return (ball.x-player.x)**2+(ball.y-player.y)**2<=r*r;}
- const api={radius,contains};if(typeof module!=='undefined')module.exports=api;else root.MaxballInteraction=api;
+ const api={areaRadius,radius,contains};if(typeof module!=='undefined')module.exports=api;else root.MaxballInteraction=api;
 })(globalThis);
