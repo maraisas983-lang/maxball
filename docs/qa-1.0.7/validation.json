@@ -1,0 +1,19 @@
+{
+  "version": "1.0.7",
+  "versionCode": 8,
+  "assetsVerified": 142,
+  "sha256": "a31415fa4218608a2a4ea401d162af8c69d4a50fea6947b3bf20b10a0814e7bc",
+  "physicsTests": {
+    "total": 89,
+    "passed": 89,
+    "failed": 0
+  },
+  "syntaxCheck": "Sintaxe verificada: 196 arquivos.",
+  "ballRetentionPerSecond": 0.65,
+  "ballRollingResistance": 8,
+  "playerMaxSpeed": 150,
+  "passImpulse": 280,
+  "shotImpulse": 360,
+  "dbWindowSeconds": 0.1,
+  "physicalDeviceTested": false
+}

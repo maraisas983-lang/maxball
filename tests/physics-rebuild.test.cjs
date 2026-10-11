@@ -10,11 +10,11 @@ test('rear and lateral contacts kick outward independently of last heading',()=>
  for(const angle of [Math.PI,Math.PI/2,-Math.PI/2]){const s=scene(),p=s.P[0],r=cfg.playerRadius+s.BR,x=Math.cos(angle),y=Math.sin(angle);s.ball.x=p.x+x*r;s.ball.y=p.y+y*r;assert.equal(physics(s,{x:0,y:0}).kick(p,'s'),true);assert.ok(s.ball.vx*x+s.ball.vy*y>0);}
  const s=scene();s.ball.x=s.P[0].x;s.ball.y=s.P[0].y;assert.equal(physics(s,{x:0,y:0}).kick(s.P[0],'s'),false);
 });
-test('manual pass strength does not depend on joystick magnitude and stops short of half the smallest pitch',()=>{
+test('manual pass strength stays independent of joystick and rolls less far than a shot',()=>{
  const speeds=[];for(const strength of [.05,1]){const s=scene();physics(s,{x:strength,y:0,pass:true}).step(1/60);speeds.push(s.ball.vx);let before=s.ball.vx;for(let i=0;i<900;i++){moveBall(s,1/60);assert.ok(s.ball.vx>=0&&s.ball.vx<=before+1e-8);before=s.ball.vx;}assert.equal(before,0);}
  assert.equal(speeds[0],speeds[1]);assert.ok(speeds[0]<cfg.shotImpulse);
  const width=require('../src/game/fieldConfig.js').dimensions(1,0).W;
- assert.ok(rolling(cfg.passImpulse,60).distance<width*.5);assert.ok(rolling(cfg.shotImpulse,60).distance<width*.75);
+ assert.ok(rolling(cfg.passImpulse,60).distance<width*.75);assert.ok(rolling(cfg.shotImpulse,60).distance<width);
 });
 test('slow dribbling transfers only proportional motion, without strong repeat impulses or body overlap',()=>{
  for(const strength of [.1,.3,1]){const s=scene(),p=s.P[0],sim=physics(s,{x:strength,y:0});let max=0;for(let i=0;i<240;i++){sim.step(1/60);moveBall(s,1/60);max=Math.max(max,Math.hypot(s.ball.vx,s.ball.vy));assert.ok(Math.hypot(s.ball.x-p.x,s.ball.y-p.y)>=cfg.playerRadius+s.BR-.002);}
@@ -36,6 +36,19 @@ test('exact free roll agrees across timesteps, stops continuously and shares the
  const s=scene();s.ball.vx=340;const before=structuredClone(s.ball),forecast=predictTrajectory(s,1);assert.deepEqual(s.ball,before);for(let i=0;i<60;i++)moveBall(s,1/60);assert.ok(Math.abs(forecast.x-s.ball.x)<1e-9);assert.equal(forecast.vx,s.ball.vx);
  for(const speed of [170,340,680]){const distance=rolling(speed,1).distance;assert.ok(Math.abs(travelTime(distance,speed)-1)<1e-6);}
  const slow=rolling(.1,1);assert.equal(slow.speed,0);assert.ok(slow.distance>0&&slow.distance<.01);
+});
+
+test('smoother rolling retains more momentum at low speed and after a pass without increasing launch power',()=>{
+ const former=speed=>{const drag=-Math.log(.55),offset=12/drag;return Math.max(0,(speed+offset)*.55-offset);};
+ for(const speed of [40,cfg.passImpulse,cfg.shotImpulse]){
+  assert.equal(rolling(speed,0).speed,speed);
+  assert.ok(rolling(speed,1).speed>former(speed)*1.2);
+  assert.ok(rolling(speed,1).speed<speed);
+  assert.equal(rolling(speed,60).speed,0);
+ }
+ assert.equal(cfg.playerMaxSpeed,150);assert.equal(cfg.passImpulse,280);assert.equal(cfg.shotImpulse,360);assert.equal(cfg.dbWindow,.1);
+ const s=scene();s.P=[];s.ball.vx=40;const start=s.ball.x;for(let i=0;i<180;i++)moveBall(s,1/60);
+ assert.ok(s.ball.x-start>43&&s.ball.x-start<44);assert.equal(s.ball.vx,0);
 });
 test('real joystick mapping and desktop keyboard share screen/world axes in all eight directions',()=>{
  const h=gameHarness();h.api.start('train');const p=h.api.state.P[0],host=new Target(),node=new Element('div','joy'),knob=new Element(),value={x:0,y:0};bindJoystick(node,knob,value,host);

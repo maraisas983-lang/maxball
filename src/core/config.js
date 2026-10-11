@@ -8,7 +8,7 @@
    playerOutsideMargin:70,
    // Measured in field units/second; calibrated against the smallest pitch.
    shotImpulse:360,passImpulse:280,passMinSpeed:220,passMaxSpeed:320,passArrivalSpeed:180,ballMaxSpeed:440,
-   ballFriction:.55,ballRollingResistance:12,
+   ballFriction:.65,ballRollingResistance:8,
    wallRestitution:.45,postRestitution:.32,postRadius:6,
    contactRestitution:.12,contactBounceThreshold:24,contactSlop:.0001,
    contactIterations:32,contactVelocityIterations:48,
