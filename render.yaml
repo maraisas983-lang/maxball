@@ -18,7 +18,7 @@ services:
       - key: DATABASE_PATH
         value: /opt/render/project/src/var/maxball.sqlite
       - key: AUTH_PROVIDER
-        value: local
+        value: supabase
       - key: ADMIN_EMAILS
         sync: false
       - key: SUPABASE_URL

@@ -2,6 +2,17 @@ const test=require('node:test'),assert=require('node:assert/strict'),vm=require(
 const {read}=require('./helpers.cjs');
 const {createApp}=require('../server/app.cjs');
 const {createSupabase}=require('../server/services/supabase.cjs');
+
+test('published Render configuration selects email authentication and HTTP login reaches Supabase',async t=>{
+ const blueprint=read('render.yaml'),provider=blueprint.match(/key: AUTH_PROVIDER\s+value: (\w+)/)?.[1];assert.equal(provider,'supabase');
+ const {supabaseConfig}=require('../server/lib/supabaseConfig.cjs'),{once}=require('node:events'),calls=[],uid='00000000-0000-4000-8000-000000000025',origin='http://maxball-email.test';
+ const config=supabaseConfig({AUTH_PROVIDER:provider,SUPABASE_URL:'https://example.supabase.co',SUPABASE_PUBLISHABLE_KEY:'sb_publishable_test',SUPABASE_SECRET_KEY:'sb_secret_test'});
+ const fetchImpl=async(url,options)=>{calls.push({url,body:options.body});return {ok:true,json:async()=>url.endsWith('/user')?{id:uid,email:'player@example.com',email_confirmed_at:'2026-10-11'}:url.includes('/profiles')?[{id:uid,display_name:'Player',rating:1000,wins:0,draws:0,losses:0,goals:0,assists:0}]:{access_token:'cloud-access',refresh_token:'cloud-refresh',expires_in:3600}};};
+ const app=createApp({databasePath:':memory:',origin,supabase:{...config,fetchImpl},logger:{warn(){},error(){}}});t.after(()=>app.close());app.server.listen(0,'127.0.0.1');await once(app.server,'listening');const base='http://127.0.0.1:'+app.server.address().port;
+ const publicConfig=await (await fetch(base+'/api/config')).json();assert.equal(publicConfig.authProvider,'supabase');
+ const response=await fetch(base+'/api/auth/login',{method:'POST',headers:{Origin:origin,'Content-Type':'application/json'},body:JSON.stringify({username:'player@example.com',password:'existing-password',acceptTerms:true,...publicConfig.legal})});
+ assert.equal(response.status,200);assert.equal((await response.json()).user.id,uid);assert.match(response.headers.get('set-cookie'),/maxball_session=/);assert.deepEqual(JSON.parse(calls[0].body),{email:'player@example.com',password:'existing-password'});
+});
 test('offline APK origins reject account requests locally without a network connection',async()=>{
  for(const location of [{protocol:'file:',hostname:''},{protocol:'https:',hostname:'appassets.androidplatform.net'}]){
   let calls=0;
