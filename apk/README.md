@@ -1,6 +1,8 @@
 # MAXBALL para Android
 
-[Baixar MAXBALL 1.0.13](MAXBALL-1.0.13.apk?raw=true)
+[Baixar MAXBALL 1.0.14](MAXBALL-1.0.14.apk?raw=true)
+
+A versão 1.0.14 adapta o lobby à tela inteira em paisagem, sem sobreposição entre os menus. Veja [Lobby mobile](../docs/LOBBY_MOBILE_1_0_14.md). A física e o chat da versão anterior foram preservados.
 
 APK de teste, assinado com certificado de depuração, para Android 8.0 ou superior. Transfira para o celular, abra o arquivo e autorize a instalação pelo aplicativo usado. Quem instalou a versão anterior pode escolher **Atualizar**, preservando os dados.
 
@@ -11,7 +13,7 @@ Online, contas e pagamentos exigem um servidor HTTPS publicado e outra compilaç
 Assinaturas APK v2/v3 verificadas. SHA-256:
 
 ```text
-def422a5b255528029ce92752ab938f155258d8d472c3193c41f1d1288483c85
+f28613fbf376e858b3f220114cf9a4d1838e1c2764b8501ec119163b098ce9f0
 ```
 
 Para recompilar: consulte [Entrada, áudio e APK](../docs/ENTRADA_AUDIO_APK.md). A compilação padrão também está disponível no workflow **Android APK** do GitHub Actions.

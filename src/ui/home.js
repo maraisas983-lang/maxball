@@ -27,6 +27,11 @@
    root.MaxballUI.el('span',{class:'feature-arrow','aria-hidden':'true',text:'›'})
   ]);features.append(link);}
  document.querySelector('#home').append(features);root.MaxballHome={refresh};refresh();
+ const fullscreen=root.MaxballUI.button('⛶',async()=>{
+  try{if(document.fullscreenElement){await document.exitFullscreen();return;}await document.documentElement.requestFullscreen();await screen.orientation?.lock?.('landscape').catch(()=>{});}
+  catch{root.MaxballGame.toast('Não foi possível abrir a tela cheia neste navegador.');}
+ },'secondary');fullscreen.id='home-fullscreen';fullscreen.setAttribute('aria-label','Entrar em tela cheia');fullscreen.hidden=!document.fullscreenEnabled;document.querySelector('.home-wallet').append(fullscreen);
+ document.addEventListener('fullscreenchange',()=>fullscreen.setAttribute('aria-label',document.fullscreenElement?'Sair da tela cheia':'Entrar em tela cheia'));
  async function announcement(){
   if(document.hidden||!$('#home').classList.contains('on')||root.MaxballAPI.offline||location.protocol==='file:')return;
   try{const config=await root.MaxballAPI.request('/config'),welcome=document.querySelector('.home-footer>span');if(welcome)welcome.textContent=config.announcement||'Bem-vindo ao MAXBALL!';}catch{}

@@ -2,9 +2,11 @@
 
 /* The viewport belongs to the app; scroll long lobby content inside it. */
 html,body{width:100%;height:100%;padding:0}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 .maxball-android #exit{left:50%;right:auto;transform:translateX(-50%)}
 #game:has(#gpan.on) #game-chat-toggle{visibility:hidden}
 .scr{box-sizing:border-box;width:100%;height:100%;min-height:0}
+@supports(height:100dvh){.scr{position:fixed;height:100dvh;min-height:0}}
 #portal{overflow-x:hidden;overflow-y:auto}
 #portal-content{flex-shrink:0}
 .portal-header{flex-shrink:0}
@@ -22,29 +24,6 @@ html,body{width:100%;height:100%;padding:0}
 .keyboard-disclosure>.keyboard-controls{padding-top:5px}
 
 @media(orientation:landscape) and (max-height:600px){
- #home.on{display:block;min-height:0;height:100%;padding:0;overflow:hidden}
- #home .home-top{left:max(12px,env(safe-area-inset-left));right:max(12px,env(safe-area-inset-right));top:10px}
- #home .home-side{left:max(12px,env(safe-area-inset-left));top:26%;width:25%;gap:5px}
- #home .home-side button{min-height:32px;height:8.5dvh;padding:4px 10px;font-size:10px}
- #home .home-features{right:max(12px,env(safe-area-inset-right));top:26%;width:27%;gap:5px}
- #home .home-feature{min-height:0;height:11dvh;padding:5px 8px;gap:7px;border-radius:9px}
- #home .feature-copy>span,#home .feature-arrow{display:none}
- #home .feature-copy strong{font-size:12px}
- #home .feature-copy small{font-size:7px}
- #home .feature-icon{width:25px;height:25px;font-size:20px}
- #home .home-player{top:29%;gap:8px}
- #home .home-player canvas{width:26dvh;height:26dvh}
- #home .home-player strong{font-size:12px;padding:4px}
- #home .home-brand svg{width:12dvh}
- #home .home-brand h1{font-size:22px;margin:2px 0}
- #home .home-bottom{left:max(12px,env(safe-area-inset-left));right:max(12px,env(safe-area-inset-right));bottom:13%;gap:6px}
- #home .home-bottom button{min-height:40px;height:13dvh;padding:5px;font-size:9px;gap:5px}
- #home .home-bottom button span{font-size:20px}
- #home .home-bottom button.home-rank{font-size:16px}
- #home .home-footer{bottom:max(5px,env(safe-area-inset-bottom));left:max(12px,env(safe-area-inset-left));right:max(12px,env(safe-area-inset-right));gap:8px}
- #home .home-footer details{min-width:0;padding:7px 10px}
- #home .home-footer>span{font-size:10px}
- #home::after{display:none}
  #portal .portal-header{padding:6px max(12px,env(safe-area-inset-left));gap:10px;flex-wrap:nowrap}
  #portal .portal-header small{display:none}
  #portal .portal-brand{font-size:19px}
@@ -70,3 +49,59 @@ html,body{width:100%;height:100%;padding:0}
  #game-chat-toggle{left:50%;bottom:max(8px,env(safe-area-inset-bottom));transform:translateX(-50%);padding:7px 10px;font-size:11px}
  .game-chat{left:50%;transform:translateX(-50%);bottom:46px}
 }
+
+/* One mobile landscape grid: each region owns its space as the viewport changes. */
+@media(orientation:landscape) and (max-height:600px),(orientation:landscape) and (max-width:1100px){
+ #home.on{display:grid;grid-template-columns:minmax(0,26fr) minmax(0,44fr) minmax(0,30fr);grid-template-rows:minmax(40px,18%) minmax(0,1fr) minmax(34px,16%) minmax(22px,10%);gap:6px 12px;min-height:0;height:100%;height:100dvh;padding:max(6px,env(safe-area-inset-top,0px)) max(10px,env(safe-area-inset-right,0px)) max(6px,env(safe-area-inset-bottom,0px)) max(10px,env(safe-area-inset-left,0px));overflow:hidden;align-items:stretch}
+ #home .home-top{position:static;grid-area:1/1/2/4;display:grid;grid-template-columns:26fr 44fr 30fr;align-items:center;gap:12px;min-width:0}
+ #home .home-profile{grid-column:1;min-width:0;width:100%;padding:4px 7px;gap:6px;box-sizing:border-box;max-height:100%}
+ #home .home-profile>span:last-child{min-width:0}
+ #home .home-profile strong{font-size:clamp(11px,3dvh,18px);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ #home .level-badge{flex:none;width:clamp(24px,8dvh,40px);height:clamp(30px,10dvh,48px);font-size:clamp(16px,5dvh,25px)}
+ #home .xp-line{gap:4px}#home .xp-line progress{width:100%;min-width:12px;max-width:105px;height:6px}#home .xp-line small{font-size:8px}
+ #home #home-patent{font-size:8px;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ #home .home-wallet{grid-column:3;width:100%;min-width:0;gap:4px;justify-content:flex-end}
+ #home .home-wallet button{min-height:30px;height:clamp(30px,11dvh,48px);padding:3px 5px;gap:4px;min-width:0}
+ #home .home-wallet button:first-child{flex:1}#home .home-wallet strong{min-width:0;font-size:clamp(10px,2.7dvh,18px);overflow:hidden;text-overflow:ellipsis}
+ #home .gem-symbol{font-size:clamp(17px,6dvh,27px)}#home .wallet-plus{flex:none;width:18px;line-height:22px;font-size:18px}
+ #home .home-wallet button:not(:first-child){flex:none;width:clamp(26px,9dvh,40px);font-size:20px;padding:0}
+ #home .home-brand{position:static;grid-area:1/2/2/3;transform:none;align-self:center;justify-self:center;pointer-events:none}
+ #home .home-brand svg{width:clamp(22px,9dvh,52px)}#home .home-brand h1{font-size:clamp(14px,4dvh,25px);margin:2px 0;letter-spacing:-.5px}
+ #home .home-side{position:static;grid-area:2/1/3/2;width:auto;grid-template-rows:repeat(4,minmax(0,1fr));gap:4px}
+ #home .home-side button{min-height:0;min-width:0;height:auto;padding:3px 7px;gap:7px;font-size:clamp(9px,2.8dvh,13px)}
+ #home .home-side button>span{flex:none;width:20px;font-size:clamp(16px,5dvh,24px)}#home .home-side b{font-size:20px}
+ #home .home-player{position:static;grid-area:2/2/3/3;transform:none;align-self:center;justify-self:center;gap:7px;min-width:0}
+ #home .home-player>div{min-width:0}#home .home-player canvas{width:min(24dvh,19vw);height:min(24dvh,19vw);box-sizing:border-box}
+ #home .home-player>button{width:clamp(24px,8dvh,36px);height:clamp(24px,8dvh,36px);font-size:25px;flex:none}
+ #home .home-player strong{max-width:min(24dvh,19vw);box-sizing:border-box;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:clamp(9px,2.8dvh,14px);padding:4px;margin-top:4px}
+ #home .home-features{position:static;grid-area:2/3/3/4;width:auto;grid-template-rows:repeat(3,minmax(0,1fr));gap:5px}
+ #home .home-feature{min-height:0;height:auto;padding:4px 7px;gap:6px;border-radius:9px}
+ #home .feature-icon{width:clamp(18px,6dvh,30px);height:clamp(18px,6dvh,30px);font-size:clamp(16px,5dvh,24px)}#home .feature-copy{gap:2px}
+ #home .feature-copy strong{font-size:clamp(10px,3dvh,15px)}#home .feature-copy small{font-size:clamp(6px,1.9dvh,9px)}#home .feature-copy>span,#home .feature-arrow{display:none}
+ #home .home-bottom{position:static;grid-area:3/1/4/4;grid-template-columns:repeat(6,minmax(0,1fr));gap:5px}
+ #home .home-bottom button{min-height:0;min-width:0;height:auto;padding:4px;gap:5px;font-size:clamp(8px,2.5dvh,12px);overflow-wrap:anywhere;line-height:1.15}
+ #home .home-bottom button span{font-size:clamp(16px,5dvh,27px);flex:none}#home .home-bottom button.home-rank{font-size:clamp(13px,4dvh,20px)}#home .home-rank b{display:none}
+ #home .home-footer{position:static;grid-area:4/1/5/4;flex-wrap:nowrap;gap:8px;min-width:0;font-size:10px;align-self:stretch}
+ #home .home-footer>span{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:clamp(8px,2.4dvh,12px)}
+ #home .home-footer .link{padding:4px 0;white-space:nowrap;font-size:clamp(9px,2.5dvh,12px)}#home .home-footer details{min-width:0;padding:5px 8px;font-size:clamp(9px,2.5dvh,12px)}
+ #home::after{display:none}
+}
+@media(orientation:landscape) and (max-height:280px){#home .home-side{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr))}#home .home-side button{padding:3px;gap:3px;font-size:8px}#home .home-side button>span{width:15px;font-size:15px}#home .home-side b{display:none}}
+@media(orientation:portrait) and (max-width:1100px){#home.on{min-height:0;height:100%;height:100dvh;justify-content:flex-start;overflow-x:hidden;overflow-y:auto;padding:max(12px,env(safe-area-inset-top,0px)) max(12px,env(safe-area-inset-right,0px)) max(12px,env(safe-area-inset-bottom,0px)) max(12px,env(safe-area-inset-left,0px))}}
+#home-fullscreen[hidden]{display:none!important}.maxball-android #home-fullscreen{display:none}
+#home #home-fullscreen{background:#10254a;color:#fff;border:0}
+.home-wallet button[data-go=ctl]{font-size:28px}
+@media(orientation:landscape) and (max-height:280px){#home .home-bottom button>span{display:none}#home .home-bottom button{padding:2px;overflow-wrap:normal}}
+@media(orientation:portrait) and (max-width:1100px){
+ #home .home-top{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}
+ #home .home-profile,#home .home-wallet{min-width:0;width:100%;box-sizing:border-box;gap:4px}
+ #home .home-profile>span:last-child{min-width:0}#home .level-badge{flex:none;width:30px;height:38px}
+ #home .home-profile strong{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:14px}
+ #home .xp-line{gap:4px}#home .xp-line progress{width:100%;min-width:12px;max-width:70px}
+ #home #home-patent{font-size:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ #home .home-wallet button{min-width:0;padding:4px;gap:3px}#home .home-wallet button:first-child{flex:1}
+ #home .home-wallet strong{min-width:0;font-size:14px;overflow:hidden;text-overflow:ellipsis}
+ #home .gem-symbol{font-size:20px}#home .wallet-plus{flex:none;width:15px;line-height:22px;font-size:18px}
+ #home .home-wallet button:not(:first-child){flex:none;width:28px;padding:0;font-size:20px}
+}
+@media(pointer:fine){#home-fullscreen{display:none}}
