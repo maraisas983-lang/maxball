@@ -32,15 +32,9 @@
    const ux=dx/length,uy=dy/length;
    const targetDistance=aim&&Math.hypot(aim.x,aim.y);
    const power=type==='s'?config.shotImpulse:Number.isFinite(targetDistance)?ballPhysics.passSpeed(targetDistance):config.passImpulse;
-   G.restarting=false;G.kl=.08;p.cd=config.kickCooldown;
+   G.restarting=false;G.kl=config.kickGlobalCooldown;p.cd=config.kickCooldown;
    const ability=type==='s'?p.attributes?.shooting:p.attributes?.passing,factor=clamp((ability??70)/70,.8,1.2);
-   // Retain a bounded contribution of incoming normal/tangential momentum.
-   // This is one contact impulse, not an accumulating acceleration while held.
-   const target=power*factor,normal=ball.vx*ux+ball.vy*uy,tangent=-ball.vx*uy+ball.vy*ux;
-   const outgoing=target+clamp(normal*config.kickMomentum,-target*config.kickMomentum,target*config.kickMomentum);
-   const side=clamp(tangent*config.kickTangentRetention,-target*config.kickTangentLimit,target*config.kickTangentLimit);
-   ball.vx=ux*outgoing-uy*side;ball.vy=uy*outgoing+ux*side;
-   const speed=Math.hypot(ball.vx,ball.vy);if(speed>config.ballMaxSpeed){ball.vx*=config.ballMaxSpeed/speed;ball.vy*=config.ballMaxSpeed/speed;}ball.kickedBy=p.id;
+   ballPhysics.kickBall(ball,ux,uy,power*factor);ball.kickedBy=p.id;
    touch(p);effects.kick?.(p,type);
    const col=p.team?'#ff2d87':'#c8ff2e';effects.burst?.(ball.x,ball.y,type==='s'?10:6,[col,'#fff'],type==='s'?220:120,.3);
    effects.beep?.(type==='s'?180:420,.1,type==='s'?'sawtooth':'triangle',.06);

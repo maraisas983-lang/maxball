@@ -2,7 +2,7 @@
 const {chromium}=require('../.work/browser/node_modules/playwright');
 const {createApp}=require('../server/app.cjs');
 const {once}=require('node:events'),assert=require('node:assert/strict'),fs=require('node:fs'),{execFileSync}=require('node:child_process');
-const out='docs/qa-1.0.4';fs.mkdirSync(out,{recursive:true});
+const out=process.env.MAXBALL_QA_DIR||'docs/qa-1.0.5';fs.mkdirSync(out,{recursive:true});
 const spriteSource=source=>source.slice(source.indexOf('function drawSkin('),source.indexOf('const lum='));
 (async()=>{
  const origin='http://127.0.0.1:4417',app=createApp({databasePath:':memory:',origin,logger:{warn(){},error:console.error}});let browser;
@@ -15,7 +15,7 @@ const spriteSource=source=>source.slice(source.indexOf('function drawSkin('),sou
   const visual=await page.evaluate(sources=>{
    const canvas=document.createElement('canvas');canvas.width=900;canvas.height=600;const g=canvas.getContext('2d');g.fillStyle='#152a22';g.fillRect(0,0,900,600);g.textAlign='center';g.fillStyle='#fff';g.font='20px sans-serif';
    const versions=Object.entries(sources).map(([key,code])=>({key,sprite:new Function('document','MaxballSkinDesign','SK',code+';return pSpr;')(document,MaxballSkinDesign,MaxballTeams.kits)}));
-   ['Anterior 1.0.2','Rejeitado 1.0.3','Restaurado 1.0.4'].forEach((label,i)=>g.fillText(label,150+i*300,40));
+   ['Anterior 1.0.2','Rejeitado 1.0.3','Atual 1.0.5'].forEach((label,i)=>g.fillText(label,150+i*300,40));
    let matched=0;for(let kit=0;kit<MaxballTeams.kits.length;kit++){const a=versions[0].sprite(kit).getContext('2d').getImageData(0,0,96,96).data,b=versions[2].sprite(kit).getContext('2d').getImageData(0,0,96,96).data;if(a.some((v,i)=>v!==b[i]))throw Error('Restored sprite differs from original kit '+kit);matched++;}
    for(let row=0;row<4;row++)versions.forEach((v,col)=>{g.drawImage(v.sprite(row),102+col*300,66+row*130);g.fillStyle='#fff';g.font='bold 26px sans-serif';g.strokeStyle='#10182b';g.lineWidth=3;g.strokeText('10',150+col*300,123+row*130);g.fillText('10',150+col*300,123+row*130);});
    return {matched,png:canvas.toDataURL('image/png')};

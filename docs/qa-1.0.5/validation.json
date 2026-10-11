@@ -1,0 +1,48 @@
+{
+  "version": "1.0.5",
+  "versionCode": 6,
+  "assetsVerified": 142,
+  "apkBytes": 282178,
+  "sha256": "d96a296d4ba5fa55e8ae7991cf07844542c95f90f6015dfe4c20af6c48770801",
+  "tests": {
+    "full": {
+      "total": 304,
+      "passed": 303,
+      "failed": 1
+    },
+    "correctedFileRecheck": {
+      "total": 7,
+      "passed": 7,
+      "failed": 0
+    },
+    "syntaxFiles": 194
+  },
+  "mobileViewports": [
+    [
+      568,
+      320
+    ],
+    [
+      640,
+      360
+    ],
+    [
+      740,
+      360
+    ],
+    [
+      844,
+      390
+    ],
+    [
+      915,
+      412
+    ],
+    [
+      1280,
+      720
+    ]
+  ],
+  "physicalDeviceTested": false,
+  "mamoballVideoCompared": false
+}

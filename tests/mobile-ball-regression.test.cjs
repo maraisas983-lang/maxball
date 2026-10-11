@@ -20,9 +20,9 @@ test('moving left with a ball touching the right kicks right instead of followin
 });
 test('rebounds collide with the kicker immediately and opponents remain solid',()=>{
  const s=scene(),p=s.P[0],physics=createPhysics({state:()=>s,input:()=>({x:0,y:0}),externalAI:{update(){}}});assert.ok(physics.kick(p,'s'));
- s.ball.x=p.x+30;s.ball.vx=-200;resolveContacts([p],s.ball,11,1/60);assert.ok(s.ball.vx>0);
+ s.ball.x=p.x+30;s.ball.vx=-200;resolveContacts([p],s.ball,11,1/60);assert.ok(s.ball.vx>p.vx);assert.ok(p.vx<0);assert.ok(s.ball.x-p.x>=30.999);
  const defender={id:'other',team:1,x:700,y:280,vx:0,vy:0};s.ball.x=670;s.ball.y=280;s.ball.vx=340;
- resolveContacts([defender],s.ball,11,1/60);assert.ok(s.ball.vx<0);
+ resolveContacts([defender],s.ball,11,1/60);assert.ok(s.ball.vx<defender.vx);assert.ok(defender.vx>0);assert.ok(defender.x-s.ball.x>=30.999);
 });
 test('diagonal balls already behind the post cannot hit an imaginary end-line wall',()=>{
  for(const side of [0,1]){const s=scene();s.P=[];s.ball={x:side?1010:-10,y:228,vx:side?150:-150,vy:-120};let goals=0;

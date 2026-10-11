@@ -1,0 +1,8 @@
+Page loaded
+PASS full viewport and non-overlapping home controls 568 320
+PASS full viewport and non-overlapping home controls 640 360
+PASS full viewport and non-overlapping home controls 740 360
+PASS full viewport and non-overlapping home controls 844 390
+PASS full viewport and non-overlapping home controls 915 412
+PASS full viewport and non-overlapping home controls 1280 720
+PASS controls, in-game independent sliders, movement+shot, portrait fallback; no runtime errors

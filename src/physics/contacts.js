@@ -3,61 +3,61 @@
  const config=(typeof module!=='undefined'?require('../core/config.js'):root.MaxballConfig).physics;
  const rotation=typeof module!=='undefined'?require('./ballRotation.js'):root.MaxballBallRotation;
  function normal(ball,p,out){const dx=ball.x-p.x,dy=ball.y-p.y,d=Math.hypot(dx,dy);out.d=d;if(d>1e-8){out.x=dx/d;out.y=dy/d;}else{const vx=p.vx-ball.vx,vy=p.vy-ball.vy,s=Math.hypot(vx,vy);out.x=s?vx/s:(p.team?-1:1);out.y=s?vy/s:0;}return out;}
- // Reuse scratch memory; the synchronous solver never allocates per iteration.
- const scratch=[];
+ // Shared by local play, authoritative server and fast-ball substeps.
+ // Contact impulses never read input, heading, kick state or visual rotation.
+ const scratch=[],ordered=[];
  function resolveContacts(players,ball,radius,dt,touch=()=>{},field){
-  const startX=ball.x,startY=ball.y,distance=config.playerRadius+radius,incomingSpeed=Math.hypot(ball.vx,ball.vy);let count=0,impulseX=0,impulseY=0,touched=null,best=Infinity,driveBudget=0;
-  for(let i=0;i<players.length;i++){
-   const p=players[i];if(p.inactive||(ball.x-p.x)**2+(ball.y-p.y)**2>=distance*distance)continue;const n=normal(ball,p,scratch[i]??={x:0,y:0,d:0});if(n.d>=distance-.001)continue;count++;
-   if(n.d<best||n.d===best&&String(p.id??p.num)<String(touched?.id??touched?.num)){touched=p;best=n.d;}
-   driveBudget=Math.max(driveBudget,Math.min(config.contactMaxPushSpeed,Math.max(0,p.vx*n.x+p.vy*n.y)));
-   const relative=(ball.vx-p.vx)*n.x+(ball.vy-p.vy)*n.y;
-   if(relative<0){
-    // Players follow control input as kinematic bodies: bounce once at contact,
-    // rather than retain velocity into an immovable body for repeated corrections.
-    let impulse=-(1+config.contactRestitution)*relative,normalSpeed=ball.vx*n.x+ball.vy*n.y;
-    if(normalSpeed>=0){
-     const drive=p.vx*n.x+p.vy*n.y,transfer=1-Math.exp(-config.contactResponse*dt*config.playerMass/(config.playerMass+config.ballMass));
-     impulse=Math.min(impulse,Math.max(0,Math.min(drive,config.contactMaxPushSpeed)-normalSpeed))*transfer;
-    }else{
-     const motion=p.vx*n.x+p.vy*n.y,drive=Math.max(0,Math.min(motion,config.contactMaxPushSpeed)),transfer=1-Math.exp(-config.contactResponse*dt*config.playerMass/(config.playerMass+config.ballMass));
-     impulse=-(1+config.contactRestitution)*(normalSpeed-Math.min(0,motion))+drive*transfer;
-    }
-    impulseX+=impulse*n.x;impulseY+=impulse*n.y;
-   }
+  const distance=config.playerRadius+radius,ib=1/config.ballMass,ip=1/config.playerMass,effective=1/(ib+ip);
+  const startX=ball.x,startY=ball.y;let count=0,touched=null,best=Infinity,drive=0;
+  ordered.length=0;
+  for(const p of players)if(!p.inactive&&(ball.x-p.x)**2+(ball.y-p.y)**2<=(distance+config.contactSlop)**2)ordered.push(p);
+  ordered.sort((a,b)=>String(a.id??a.num).localeCompare(String(b.id??b.num)));
+  for(const p of ordered){
+   const c=normal(ball,p,scratch[count]??={});c.p=p;c.impulse=0;
+   const relative=(ball.vx-p.vx)*c.x+(ball.vy-p.vy)*c.y;
+   c.target=relative < -config.contactBounceThreshold ? -relative*config.contactRestitution : 0;
+   drive=Math.max(drive,Math.max(0,p.vx*c.x+p.vy*c.y));
+   if(c.d<best){touched=p;best=c.d;}count++;
   }
-  if(!count)return;
-  // One shared incoming velocity makes simultaneous contact independent of order.
-  ball.vx+=impulseX/count;ball.vy+=impulseY/count;
-  for(let iteration=0;iteration<config.contactIterations;iteration++){
-   let active=0,nx=0,ny=0;
-   for(let i=0;i<players.length;i++){if(players[i].inactive)continue;const p=players[i],n=scratch[i]??={x:0,y:0,d:0};if((ball.x-p.x)**2+(ball.y-p.y)**2>=distance*distance){n.d=Infinity;continue;}normal(ball,p,n);if(n.d<distance-.001){active++;nx+=n.x;ny+=n.y;}}
-   if(!active)break;
-   const balanced=active>1&&Math.hypot(nx,ny)<.8;let dx=0,dy=0;
-   for(let i=0;i<players.length;i++){
-    const p=players[i],n=scratch[i];if(p.inactive||n.d>=distance-.001)continue;
-    const depth=distance-n.d,share=balanced?0:active===1?(p.vx*n.x+p.vy*n.y>0?config.playerMass/(config.playerMass+config.ballMass):1):.6;
-    dx+=n.x*depth*share;dy+=n.y*depth*share;p.x-=n.x*depth*(1-share);p.y-=n.y*depth*(1-share);
+  if(!count)return false;
+  // Accumulated non-negative constraints: later iterations refine the SAME
+  // impulse, rather than applying restitution again. Jacobi relaxation gives
+  // simultaneous contacts the same incoming state (including symmetric tackles).
+  for(let iteration=0;iteration<config.contactVelocityIterations;iteration++){
+   let bx=0,by=0,error=0;
+   for(let i=0;i<count;i++){
+    const c=scratch[i],p=c.p,relative=(ball.vx-p.vx)*c.x+(ball.vy-p.vy)*c.y;
+    const next=Math.max(0,c.impulse+(c.target-relative)*effective/count),delta=next-c.impulse;
+    c.impulse=next;c.delta=delta;bx+=delta*c.x;by+=delta*c.y;error=Math.max(error,Math.abs(delta));
    }
-   const x=ball.x,y=ball.y;ball.x+=dx/active;ball.y+=dy/active;
+   ball.vx+=bx*ib;ball.vy+=by*ib;
+   for(let i=0;i<count;i++){const c=scratch[i];c.p.vx-=c.delta*c.x*ip;c.p.vy-=c.delta*c.y*ip;}
+   if(error<1e-9)break;
+  }
+  // Split position correction: inverse-mass weighting, no velocity/energy bias.
+  for(let iteration=0;iteration<config.contactIterations;iteration++){
+   let active=0,dx=0,dy=0;
+   for(let i=0;i<count;i++){const c=normal(ball,scratch[i].p,scratch[i]);c.depth=Math.max(0,distance-c.d);if(c.depth>config.contactSlop)active++;}
+   if(!active)break;
+   for(let i=0;i<count;i++){
+    const c=scratch[i];if(c.depth<=config.contactSlop)continue;
+    const correction=c.depth*effective/active;
+    dx+=c.x*correction*ib;dy+=c.y*correction*ib;c.p.x-=c.x*correction*ip;c.p.y-=c.y*correction*ip;
+   }
+   const x=ball.x,y=ball.y;ball.x+=dx;ball.y+=dy;
    if(field){
     ball.y=Math.max(radius,Math.min(field.H-radius,ball.y));
     const mouth=ball.y>field.GY0&&ball.y<field.GY1;
     if(!mouth&&x>=0&&x<=field.W)ball.x=Math.max(radius,Math.min(field.W-radius,ball.x));
-    // Transfer correction blocked by a wall to the contacting bodies.
-    const blockedX=x+dx/active-ball.x,blockedY=y+dy/active-ball.y;
-    if(blockedX||blockedY)for(let i=0;i<players.length;i++)if(!players[i].inactive&&scratch[i].d<distance-.001){players[i].x-=blockedX;players[i].y-=blockedY;}
+    const blockedX=x+dx-ball.x,blockedY=y+dy-ball.y;
+    if(blockedX||blockedY)for(let i=0;i<count;i++)if(scratch[i].depth>config.contactSlop){scratch[i].p.x-=blockedX;scratch[i].p.y-=blockedY;}
    }
   }
-  // Contacts may reflect an incoming shot or transfer player motion, but repeated
-  // normals in a tackle must not compound into energy beyond either source.
-  const speed=Math.hypot(ball.vx,ball.vy),limit=Math.min(config.ballMaxSpeed,Math.max(incomingSpeed,driveBudget));if(speed>limit){ball.vx*=limit/speed;ball.vy*=limit/speed;}
-  // Continuous player-driven displacement is real rolling too. Idle overlap
-  // repair and substep depenetration (dt=0) must not generate artificial spin.
-  const dx=ball.x-startX,dy=ball.y-startY,travel=Math.hypot(dx,dy),driven=Math.min(travel,driveBudget*dt);
-  if(driven>0)rotation.roll(ball,dx*driven/travel,dy*driven/travel,radius);
-  touch(touched);
-  return true;
+  // Account for movement-driven sub-tick separation in rolling, but not idle
+  // overlap repair. This is visual only and never writes linear velocity.
+  const dx=ball.x-startX,dy=ball.y-startY,travel=Math.hypot(dx,dy),rolled=Math.min(travel,drive*dt);
+  if(rolled>0)rotation.roll(ball,dx*rolled/travel,dy*rolled/travel,radius);
+  touch(touched);return true;
  }
  if(typeof module!=='undefined')module.exports={resolveContacts};else root.MaxballContacts={resolveContacts};
 })(globalThis);

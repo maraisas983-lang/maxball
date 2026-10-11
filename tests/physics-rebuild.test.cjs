@@ -14,11 +14,11 @@ test('manual pass strength does not depend on joystick magnitude and stops short
  const speeds=[];for(const strength of [.05,1]){const s=scene();physics(s,{x:strength,y:0,pass:true}).step(1/60);speeds.push(s.ball.vx);let before=s.ball.vx;for(let i=0;i<900;i++){moveBall(s,1/60);assert.ok(s.ball.vx>=0&&s.ball.vx<=before+1e-8);before=s.ball.vx;}assert.equal(before,0);}
  assert.equal(speeds[0],speeds[1]);assert.ok(speeds[0]<cfg.shotImpulse);
  const width=require('../src/game/fieldConfig.js').dimensions(1,0).W;
- assert.ok(rolling(cfg.passImpulse,60).distance<width*.4);assert.ok(rolling(cfg.shotImpulse,60).distance<width*.75);
+ assert.ok(rolling(cfg.passImpulse,60).distance<width*.5);assert.ok(rolling(cfg.shotImpulse,60).distance<width*.75);
 });
 test('slow dribbling transfers only proportional motion, without strong repeat impulses or body overlap',()=>{
  for(const strength of [.1,.3,1]){const s=scene(),p=s.P[0],sim=physics(s,{x:strength,y:0});let max=0;for(let i=0;i<240;i++){sim.step(1/60);moveBall(s,1/60);max=Math.max(max,Math.hypot(s.ball.vx,s.ball.vy));assert.ok(Math.hypot(s.ball.x-p.x,s.ball.y-p.y)>=cfg.playerRadius+s.BR-.002);}
- assert.ok(s.ball.x>2028.4);assert.ok(max<=Math.min(cfg.contactMaxPushSpeed,cfg.playerMaxSpeed*strength)+1e-8);}
+ assert.ok(s.ball.x>2028.4);assert.ok(max<=cfg.playerMaxSpeed*strength+1e-8);}
 });
 test('symmetric tackles have no spontaneous energy and are independent of player iteration order',()=>{
  function tackle(reverse){const s=scene(),r=cfg.playerRadius+s.BR;s.ball.x=2000;s.P=[{id:'left',x:2000-r+2,y:2000,vx:180,vy:0,team:0},{id:'right',x:2000+r-2,y:2000,vx:-180,vy:0,team:1}];if(reverse)s.P.reverse();for(let i=0;i<60;i++)resolveContacts(s.P,s.ball,s.BR,1/60);for(const p of s.P)assert.ok(Math.hypot(s.ball.x-p.x,s.ball.y-p.y)>=r-.002);assert.ok(Math.hypot(s.ball.vx,s.ball.vy)<1e-8);return s.ball;}
@@ -26,7 +26,7 @@ test('symmetric tackles have no spontaneous energy and are independent of player
 });
 test('maximum speed shots cannot tunnel through stationary discs or either post',()=>{
  const s=scene(),p=s.P[0];s.ball.x=p.x-70;s.ball.vx=cfg.ballMaxSpeed;prepareContacts(s.ball,[p],()=>{});
- for(let i=0;i<15;i++){moveBall(s,1/60);assert.ok(s.ball.x<=p.x-cfg.playerRadius-s.BR+.002);}assert.ok(s.ball.vx<0);
+ for(let i=0;i<15;i++){moveBall(s,1/60);assert.ok(s.ball.x<=p.x-cfg.playerRadius-s.BR+.002);}assert.ok(s.ball.vx<p.vx);
  for(const side of [0,1])for(const y of [s.GY0,s.GY1]){const f=scene();f.P=[];f.ball={x:side?f.W-30:30,y,vx:side?cfg.ballMaxSpeed:-cfg.ballMaxSpeed,vy:0};for(let i=0;i<10;i++)moveBall(f,1/60);assert.ok(side?f.ball.vx<0:f.ball.vx>0);assert.ok(Math.hypot(f.ball.x-(side?f.W:0),f.ball.y-y)>=f.BR+cfg.postRadius-.001);}
 });
 test('fixed 60 Hz simulation produces identical positions/velocities at six rendering frame rates',()=>{assert.equal(frameRates().length,6);});

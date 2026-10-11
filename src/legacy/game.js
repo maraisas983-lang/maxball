@@ -323,7 +323,8 @@ function draw(){cx.setTransform(1,0,0,1,0,0);cx.fillStyle='#0a0f2c';cx.fillRect(
  P.forEach(p=>{if(p.hid||p.inactive||!visiblePlayer(p))return;cx.fillStyle='rgba(0,0,0,.3)';cx.beginPath();cx.ellipse(p.x,p.y+PR*.75,PR,PR*.5,0,0,7);cx.fill()});
  P.forEach((p,i)=>{if(p.hid||p.inactive||!visiblePlayer(p))return;const hop=G.phase==='end'&&G.score[p.team]>G.score[1-p.team]?Math.abs(Math.sin((typeof performance==='undefined'?G.pt:performance.now()/1000)*7+p.num))*7:p.hop,y=p.y-hop,col=p.team?c1:c0;
   if(p.hop>2){cx.strokeStyle=col;cx.lineWidth=3;cx.globalAlpha=.6;cx.beginPath();cx.arc(p.x,p.y,PR+8+p.hop,0,7);cx.stroke();cx.globalAlpha=1}
-  cx.drawImage(pSpr(p.kit??G.sk[p.team]),p.x-PR*48/47,y-PR*48/47,PR*96/47,PR*96/47);
+  const actionScale=1+(window.MaxballPreferences?.get().effects===false?0:.035*Math.sin(Math.PI*clamp((p.cd||0)/MaxballConfig.physics.kickCooldown,0,1))),spriteRadius=PR*48/47*actionScale;
+  cx.drawImage(pSpr(p.kit??G.sk[p.team]),p.x-spriteRadius,y-spriteRadius,spriteRadius*2,spriteRadius*2);
   if(G.phase!=='replay'&&(p.ctrl=='p1'||p.ctrl=='p2')){cx.strokeStyle=col;cx.lineWidth=2;cx.beginPath();cx.arc(p.x,y,PR-1,0,Math.PI*2);cx.stroke()}
   playerLabel(p.num,p.x,y+1,14);playerLabel(p.displayName||p.name||'Bot',p.x,p.y+34,11);
   if(p.ctrl=='p1'||p.ctrl=='p2'){cx.fillStyle='#fff';cx.beginPath();cx.moveTo(p.x-7,y-PR-16);cx.lineTo(p.x+7,y-PR-16);cx.lineTo(p.x,y-PR-6);cx.fill();

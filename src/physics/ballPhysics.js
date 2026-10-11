@@ -74,8 +74,8 @@
       }
       if(!awarded&&(G.phase==='play'||G.phase==='penalties')){const scored=crossedGoal(previous,ball,state);if(scored!==null){awarded=true;onGoal(scored);if(G.phase==='goal'){rotation.roll(ball,ball.x-previous.x,ball.y-previous.y,BR);ball.vx*=.12;ball.vy*=.12;return;}}}
       if(visual)rotation.roll(ball,ball.x-previous.x,ball.y-previous.y,BR);
-      // Player drive was applied once in playerPhysics. Substeps resolve only
-      // new impacts/separation, never a second full contact acceleration.
+      // Resolve only approaching relative velocity: an already separating contact
+      // receives no second impulse, regardless of the number of substeps.
       if(candidates?.length&&(G.phase==='play'||G.phase==='penalties')&&contacts.resolveContacts(candidates,ball,BR,0,notify,state)){
        for(const x of [0,W])for(const y of [GY0,GY1]){const impact=collideCircle(ball,x,y,BR+CONFIG.postRadius,CONFIG.postBounce);if(impact)onImpact(impact);}
       }
@@ -100,7 +100,19 @@
     for(let i=0;i<count;i++)moveBall(predicted,dt,()=>{},()=>{},visual);
     return out;
   }
-  const passSpeed=distance=>Math.max(physics.passMinSpeed,Math.min(physics.passMaxSpeed,110-Math.log(physics.ballFriction)*Math.max(0,distance)));
+  const passSpeed=distance=>Math.max(physics.passMinSpeed,Math.min(physics.passMaxSpeed,physics.passArrivalSpeed-Math.log(physics.ballFriction)*Math.max(0,distance)));
+  // Active actions are a regulated external impulse, separate from passive
+  // two-body collisions. Incoming normal/tangent momentum remains bounded.
+  function kickBall(ball,nx,ny,power){
+    const length=Math.hypot(nx,ny);if(length<1e-8)return false;nx/=length;ny/=length;
+    const normal=ball.vx*nx+ball.vy*ny,tangent=-ball.vx*ny+ball.vy*nx;
+    const outgoing=power+clamp(normal*physics.kickMomentum,-power*physics.kickMomentum,power*physics.kickMomentum);
+    const side=clamp(tangent*physics.kickTangentRetention,-power*physics.kickTangentLimit,power*physics.kickTangentLimit);
+    const jn=physics.ballMass*(outgoing-normal),jt=physics.ballMass*(side-tangent);
+    ball.vx+=(jn*nx-jt*ny)/physics.ballMass;ball.vy+=(jn*ny+jt*nx)/physics.ballMass;
+    const speed=Math.hypot(ball.vx,ball.vy);if(speed>CONFIG.maxSpeed){ball.vx*=CONFIG.maxSpeed/speed;ball.vy*=CONFIG.maxSpeed/speed;}
+    return true;
+  }
   function travelTime(distance,speed){
     if(distance<=0)return 0;
     const drag=-Math.log(CONFIG.friction),resistance=physics.ballRollingResistance,offset=resistance/drag;
@@ -110,7 +122,7 @@
     let low=0,high=stop;for(let i=0;i<24;i++){const mid=(low+high)/2;if(travelled(mid)<distance)low=mid;else high=mid;}
     return (low+high)/2;
   }
-  const api = { CONFIG, rolling, passSpeed, travelTime, collideCircle, crossedGoal, moveBall, prepareContacts, predictTrajectory };
+  const api = { CONFIG, rolling, passSpeed, kickBall, travelTime, collideCircle, crossedGoal, moveBall, prepareContacts, predictTrajectory };
   if (typeof module !== 'undefined') module.exports = api;
   else root.MaxballBall = Object.freeze(api);
 })(globalThis);

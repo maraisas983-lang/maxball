@@ -7,11 +7,12 @@
    playerAcceleration:36,playerTurnResponse:48,inputEpsilon:.01,
    playerOutsideMargin:70,
    // Measured in field units/second; calibrated against the smallest pitch.
-   shotImpulse:360,passImpulse:190,passMinSpeed:140,passMaxSpeed:240,ballMaxSpeed:440,
+   shotImpulse:360,passImpulse:280,passMinSpeed:220,passMaxSpeed:320,passArrivalSpeed:180,ballMaxSpeed:440,
    ballFriction:.55,ballRollingResistance:12,
    wallRestitution:.45,postRestitution:.32,postRadius:6,
-   contactRestitution:.12,contactMaxPushSpeed:135,contactResponse:18,contactIterations:8,
-   kickCooldown:.18,kickReach:1,kickBuffer:.12,
+   contactRestitution:.12,contactBounceThreshold:24,contactSlop:.0001,
+   contactIterations:32,contactVelocityIterations:48,
+   kickCooldown:.18,kickGlobalCooldown:.08,kickReach:1,kickBuffer:.12,
    kickMomentum:.1,kickTangentRetention:.2,kickTangentLimit:.15
   }),
   field:Object.freeze({areaDepth:200,areaPadding:100,centerRadius:105}),

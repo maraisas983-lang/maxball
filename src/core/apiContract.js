@@ -1,7 +1,7 @@
 (function(root){
  'use strict';
  // Change when client/server routes or authoritative gameplay become incompatible.
- const contract=Object.freeze({version:'2026-10-10-contact-12'});
+ const contract=Object.freeze({version:'2026-10-11-mass-13'});
  if(typeof module!=='undefined'&&module.exports)module.exports=contract;
  root.MaxballAPIContract=contract;
 })(globalThis);

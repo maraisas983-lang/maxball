@@ -41,6 +41,6 @@ test('sphere preserves orientation through direction changes and slows its rotat
  for(let i=0;i<600;i++){const before=s.ball.rollY||0;moveBall(s,1/60);const angle=Math.abs((s.ball.rollY||0)-before);assert.ok(angle<=previous+1e-10);previous=angle;}
  assert.equal(previous,0);const stopped={...s.ball};moveBall(s,1/60);assert.deepEqual(s.ball,stopped);
 });
-test('oblique contested contacts never compound energy above incoming motion or player drive',()=>{
- for(let angle=0;angle<Math.PI*2;angle+=.2){const s=scene();s.ball.x=s.ball.y=0;s.ball.vx=40;s.ball.vy=-20;const players=[{id:'a',team:0,x:-25,y:0,vx:120,vy:0},{id:'b',team:1,x:25*Math.cos(angle),y:25*Math.sin(angle),vx:-120*Math.cos(angle),vy:-120*Math.sin(angle)}];for(let i=0;i<30;i++)resolveContacts(players,s.ball,s.BR,1/60);assert.ok(Math.hypot(s.ball.vx,s.ball.vy)<=120+1e-8);}
+test('oblique contested contacts conserve total momentum and cannot increase kinetic energy',()=>{
+ for(let angle=0;angle<Math.PI*2;angle+=.2){const s=scene();s.ball.x=s.ball.y=0;s.ball.vx=40;s.ball.vy=-20;const players=[{id:'a',team:0,x:-25,y:0,vx:120,vy:0},{id:'b',team:1,x:25*Math.cos(angle),y:25*Math.sin(angle),vx:-120*Math.cos(angle),vy:-120*Math.sin(angle)}];const energy=()=>cfg.ballMass*(s.ball.vx**2+s.ball.vy**2)+cfg.playerMass*players.reduce((sum,p)=>sum+p.vx**2+p.vy**2,0),before=energy();for(let i=0;i<30;i++)resolveContacts(players,s.ball,s.BR,1/60);assert.ok(energy()<=before+1e-8);}
 });
