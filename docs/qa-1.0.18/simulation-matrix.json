@@ -1,0 +1,110 @@
+[
+  {
+    "rtt": 50,
+    "jitter": 0,
+    "stall": false,
+    "firstResponse": 16.66666666666663,
+    "maxBackward": -2.4994398636898154,
+    "endError": 0.0009229915901551648,
+    "frames": 298
+  },
+  {
+    "rtt": 50,
+    "jitter": 30,
+    "stall": false,
+    "firstResponse": 16.66666666666663,
+    "maxBackward": -1.8532084166645006,
+    "endError": 0.0009229915900983212,
+    "frames": 297
+  },
+  {
+    "rtt": 50,
+    "jitter": 30,
+    "stall": true,
+    "firstResponse": 16.66666666666663,
+    "maxBackward": -1.8532084166645006,
+    "endError": 0.0009230337007106879,
+    "frames": 297
+  },
+  {
+    "rtt": 100,
+    "jitter": 0,
+    "stall": false,
+    "firstResponse": 0,
+    "maxBackward": -2.4792238698016433,
+    "endError": 0.0009229915901551642,
+    "frames": 297
+  },
+  {
+    "rtt": 100,
+    "jitter": 30,
+    "stall": false,
+    "firstResponse": 16.66666666666663,
+    "maxBackward": -1.2034715994587089,
+    "endError": 0.0009229535178786423,
+    "frames": 295
+  },
+  {
+    "rtt": 100,
+    "jitter": 30,
+    "stall": true,
+    "firstResponse": 16.66666666666663,
+    "maxBackward": -1.2034715994587089,
+    "endError": 0.0009230355960909644,
+    "frames": 295
+  },
+  {
+    "rtt": 200,
+    "jitter": 0,
+    "stall": false,
+    "firstResponse": 0,
+    "maxBackward": -2.4801867285579817,
+    "endError": 0.0009229915901551642,
+    "frames": 294
+  },
+  {
+    "rtt": 200,
+    "jitter": 30,
+    "stall": false,
+    "firstResponse": 16.66666666666663,
+    "maxBackward": -1.2032642049069011,
+    "endError": 0.0009229535178786423,
+    "frames": 292
+  },
+  {
+    "rtt": 200,
+    "jitter": 30,
+    "stall": true,
+    "firstResponse": 16.66666666666663,
+    "maxBackward": -1.852369797764652,
+    "endError": 0.0009230355953519999,
+    "frames": 292
+  },
+  {
+    "rtt": 300,
+    "jitter": 0,
+    "stall": false,
+    "firstResponse": 0,
+    "maxBackward": -2.479790333144706,
+    "endError": 0.0009229915901551642,
+    "frames": 291
+  },
+  {
+    "rtt": 300,
+    "jitter": 30,
+    "stall": false,
+    "firstResponse": 16.66666666666663,
+    "maxBackward": -1.2035335739276718,
+    "endError": 0.0009229535174238949,
+    "frames": 289
+  },
+  {
+    "rtt": 300,
+    "jitter": 30,
+    "stall": true,
+    "firstResponse": 16.66666666666663,
+    "maxBackward": 6.455797142734809e-05,
+    "endError": 0.0009230355922824553,
+    "frames": 289
+  }
+]

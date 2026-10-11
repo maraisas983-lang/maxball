@@ -11,7 +11,7 @@
   listenRoom(callback){roomListener=callback;},
   status(message){statusNode.textContent=message;statusNode.classList.remove('error');},
   error(error){if(root.MaxballEntry?.visible)root.MaxballEntry.error(error);statusNode.textContent=error.message||'Não foi possível concluir.';statusNode.classList.add('error');if(error.status===401){account=null;root.MaxballAPI.clear();}},
-  async refreshAccount(){account=await api('/auth/me');document.querySelector('#account-label').textContent=account.profile.display_name+' · '+account.wallet.balance+' gemas';root.MaxballHome?.refresh();return account;},
+  async refreshAccount(){account=await api('/auth/me');document.querySelector('#account-label').textContent=account.profile.display_name+' · '+account.wallet.balance+' gemas';root.MaxballHome?.refresh();if(account.room&&portal.connection?.closed)portal.connection.connect();return account;},
   async logout(){await api('/auth/logout','POST',{});portal.connection.close();account=null;root.MaxballAPI.clear();await portal.open('login');},
   async open(next='career'){
    if(cleanup){const stop=cleanup;cleanup=null;await stop();}
@@ -88,6 +88,9 @@
   const target=event.target.closest('[data-account-page]');if(target)portal.open(target.dataset.accountPage).catch(portal.error);
  });
  document.querySelector('#portal-home').onclick=()=>{generation++;if(cleanup){cleanup();cleanup=null;}root.MaxballGame.show('home');};
+ // Restore on reopen and keep the provider's access token renewed while open.
+ setInterval(()=>{if(account&&!document.hidden)portal.refreshAccount().catch(()=>{});},5*60000);
+ root.addEventListener('focus',()=>{if(account)portal.refreshAccount().catch(()=>{});});
  // Restore the session without interfering with the local home screen.
  portal.renderLogin=renderLogin;portal.loadAuth=async()=>{authProvider=(await api('/config')).authProvider;};portal.ready=(root.MaxballAPI.offline||location.protocol==='file:')?Promise.resolve():portal.refreshAccount().then(async()=>{const profile=await api('/profile');knownAwards=new Set(profile.achievements.map(a=>a.id));if(account.room)portal.connection.connect();}).catch(()=>{});
 })(globalThis);

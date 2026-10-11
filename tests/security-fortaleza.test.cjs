@@ -99,7 +99,7 @@ test('Supabase refresh cannot revive logout, change identity or refresh the same
  assert.equal(app.db.one('SELECT id FROM users WHERE id=?',identity),undefined);
  identity='cloud-user';const before=app.auth.authenticate(s.token).session.absolute_expires_at,next=await app.auth.refresh(s.token);
  assert.throws(()=>app.auth.authenticate(s.token));assert.equal(app.auth.authenticate(next.token).session.absolute_expires_at,before);
- assert.ok(app.auth.authenticate(next.token).session.expires_at<=Date.now()+3600000);
+ assert.ok(app.auth.authenticate(next.token).session.expires_at<=before);assert.ok(app.auth.authenticate(next.token).session.expires_at>Date.now()+29*86400000);
 });
 
 test('session count and privileged absolute lifetime are bounded',async t=>{

@@ -1,7 +1,7 @@
 (function(root){
  'use strict';
  // Change when client/server routes or authoritative gameplay become incompatible.
- const contract=Object.freeze({version:'2026-10-11-ball-chat-21'});
+ const contract=Object.freeze({version:'2026-10-11-online-ack-22'});
  if(typeof module!=='undefined'&&module.exports)module.exports=contract;
  root.MaxballAPIContract=contract;
 })(globalThis);

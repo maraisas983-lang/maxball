@@ -39,7 +39,8 @@ function createSupabase({url,anonKey,serviceKey,fetchImpl=fetch}){
  };
 }
 function useSupabaseAuth(local,db,economy,cloud,{adminEmails=[]}={}){
- const profileUpdates=new Set(),refreshing=new Set();
+ const profileUpdates=new Set(),refreshing=new Set(),restoring=new Map(),accessExpiry=new Map();
+ function expiry(key,row){try{const jwt=JSON.parse(Buffer.from(row.access_token.split('.')[1],'base64url').toString());if(Number.isFinite(jwt.exp))return jwt.exp*1000;}catch{}return accessExpiry.get(key)||0;}
  const {session,allowed,publicUser}=local;
  const administrators=new Set([...adminEmails,require('../lib/commerceOwner.cjs').COMMERCE_OWNER].map(email=>email.trim().toLowerCase()).filter(Boolean));
  async function establish(tokens,isLogin=true,previousToken=null){
@@ -68,10 +69,10 @@ function useSupabaseAuth(local,db,economy,cloud,{adminEmails=[]}={}){
     user=db.one('SELECT * FROM users WHERE id=?',identity.id);
    }
    if(isLogin)db.run('UPDATE users SET last_login_at=? WHERE id=?',now,identity.id);
-   if(previousToken)local.logout(previousToken);
+   if(previousToken){local.logout(previousToken);accessExpiry.delete(hash(previousToken));}
    const result=session(identity.id,previous?.session.absolute_expires_at);
    const lifetime=Number.isFinite(tokens.expires_in)&&tokens.expires_in>0?Math.min(tokens.expires_in,3600):3600;
-   db.run('UPDATE sessions SET expires_at=min(expires_at,?) WHERE token_hash=?',now+lifetime*1000,hash(result.token));
+   if(accessExpiry.size>=10000)accessExpiry.delete(accessExpiry.keys().next().value);accessExpiry.set(hash(result.token),now+lifetime*1000);
    db.run('INSERT INTO external_sessions VALUES(?,?,?)',hash(result.token),tokens.access_token,tokens.refresh_token);
    return {...result,user:publicUser(user)};
   });
@@ -82,15 +83,24 @@ function useSupabaseAuth(local,db,economy,cloud,{adminEmails=[]}={}){
   return [email,body.password];
  }
  return {...local,provider:'supabase',
-  authenticate(token){const result=local.authenticate(token);if(!db.one('SELECT token_hash FROM external_sessions WHERE token_hash=?',hash(token)))fail('SESSION','Entre com sua conta Supabase.',401);return result;},
+  authenticate(token){const result=local.authenticate(token),key=hash(token),row=db.one('SELECT * FROM external_sessions WHERE token_hash=?',key);if(!row)fail('SESSION','Entre com sua conta Supabase.',401);if(expiry(key,row)<=Date.now())fail('SESSION_REFRESH_REQUIRED','Renove sua sessão.',401);return result;},
+  async restore(token){
+   const current=local.authenticate(token),key=hash(token),row=db.one('SELECT * FROM external_sessions WHERE token_hash=?',key);if(!row)fail('SESSION','Entre novamente.',401);
+   if(expiry(key,row)>Date.now()+60000)return current;
+   if(restoring.has(key))return restoring.get(key);if(refreshing.has(key))fail('REFRESH_BUSY','Aguarde a renovação em andamento.',409);
+   const task=(async()=>{const tokens=await cloud.refresh(row.refresh_token),identity=await cloud.user(tokens.access_token);if(identity.id!==current.user.id)fail('IDENTITY','Identidade inválida.',401);
+    const valid=local.authenticate(token);if(!db.one('SELECT 1 FROM external_sessions WHERE token_hash=?',key))fail('SESSION','Entre novamente.',401);
+    db.run('UPDATE external_sessions SET access_token=?,refresh_token=? WHERE token_hash=?',tokens.access_token,tokens.refresh_token,key);accessExpiry.set(key,Date.now()+Math.min(tokens.expires_in||3600,3600)*1000);return valid;})();
+   restoring.set(key,task);try{return await task;}finally{restoring.delete(key);}
+  },
   register:async body=>establish(await cloud.register(...credentials(body,true))),login:async body=>establish(await cloud.login(...credentials(body))),
   async refresh(token){
    local.authenticate(token);const key=hash(token),row=db.one('SELECT * FROM external_sessions WHERE token_hash=?',key);
    if(!row)fail('SESSION','Entre novamente.',401);
-   if(refreshing.has(key))fail('REFRESH_BUSY','Aguarde a renovação em andamento.',409);
+   if(refreshing.has(key)||restoring.has(key))fail('REFRESH_BUSY','Aguarde a renovação em andamento.',409);
    refreshing.add(key);try{return await establish(await cloud.refresh(row.refresh_token),false,token);}finally{refreshing.delete(key);}
   },
-  async logout(token){const row=db.one('SELECT * FROM external_sessions WHERE token_hash=?',hash(token));local.logout(token);if(row)await cloud.logout(row.access_token).catch(()=>{});},
+  async logout(token){const row=db.one('SELECT * FROM external_sessions WHERE token_hash=?',hash(token));local.logout(token);accessExpiry.delete(hash(token));if(row)await cloud.logout(row.access_token).catch(()=>{});},
   async updateProfile(uid,body){if(profileUpdates.has(uid))fail('PROFILE_BUSY','Aguarde a atualização anterior.',409);profileUpdates.add(uid);const before=local.profile(uid);try{const after=local.updateProfile(uid,body,true);await cloud.updateProfile(uid,after.display_name);try{return local.updateProfile(uid,body);}catch(error){await cloud.updateProfile(uid,before.display_name).catch(()=>{});throw error;}}finally{profileUpdates.delete(uid);}}
 
  };

@@ -1,24 +1,23 @@
 (function(root){
- const movement=typeof module!=='undefined'?require('../physics/movement.js'):root.MaxballMovement;
- const field=typeof module!=='undefined'?require('../game/field.js'):root.MaxballField;
+ 'use strict';
+ const physics=typeof module!=='undefined'?require('../physics/playerPhysics.js'):root.MaxballPhysics;
+ const balls=typeof module!=='undefined'?require('../physics/ballPhysics.js'):root.MaxballBall;
  const config=typeof module!=='undefined'?require('../core/config.js').physics:root.MaxballConfig.physics;
- function predict(state,userId,input,seconds){
+ // Use the authoritative engine in an isolated copy, including its contacts.
+ // The displayed ball and opponents remain server-authoritative.
+ function replay(state,userId,segments){
   const source=state?.P.find(p=>p.id===userId);if(!source)return null;
-  const p={...source};if(Math.hypot(input.x,input.y)<.01)p.vx=p.vy=0;if(state.G.pauseState||state.G.phase!=='play'||state.G.restarting||p.inactive)return p;
-  if([0,state.W].some(x=>[state.GY0,state.GY1].some(y=>Math.hypot(p.x-x,p.y-y)<70)))return p;
-  // Predict movement only in free space; contacts and all ball actions stay authoritative.
-  const radius=config.playerRadius||20,ballRadius=state.BR||config.ballRadius,others=state.P.filter(q=>q.id!==p.id&&!q.inactive&&!q.hid);
-  if(Math.hypot(p.x-state.ball.x,p.y-state.ball.y)<radius+ballRadius||others.some(q=>Math.hypot(p.x-q.x,p.y-q.y)<2*radius))return p;
-  let remaining=Math.max(0,Math.min(.2,seconds));while(remaining>0){const dt=Math.min(1/60,remaining);movement.integrate(p,input,dt);remaining-=dt;
-   for(const q of [state.ball,...others]){const r=q===state.ball?radius+ballRadius:radius*2,dx=p.x-q.x,dy=p.y-q.y,d=Math.hypot(dx,dy);if(d<r&&d>1e-6){p.x=q.x+dx/d*r;p.y=q.y+dy/d*r;p.vx=p.vy=0;}}
-  }
-  p.x=Math.max(-50,Math.min(state.W+50,p.x));p.y=Math.max(-50,Math.min(state.H+50,p.y));if(state.G.areaOccupancy?.[p.team]>=2&&!field.inArea(source,p.team,state)&&field.inArea(p,p.team,state))return {...source};return p;
+  if(state.G.pauseState||state.G.phase!=='play'||state.G.restarting||source.inactive)return {...source};
+  const world={...state,P:state.P.map(p=>({...p,ctrl:'remote',attributes:p.attributes&&{...p.attributes}})),ball:{...state.ball},G:{...state.G,cfg:state.cfg||state.G.cfg,areaOccupancy:state.G.areaOccupancy?.slice(),substitution:null}};
+  let current={x:0,y:0};const engine=physics.createPhysics({state:()=>world,externalAI:{command:()=>({x:0,y:0})},input:p=>p.id===userId?current:{x:(p.vx||0)/config.playerMaxSpeed,y:(p.vy||0)/config.playerMaxSpeed}});
+  let budget=.5;
+  for(const segment of segments){current={x:segment.x||0,y:segment.y||0};let left=Math.max(0,Math.min(budget,segment.seconds));while(left>1e-8){const dt=Math.min(1/60,left);engine.step(dt);balls.moveBall(world,dt);left-=dt;budget-=dt;}if(budget<=1e-8)break;}
+  const p=world.P.find(p=>p.id===userId);if(!segments.length||Math.hypot(current.x,current.y)<.01)p.vx=p.vy=0;return p;
  }
- function predictTimeline(state,userId,history,from,to){if(!history.length)return predict(state,userId,{x:0,y:0},0);let p=state.P.find(p=>p.id===userId);if(!p)return null;let input=history[0],at=from;for(const sample of history){if(sample.at<=from){input=sample;continue;}if(sample.at>to)break;if(sample.at>at){p=predict({...state,P:state.P.map(q=>q.id===userId?p:q)},userId,input,(sample.at-at)/1000);at=sample.at;}input=sample;}return predict({...state,P:state.P.map(q=>q.id===userId?p:q)},userId,input,Math.max(0,to-at)/1000);}
- function reconcile(state,userId,previous,input,dt,target){
-  if(!previous||!Number.isFinite(dt)||dt<=0||dt>.25||Math.hypot(target.x-previous.x,target.y-previous.y)>120)return target;
-  const advancing=predict({...state,P:state.P.map(p=>p.id===userId?previous:p)},userId,input,Math.min(.05,dt));if(!advancing)return target;
-  const blend=1-Math.exp(-10*Math.min(.05,dt));return {...target,x:advancing.x+(target.x-advancing.x)*blend,y:advancing.y+(target.y-advancing.y)*blend};
- }
- const api={predict,predictTimeline,reconcile};if(typeof module!=='undefined')module.exports=api;else root.MaxballPrediction=api;
+ function predict(state,userId,input,seconds){return replay(state,userId,[{...input,seconds:Math.min(.2,seconds)}]);}
+ function predictTimeline(state,userId,history,from,to){let input=history[0]||{x:0,y:0},at=from;const segments=[];for(const s of history){if(s.at<=from){input=s;continue;}if(s.at>to)break;segments.push({...input,seconds:(s.at-at)/1000});at=s.at;input=s;}segments.push({...input,seconds:Math.max(0,to-at)/1000});return replay(state,userId,segments);}
+ // Replay only the interval not yet simulated by the server, not a ping guess.
+ function pending(state,userId,commands,now){const ack=state.inputState?.[userId];if(!ack)return replay(state,userId,commands.map((c,i)=>({...c,seconds:Math.max(0,((commands[i+1]?.at??now)-c.at)/1000)})));const index=commands.findIndex(c=>c.seq===ack.seq),segments=[];for(let i=0;i<commands.length;i++){const c=commands[i];if(c.seq<ack.seq)continue;let seconds=Math.max(0,((commands[i+1]?.at??now)-c.at)/1000);if(i===index)seconds=Math.max(0,seconds-ack.seconds);segments.push({...c,seconds});}return replay(state,userId,segments);}
+ function reconcile(state,userId,previous,input,dt,target){if(!previous||!Number.isFinite(dt)||dt<=0||dt>.25)return target;const advancing=predict({...state,P:state.P.map(p=>p.id===userId?previous:p)},userId,input,Math.min(.05,dt)),k=1-Math.exp(-10*dt);return {...target,x:advancing.x+(target.x-advancing.x)*k,y:advancing.y+(target.y-advancing.y)*k};}
+ const api={predict,predictTimeline,replay,pending,reconcile};if(typeof module!=='undefined')module.exports=api;else root.MaxballPrediction=api;
 })(globalThis);

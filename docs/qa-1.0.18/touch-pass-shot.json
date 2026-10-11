@@ -1,0 +1,55 @@
+{
+  "gesture": {
+    "elapsed": 124.70000004768372,
+    "input": {
+      "x": 0,
+      "y": 0,
+      "shoot": false,
+      "pass": false,
+      "shootSeq": 1,
+      "passSeq": 1,
+      "requestPass": false,
+      "requestShot": false
+    }
+  },
+  "stats": {
+    "goals": 0,
+    "assists": 0,
+    "shots": 1,
+    "passes": 1,
+    "inputs": 21,
+    "shotsOnTarget": 1,
+    "saves": 0,
+    "keyPasses": 0,
+    "interceptions": 0,
+    "recoveries": 0,
+    "tackles": 0,
+    "chancesCreated": 0,
+    "successfulPasses": 0,
+    "turnovers": 0,
+    "errors": 0,
+    "fouls": 0,
+    "goalsConceded": 0
+  },
+  "ball": {
+    "x": 461.61288002214565,
+    "y": 200,
+    "vx": 263.64406498018803,
+    "vy": 0
+  },
+  "metrics": {
+    "ping": 226,
+    "jitter": 33.067499999999995,
+    "received": 76,
+    "dropped": 0,
+    "reconnects": 0,
+    "bytesReceived": 48387,
+    "bytesSent": 2698,
+    "startedAt": 2697,
+    "predictionMs": 1.5,
+    "snapshotAge": 33.700000047683716,
+    "pendingInputs": 1,
+    "correction": 0.0000011322902366828203
+  },
+  "errors": []
+}

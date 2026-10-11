@@ -67,7 +67,7 @@ function createApp({databasePath='var/maxball.sqlite',origin='http://127.0.0.1:5
    maxpass.enrollUser(result.user.id);operations.accept(result.user,data.username);operations.audit(result.user,pathname.endsWith('register')?'REGISTER':'LOGIN',result.user.id);
    cookie(res,result.token);return json(res,200,{user:result.user,csrf:result.csrf});
   }
-  const sessionToken=token(req);let {user,session}=auth.authenticate(sessionToken);
+  const sessionToken=token(req);if(pathname==='/api/auth/me'&&method==='GET'&&auth.restore)await auth.restore(sessionToken);let {user,session}=auth.authenticate(sessionToken);
   if(write&&req.headers['x-csrf-token']!==session.csrf)fail('CSRF','Atualize a sessão e tente novamente.',403);
   const uid=user.id;req.actor=user;
   limit('account:'+uid,securityLimits.apiPerAccount,60000);
