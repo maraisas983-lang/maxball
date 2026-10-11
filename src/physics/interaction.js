@@ -1,7 +1,8 @@
 (function(root){
  'use strict';
  const config=(typeof module!=='undefined'?require('../core/config.js'):root.MaxballConfig).physics;
- // The visible area extends 5% beyond the disc. A kick reaches the ball when
+ // The visible area extends 10.25% beyond the disc (two 5% increases).
+ // A kick reaches the ball when
  // its physical edge intersects that area; the ball hitbox is not inflated.
  function areaRadius(){return config.playerRadius+config.kickReach;}
  function radius(state){return areaRadius()+(state.BR??config.ballRadius);}

@@ -84,17 +84,20 @@
      const edge=i[type]&&!p[type+'Held']||Number.isSafeInteger(i[type+'Seq'])&&i[type+'Seq']>(p[type+'Seq']||0);
      i[type+'Edge']=!blocked&&edge;
      if(i[type+'Edge'])p.actionFlash=config.actionFlashDuration;
-     // Bots schedule autonomous attempts; human buttons are strictly edge-triggered.
-     if(!blocked&&(edge||p.ctrl==='ai'&&i[type]))p[type+'Buffer']=config.kickBuffer;
+     // A held human press stays armed until one successful action. The short
+     // buffer remains only as release grace, not a deadline while approaching.
+     if(i[type+'Edge'])p[type+'Armed']=true;
+     if(!i[type])p[type+'Armed']=false;
+     if(!blocked&&(edge||i[type]&&(p[type+'Armed']||p.ctrl==='ai')))p[type+'Buffer']=config.kickBuffer;
      p[type+'Held']=!!i[type];if(Number.isSafeInteger(i[type+'Seq']))p[type+'Seq']=i[type+'Seq'];
     }
-    const simultaneous=i.shootEdge&&i.passEdge;
+    const simultaneous=i.shootEdge&&i.passEdge||p.shootArmed&&p.passArmed;
     if((p.cd<=0&&(inReach||interaction.contains(p,ball,view))||p.shootBuffer>0&&canDB(p))&&(p.shootBuffer>0||p.passBuffer>0))actions.push({p,type:simultaneous?'p':p.shootBuffer>0?'s':'p',followShot:simultaneous,aim:i.aim,origin:inReach?previous.get(p.id):p});
     p.shootBuffer=(p.shootBuffer||0)-dt;p.passBuffer=(p.passBuffer||0)-dt;
    }
    // A simultaneous action has stable arbitration independent of player order.
    actions.sort((a,b)=>dist(a.p,ball)-dist(b.p,ball)||String(a.p.id).localeCompare(String(b.p.id)));
-   for(const action of actions)if(kick(action.p,action.type,action.aim,action.origin)){if(action.followShot)kick(action.p,'s',action.aim);action.p.shootBuffer=action.p.passBuffer=0;break;}
+   for(const action of actions)if(kick(action.p,action.type,action.aim,action.origin)){if(action.followShot)kick(action.p,'s',action.aim);action.p.shootBuffer=action.p.passBuffer=0;action.p.shootArmed=action.p.passArmed=false;break;}
    separatePlayers(active);
    if(G.restarting){const spot=G.restartSpot||{x:W/2,y:H/2},zone=field.geometry(view).centerRadius+PR;for(const p of active)if(p.team!==G.ko){const dx=p.x-spot.x,dy=p.y-spot.y,d=Math.hypot(dx,dy);if(d<zone){p.x=spot.x+(d?dx/d:(p.team?-1:1))*zone;p.y=spot.y+(d?dy/d:0)*zone;p.vx=p.vy=0;}}}
    contactPlayers.length=0;for(const p of active)if(!G.restarting||p.team===G.ko)contactPlayers.push(p);

@@ -9,10 +9,10 @@
    // Measured in field units/second; calibrated against the smallest pitch.
    shotImpulse:360,passImpulse:250,passMinSpeed:200,passMaxSpeed:290,passArrivalSpeed:160,ballMaxSpeed:440,
    ballFriction:.60,ballRollingResistance:9,
-   wallRestitution:.82,postRestitution:.32,postRadius:6,
+   wallRestitution:.82*.91,postRestitution:.32,postRadius:6,
    contactRestitution:.12,contactBounceThreshold:24,contactSlop:.0001,
    contactIterations:32,contactVelocityIterations:48,
-   kickCooldown:.18,kickGlobalCooldown:.08,kickReach:20*.05,kickBuffer:.12,actionFlashDuration:.18,
+   kickCooldown:.18,kickGlobalCooldown:.08,kickReach:20*(1.05*1.05-1),kickBuffer:.12,actionFlashDuration:.18,
    // Covers a human pass-shot gesture and its next fixed simulation tick.
    // Only this player's uninterrupted pass can use the follow-through reach.
    dbWindow:.18,dbReach:60,

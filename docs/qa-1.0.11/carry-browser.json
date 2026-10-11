@@ -1,0 +1,81 @@
+{
+  "results": [
+    {
+      "control": "touch joystick",
+      "action": "pass",
+      "preparedBeforeMovingMs": 250,
+      "passes": 1,
+      "shots": 0,
+      "ball": {
+        "x": 374.9721210521039,
+        "y": 220,
+        "vx": 217.91567843305467,
+        "vy": 0
+      },
+      "player": {
+        "x": 322.4590708425246,
+        "y": 220
+      },
+      "areaRadius": 22.05,
+      "wallReturn": 0.7462
+    },
+    {
+      "control": "keyboard",
+      "action": "pass",
+      "preparedBeforeMovingMs": 250,
+      "passes": 1,
+      "shots": 0,
+      "ball": {
+        "x": 336.9333226876535,
+        "y": 220,
+        "vx": 238.8468713348837,
+        "vy": 0
+      },
+      "player": {
+        "x": 297.4590770464859,
+        "y": 220
+      },
+      "areaRadius": 22.05,
+      "wallReturn": 0.7462
+    },
+    {
+      "control": "touch joystick",
+      "action": "shoot",
+      "preparedBeforeMovingMs": 250,
+      "passes": 0,
+      "shots": 1,
+      "ball": {
+        "x": 384.8381497085281,
+        "y": 220,
+        "vx": 323.32585819054356,
+        "vy": 0
+      },
+      "player": {
+        "x": 314.9590713294884,
+        "y": 220
+      },
+      "areaRadius": 22.05,
+      "wallReturn": 0.7462
+    },
+    {
+      "control": "keyboard",
+      "action": "shoot",
+      "preparedBeforeMovingMs": 250,
+      "passes": 0,
+      "shots": 1,
+      "ball": {
+        "x": 322.54128458877454,
+        "y": 220,
+        "vx": 356.79869317400744,
+        "vy": 0
+      },
+      "player": {
+        "x": 287.45907789232325,
+        "y": 220
+      },
+      "areaRadius": 22.05,
+      "wallReturn": 0.7462
+    }
+  ],
+  "errors": []
+}
