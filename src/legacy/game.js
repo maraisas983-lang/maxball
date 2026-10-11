@@ -298,7 +298,7 @@ if(G.mode!='train'){if(!G.ot){G.time-=dt;if(G.cfg.halftime&&!G.halfPlayed&&G.tim
 
 /* ---------- desenho ---------- */
 function pent(x,y,r,a){cx.beginPath();for(let i=0;i<5;i++){const q=a+i*1.2566;i?cx.lineTo(x+Math.cos(q)*r,y+Math.sin(q)*r):cx.moveTo(x+Math.cos(q)*r,y+Math.sin(q)*r)}cx.closePath();cx.fill()}
-function drawBall(){MaxballBallVisual.draw(cx,ball,BR,window.MaxballPortal?.account?.profile.ball_skin||0)}
+function drawBall(){MaxballBallVisual.draw(cx,ball,BR,window.MaxballPortal?.account?.profile.ball_skin||0,{target:P.find(p=>p.id===remoteUser)||P.find(p=>p.ctrl==='p1')||P[0]})}
 const LABELSPR=new Map();
 function playerLabel(text,x,y,size){const key=size+':'+text;let item=LABELSPR.get(key);if(!item){const c=document.createElement('canvas'),g=c.getContext('2d');g.font='700 '+size+'px Rubik';const w=Math.ceil(g.measureText(String(text)).width)+10,h=size+12;c.width=w*2;c.height=h*2;g.scale(2,2);g.font='700 '+size+'px Rubik';g.textAlign='center';g.textBaseline='middle';g.lineWidth=3;g.strokeStyle='#0a0f2c';g.strokeText(text,w/2,h/2);g.fillStyle='#fff';g.fillText(text,w/2,h/2);item={c,w,h};if(LABELSPR.size>=96)LABELSPR.delete(LABELSPR.keys().next().value);LABELSPR.set(key,item);}cx.drawImage(item.c,x-item.w/2,y-item.h/2,item.w,item.h);}
 function visiblePlayer(p){return Math.abs(p.x-cam.x)<cv.width/Z/2+160&&Math.abs(p.y-cam.y)<cv.height/Z/2+65;}

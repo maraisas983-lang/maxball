@@ -21,6 +21,7 @@ function createEconomy(db) {
       const prior=db.one('SELECT * FROM purchases WHERE user_id=? AND idempotency_key=?',userId,key);
       if(prior){if(prior.item_id!==itemId)fail('IDEMPOTENCY','Requisição já usada para outro item.',409);return prior;}
       const item=db.one('SELECT * FROM shop_items WHERE id=? AND enabled=1',itemId);
+      if(require('../../src/data/collections.js').balls.some(b=>b.id===itemId&&b.packOnly))fail('PACK_ONLY','Este item e exclusivo do pacote MAX.',403);
       if(db.one('SELECT amount FROM gem_debts WHERE user_id=? AND amount>0',userId))fail('PAYMENT_DEBT','Há gemas pendentes de um estorno. Regularize o saldo antes de comprar itens.',409);
       if(!item)fail('ITEM','Item indisponível.',404);
       if(db.one('SELECT 1 FROM inventory WHERE user_id=? AND item_id=?',userId,itemId))fail('OWNED','Você já possui este item.',409);

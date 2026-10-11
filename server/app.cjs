@@ -29,7 +29,7 @@ function createApp({databasePath='var/maxball.sqlite',origin='http://127.0.0.1:5
  db.run("UPDATE ranked_matches SET reason='SERVER_RESTART',home_after=home_before,away_after=away_before,finished_at=? WHERE finished_at IS NULL",Date.now());
  const collections=require('./services/collections.cjs').createCollections(db,economy);
  const rooms=createRooms({db,auth,economy,career,maxpass,origin,logger,security:securityLimits,securityEvent:securityEvents.record,syncResults:!!cloud,canRank:()=>{const s=operations.settings();return !s.maintenance&&s.ranked_enabled;},audit:(actor,action,resource,metadata)=>operations.audit(actor,action,resource,'OK',metadata)});
- const social=createSocial(db,rooms,auth),skins=createSkins(db),championships=createChampionships(db,economy,{permit,audit:operations.audit,rooms});
+ const social=createSocial(db,rooms,auth),skins=createSkins(db,economy),championships=createChampionships(db,economy,{permit,audit:operations.audit,rooms});
  rooms.setChampionshipResult(championships.rounds.complete);
  const championshipTimer=setInterval(()=>{try{championships.rounds.tick();}catch(error){logger.error('championship_tick: '+error.message);}},1000);championshipTimer.unref();
  const token=req=>(req.headers.cookie||'').split(';').map(x=>x.trim()).find(x=>x.startsWith('maxball_session='))?.slice(16);
