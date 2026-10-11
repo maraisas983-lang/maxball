@@ -27,7 +27,7 @@
     const nx = dx / distance, ny = dy / distance;
     body.x = x + nx * radius; body.y = y + ny * radius;
     const velocity = body.vx * nx + body.vy * ny;
-    if (velocity < 0) { body.vx -= (1 + bounce) * velocity * nx; body.vy -= (1 + bounce) * velocity * ny; }
+    if (velocity < 0) { body.impactVersion=(body.impactVersion||0)+1; body.vx -= (1 + bounce) * velocity * nx; body.vy -= (1 + bounce) * velocity * ny; }
     return Math.max(0, -velocity);
   }
 
@@ -62,11 +62,11 @@
       if(incoming){ball.x+=ball.vx/incoming*roll.distance;ball.y+=ball.vy/incoming*roll.distance;ball.vx*=roll.speed/incoming;ball.vy*=roll.speed/incoming;}
       if(roll.speed===0)ball.vx=ball.vy=0;
       if (ball.y < BR || ball.y > H - BR) {
-        ball.y = clamp(ball.y, BR, H - BR); ball.vy *= -CONFIG.wallBounce; onImpact(Math.abs(ball.vy));
+        ball.y = clamp(ball.y, BR, H - BR); ball.vy *= -CONFIG.wallBounce; ball.impactVersion=(ball.impactVersion||0)+1; onImpact(Math.abs(ball.vy));
       }
       const mouth = ball.y > GY0 && ball.y < GY1;
       if (!mouth && G.phase!=='goal' && previous.x>=0 && previous.x<=W && (ball.x < BR || ball.x > W - BR)) {
-        ball.x = clamp(ball.x, BR, W - BR); ball.vx *= -CONFIG.wallBounce; onImpact(Math.abs(ball.vx));
+        ball.x = clamp(ball.x, BR, W - BR); ball.vx *= -CONFIG.wallBounce; ball.impactVersion=(ball.impactVersion||0)+1; onImpact(Math.abs(ball.vx));
       }
       if(G.phase!=='goal')for (const x of [0, W]) for (const y of [GY0, GY1]) {
         const impact = collideCircle(ball, x, y, BR + CONFIG.postRadius, CONFIG.postBounce);

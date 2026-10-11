@@ -34,6 +34,7 @@
    for(let i=0;i<count;i++){const c=scratch[i];c.p.vx-=c.delta*c.x*ip;c.p.vy-=c.delta*c.y*ip;}
    if(error<1e-9)break;
   }
+  for(let i=0;i<count;i++)if(scratch[i].impulse>1e-8){ball.impactVersion=(ball.impactVersion||0)+1;break;}
   // Split position correction: inverse-mass weighting, no velocity/energy bias.
   for(let iteration=0;iteration<config.contactIterations;iteration++){
    let active=0,dx=0,dy=0;

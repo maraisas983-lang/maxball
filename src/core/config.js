@@ -3,7 +3,7 @@
   physics:Object.freeze({
    // World units: the entire visible disc, including its rim, is 40 units wide.
    playerRadius:20,ballRadius:20*.42,playerMass:3,ballMass:1.8,
-   playerMaxSpeed:180,botMaxSpeeds:Object.freeze([158,170,180]),
+   playerMaxSpeed:150,botMaxSpeeds:Object.freeze([132,142,150]),
    playerAcceleration:36,playerTurnResponse:48,inputEpsilon:.01,
    playerOutsideMargin:70,
    // Measured in field units/second; calibrated against the smallest pitch.
@@ -13,6 +13,7 @@
    contactRestitution:.12,contactBounceThreshold:24,contactSlop:.0001,
    contactIterations:32,contactVelocityIterations:48,
    kickCooldown:.18,kickGlobalCooldown:.08,kickReach:1,kickBuffer:.12,
+   dbWindow:.1,dbReach:30,
    kickMomentum:.1,kickTangentRetention:.2,kickTangentLimit:.15
   }),
   field:Object.freeze({areaDepth:200,areaPadding:100,centerRadius:105}),

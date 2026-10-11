@@ -10,11 +10,11 @@
  const goalColliders=typeof module!=='undefined'?require('./goalColliders.js'):root.MaxballGoalColliders;
  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v)),dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
  function createPhysics({state,input,effects={},random=Math.random,externalAI=null}){
-  let view,G,P,ball,W,H,GY0,GY1,BR,brain,brainGame;
+  let view,G,P,ball,W,H,GY0,GY1,BR,brain,brainGame,combos=new WeakMap();
   const stats={steps:0,playerPairs:0,playerContacts:0,ballContacts:0},inputs=[];
   const corrections=[],previous=new Map(),active=[],contactPlayers=[],actions=[];
   const PR=config.playerRadius;
-  function sync(){view=state();({G,P,ball,W,H,GY0,GY1,BR}=view);if(G!==brainGame){brain=externalAI||new tactics.Tactics(state,random);brainGame=G;}}
+  function sync(){view=state();({G,P,ball,W,H,GY0,GY1,BR}=view);if(G!==brainGame){combos=new WeakMap();brain=externalAI||new tactics.Tactics(state,random);brainGame=G;}}
   function touch(p){
    if(G.restarting&&p.team!==G.ko)return;
    if(G.restarting){G.restarting=false;G.firstTouch=p.id;}
@@ -22,10 +22,16 @@
    const id=p.id??P.indexOf(p);
    if(ball.lastPlayer!==id){ball.previousTouch={id:ball.lastPlayer,team:ball.last,time:ball.touchTime};ball.lastPlayer=id;}ball.touchTime=G.elapsed||G.el||0;ball.last=p.team;
   }
+  function canDB(p){
+   const c=combos.get(p);if(!c||c.remaining<=0||c.ball!==ball||c.version!==(ball.impactVersion||0)||ball.lastPlayer!==p.id||G.pauseState||!['play','penalties'].includes(G.phase))return false;
+   const dx=ball.x-p.x,dy=ball.y-p.y;
+   return dx*c.nx+dy*c.ny>0&&ball.vx*c.nx+ball.vy*c.ny>0&&Math.hypot(dx,dy)<=interaction.radius(view)+config.dbReach;
+  }
   function kick(p,type,aim,origin=p){
-   if(G.kl>0||p.cd>0||G.restarting&&p.team!==G.ko||p.inactive)return false;
+   const combo=type==='s'&&canDB(p);
+   if((G.kl>0||p.cd>0)&&!combo||G.restarting&&p.team!==G.ko||p.inactive)return false;
    const dx=ball.x-p.x,dy=ball.y-p.y,length=Math.hypot(dx,dy);
-   if(!interaction.contains(origin,ball,view))return false;
+   if(!combo&&!interaction.contains(origin,ball,view))return false;
    // Both actions use the real contact normal, never heading or joystick aim.
    // A coincident centre has no reliable normal: separate first, then retry.
    if(length<1e-8)return false;
@@ -35,7 +41,11 @@
    G.restarting=false;G.kl=config.kickGlobalCooldown;p.cd=config.kickCooldown;
    const ability=type==='s'?p.attributes?.shooting:p.attributes?.passing,factor=clamp((ability??70)/70,.8,1.2);
    ballPhysics.kickBall(ball,ux,uy,power*factor);ball.kickedBy=p.id;
-   touch(p);effects.kick?.(p,type);
+   touch(p);
+   // DB is a one-use follow-through of this player's own pass, not a larger
+   // normal kick hitbox. Rebounds, interception and elapsed time invalidate it.
+   if(type==='p')combos.set(p,{ball,remaining:config.dbWindow,version:ball.impactVersion||0,nx:ux,ny:uy});else combos.delete(p);
+   effects.kick?.(p,type);
    const col=p.team?'#ff2d87':'#c8ff2e';effects.burst?.(ball.x,ball.y,type==='s'?10:6,[col,'#fff'],type==='s'?220:120,.3);
    effects.beep?.(type==='s'?180:420,.1,type==='s'?'sawtooth':'triangle',.06);
    effects.particle?.({t:'r',x:ball.x,y:ball.y,s:8,l:.3,m:.3,c:col,vx:0,vy:0,g:0});
@@ -62,6 +72,7 @@
    brain.update?.(dt);active.length=actions.length=0;
    for(const p of P)if(!p.inactive){active.push(p);let point=previous.get(p.id);if(!point){point={x:0,y:0};previous.set(p.id,point);}point.x=p.x;point.y=p.y;}
    for(let index=0;index<active.length;index++){const p=active[index];
+    const combo=combos.get(p);if(combo){combo.remaining-=dt;if(combo.remaining<=0)combos.delete(p);}
     const source=p.ctrl==='ai'&&G.phase!=='penalties'?brain.command(p):input(p),i=inputs[index]??={};i.x=source?.x??0;i.y=source?.y??0;i.shoot=source?.shoot;i.pass=source?.pass;i.shootSeq=source?.shootSeq;i.passSeq=source?.passSeq;i.aim=source?.aim;
     const blocked=G.restarting&&p.team!==G.ko;
     if(blocked){i.x=i.y=0;i.shoot=i.pass=false;}
@@ -71,16 +82,18 @@
     movement.integrate(p,i,dt,sp);p.cd-=dt;p.st=1;
     for(const type of ['shoot','pass']){
      const edge=i[type]&&!p[type+'Held']||Number.isSafeInteger(i[type+'Seq'])&&i[type+'Seq']>(p[type+'Seq']||0);
+     i[type+'Edge']=!blocked&&edge;
      // Bots schedule autonomous attempts; human buttons are strictly edge-triggered.
      if(!blocked&&(edge||p.ctrl==='ai'&&i[type]))p[type+'Buffer']=config.kickBuffer;
      p[type+'Held']=!!i[type];if(Number.isSafeInteger(i[type+'Seq']))p[type+'Seq']=i[type+'Seq'];
     }
-    if(p.cd<=0&&(inReach||interaction.contains(p,ball,view))&&(p.shootBuffer>0||p.passBuffer>0))actions.push({p,type:p.shootBuffer>0?'s':'p',aim:i.aim,origin:inReach?previous.get(p.id):p});
+    const simultaneous=i.shootEdge&&i.passEdge;
+    if((p.cd<=0&&(inReach||interaction.contains(p,ball,view))||p.shootBuffer>0&&canDB(p))&&(p.shootBuffer>0||p.passBuffer>0))actions.push({p,type:simultaneous?'p':p.shootBuffer>0?'s':'p',followShot:simultaneous,aim:i.aim,origin:inReach?previous.get(p.id):p});
     p.shootBuffer=(p.shootBuffer||0)-dt;p.passBuffer=(p.passBuffer||0)-dt;
    }
    // A simultaneous action has stable arbitration independent of player order.
    actions.sort((a,b)=>dist(a.p,ball)-dist(b.p,ball)||String(a.p.id).localeCompare(String(b.p.id)));
-   for(const action of actions)if(kick(action.p,action.type,action.aim,action.origin)){action.p.shootBuffer=action.p.passBuffer=0;break;}
+   for(const action of actions)if(kick(action.p,action.type,action.aim,action.origin)){if(action.followShot)kick(action.p,'s',action.aim);action.p.shootBuffer=action.p.passBuffer=0;break;}
    separatePlayers(active);
    if(G.restarting){const spot=G.restartSpot||{x:W/2,y:H/2},zone=field.geometry(view).centerRadius+PR;for(const p of active)if(p.team!==G.ko){const dx=p.x-spot.x,dy=p.y-spot.y,d=Math.hypot(dx,dy);if(d<zone){p.x=spot.x+(d?dx/d:(p.team?-1:1))*zone;p.y=spot.y+(d?dy/d:0)*zone;p.vx=p.vy=0;}}}
    contactPlayers.length=0;for(const p of active)if(!G.restarting||p.team===G.ko)contactPlayers.push(p);

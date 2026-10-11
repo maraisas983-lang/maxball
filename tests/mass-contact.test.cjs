@@ -38,7 +38,7 @@ function runningPass(){
  const s=scene(),p=s.P[0],input={x:1,y:0,pass:true},sim=physics(s,input);p.vx=cfg.playerMaxSpeed;
  for(let i=0;i<30;i++){sim.step(1/60);moveBall(s,1/60);input.pass=false;}
  const gap=s.ball.x-p.x-cfg.playerRadius-s.BR;
- assert.ok(gap>30&&gap<45);assert.ok(s.ball.vx>cfg.playerMaxSpeed);
+ const freeGap=rolling(cfg.passImpulse,.5).distance-cfg.playerMaxSpeed*.5;assert.ok(gap>=freeGap-.01&&gap<=freeGap+cfg.playerRadius);assert.ok(s.ball.vx>cfg.playerMaxSpeed);
  return {seconds:.5,clearGap:gap,ballVelocity:s.ball.vx,playerVelocity:p.vx,oldFreePassAtHalfSecond:rolling(190,.5).speed};
 }
 test('a pass at full running speed opens a measurable gap instead of immediately being caught',runningPass);

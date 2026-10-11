@@ -1,0 +1,28 @@
+// Local test dependency: .work/browser/node_modules/playwright.
+const {chromium}=require('../.work/browser/node_modules/playwright');
+const {createApp}=require('../server/app.cjs'),{once}=require('node:events');
+const assert=require('node:assert/strict'),fs=require('node:fs');
+(async()=>{
+ const origin='http://127.0.0.1:4418',out='docs/qa-1.0.6';fs.mkdirSync(out,{recursive:true});
+ const app=createApp({databasePath:':memory:',origin,logger:{warn(){},error:console.error}});let browser;
+ try{
+  app.server.listen(4418,'127.0.0.1');await once(app.server,'listening');
+  browser=await chromium.launch({headless:true,executablePath:process.env.MAXBALL_BROWSER||'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',args:['--disable-gpu','--renderer-process-limit=1','--js-flags=--max-old-space-size=96']});
+  const context=await browser.newContext({viewport:{width:740,height:360},hasTouch:true}),page=await context.newPage(),errors=[],results=[];
+  page.on('pageerror',e=>errors.push(e.message));await page.goto(origin);await page.waitForFunction(()=>window.MaxballGame);await page.evaluate(()=>MaxballGame.startLocal('train',{n:1}));
+  const reset=()=>page.evaluate(()=>{const s=MaxballGame.state(),p=s.P[0];s.G.phase='play';s.G.restarting=false;s.G.kl=0;p.cd=0;p.x=s.W/2;p.y=s.H/2;p.vx=p.vy=0;p.shootBuffer=p.passBuffer=0;s.ball.x=p.x+20+s.BR;s.ball.y=p.y;s.ball.vx=s.ball.vy=0;s.G.stats[p.id].passes=s.G.stats[p.id].shots=0;});
+  const read=()=>page.evaluate(()=>{const s=MaxballGame.state(),p=s.P[0];return {passes:s.G.stats[p.id].passes,shots:s.G.stats[p.id].shots,vx:s.ball.vx,vy:s.ball.vy};});
+  const cdp=await context.newCDPSession(page),pass=await page.locator('#bP').boundingBox(),shot=await page.locator('#bS').boundingBox();
+  const finger=(b,id)=>({id,x:b.x+b.width/2,y:b.y+b.height/2,radiusX:4,radiusY:4,force:1});
+  await reset();await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[finger(pass,1)]});
+  await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[finger(pass,1),finger(shot,2)]});
+  await page.waitForFunction(()=>{const s=MaxballGame.state(),v=s.G.stats[s.P[0].id];return v.passes===1&&v.shots===1;});results.push({control:'touch',...await read()});
+  await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+  await page.waitForTimeout(200);await reset();await page.keyboard.down('KeyG');await page.keyboard.down('KeyF');
+  await page.waitForFunction(()=>{const s=MaxballGame.state(),v=s.G.stats[s.P[0].id];return v.passes===1&&v.shots===1;});results.push({control:'keyboard',...await read()});
+  await page.keyboard.up('KeyG');await page.keyboard.up('KeyF');
+  for(const r of results){assert.equal(r.passes,1);assert.equal(r.shots,1);assert.ok(r.vx>0);assert.ok(Math.abs(r.vy)<1e-6);}
+  assert.deepEqual(errors,[]);await page.screenshot({path:out+'/db-mobile.png'});
+  fs.writeFileSync(out+'/db-browser.json',JSON.stringify({results,errors},null,2)+'\n');console.log('PASS DB via real touch and keyboard',results);
+ }finally{await browser?.close();await app.close();}
+})().catch(e=>{console.error(e);process.exitCode=1;});
