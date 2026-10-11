@@ -20,7 +20,7 @@
  function select(label,key,options,value){return el('label',{class:'field',text:label},[el('select',{name:key},options.map(([id,name])=>el('option',{value:id,...(String(id)===String(value)?{selected:''}:{}),text:name})))]);}
  function form(fields,label,submit){
   const node=el('form',{class:'sport-form'},fields),send=el('button',{class:'action primary',type:'submit',text:label});node.append(send);
-  node.onsubmit=async event=>{event.preventDefault();if(!node.reportValidity())return;send.disabled=true;try{await submit(Object.fromEntries(new FormData(node)));}catch(error){root.MaxballPortal.error(error);}finally{send.disabled=false;}};
+  node.onsubmit=async event=>{event.preventDefault();if(send.disabled||!node.reportValidity())return;send.disabled=true;try{await submit(Object.fromEntries(new FormData(node)));}catch(error){root.MaxballPortal.error(error);}finally{send.disabled=false;}};
   return node;
  }
  function table(headers,rows){return el('div',{class:'table-scroll'},[el('table',{},[el('thead',{},[el('tr',{},headers.map(text=>el('th',{scope:'col',text})))]),el('tbody',{},rows.map(row=>el('tr',{},row.map(text=>el('td',{text})))) )])]);}

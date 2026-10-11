@@ -1,4 +1,4 @@
-const {fail}=require('../lib/validation.cjs');
+const {fail,AppError}=require('../lib/validation.cjs');
 const {id}=require('../database/index.cjs');
 const {hash}=require('./auth.cjs');
 function createSupabase({url,anonKey,serviceKey,fetchImpl=fetch}){
@@ -17,7 +17,12 @@ function createSupabase({url,anonKey,serviceKey,fetchImpl=fetch}){
   let data;try{data=await response.json();}catch{fail('CLOUD','O serviço de contas retornou uma resposta inválida. Tente novamente.',503);}
   if(!response.ok){
    if(data.error_code==='email_not_confirmed')fail('EMAIL_UNCONFIRMED','Confirme seu e-mail pelo link enviado pelo Supabase antes de entrar.',403);
-   if(response.status===429)fail('AUTH_RATE_LIMIT','Muitas tentativas. Aguarde alguns minutos e tente novamente.',429);
+   if(response.status===429){
+    const emailLimit=(data.error_code||data.code)==='over_email_send_rate_limit';
+    const error=new AppError(429,emailLimit?'AUTH_EMAIL_RATE_LIMIT':'AUTH_RATE_LIMIT',emailLimit?'O serviço de contas atingiu o limite de envio de e-mails de confirmação. Se já recebeu o link, confirme seu e-mail e entre; caso contrário, aguarde a liberação do serviço.':'O serviço de contas limitou as tentativas. Aguarde antes de tentar novamente.');
+    const retry=Number(response.headers?.get('retry-after'));if(Number.isSafeInteger(retry)&&retry>0&&retry<=86400)error.retryAfter=retry;
+    throw error;
+   }
    if((response.status===401||response.status===403)&&(/api.?key/i.test(data.message||'')||data.error_code==='invalid_api_key'))fail('AUTH_CONFIGURATION','O serviço de contas rejeitou a configuração do servidor. Verifique as chaves do provedor.',503);
    if(path.includes('grant_type=password')&&(response.status===400||response.status===401))fail('LOGIN','E-mail ou senha inválidos.',401);
    if(data.error_code==='signup_disabled')fail('SIGNUP_DISABLED','O cadastro está desativado neste servidor.',403);

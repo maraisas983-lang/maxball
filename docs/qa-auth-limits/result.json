@@ -1,0 +1,12 @@
+{
+  "signupRequests": 2,
+  "duplicateRequestsPrevented": true,
+  "loginRequests": 0,
+  "emailQuotaMessageVisible": true,
+  "viewport": {
+    "width": 740,
+    "height": 360
+  },
+  "errors": [],
+  "provider": "local mock; no real accounts or emails"
+}

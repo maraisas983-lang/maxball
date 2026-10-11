@@ -15,9 +15,9 @@ const {createSkins}=require('./services/skins.cjs'),{createChampionships}=requir
 const {AppError,fail,object}=require('./lib/validation.cjs');
 const ROOT=path.resolve(__dirname,'..');
 const apiContract=require('../src/core/apiContract.js');
-const {securityConfig,createLimiter,createSecurityReporter}=require('./lib/security.cjs');
+const {securityConfig,createLimiter,createSecurityReporter,clientAddress}=require('./lib/security.cjs');
 
-function createApp({databasePath='var/maxball.sqlite',origin='http://127.0.0.1:5173',production=false,logger=console,sessionMs,supabase,adminEmails=[],security={},cakto={}}={}){
+function createApp({databasePath='var/maxball.sqlite',origin='http://127.0.0.1:5173',production=false,trustProxy=false,logger=console,sessionMs,supabase,adminEmails=[],security={},cakto={}}={}){
  const securityLimits=securityConfig(security),limit=createLimiter();
  if(production&&!origin.startsWith('https://'))throw new Error('Production requires an HTTPS PUBLIC_ORIGIN');
  const securityEvents=createSecurityReporter(logger);
@@ -49,15 +49,16 @@ function createApp({databasePath='var/maxball.sqlite',origin='http://127.0.0.1:5
   if(production)res.setHeader('Strict-Transport-Security','max-age=31536000');
   if(!pathname.startsWith('/api/'))return staticFile(req,res,pathname);
   res.setHeader('X-Maxball-API-Version',apiContract.version);
-  limit('api:'+req.socket.remoteAddress,600,60000);
+  const address=clientAddress(req,trustProxy);
+  limit('api:'+address,600,60000);
   const write=!['GET','HEAD'].includes(method);
-  if(pathname==='/api/payments/cakto/webhook'&&method==='POST'){limit('webhook:'+req.socket.remoteAddress,120,60000);return json(res,200,payments.webhook(await body(req)));}
+  if(pathname==='/api/payments/cakto/webhook'&&method==='POST'){limit('webhook:'+address,120,60000);return json(res,200,payments.webhook(await body(req)));}
   if(write&&req.headers.origin!==origin)fail('ORIGIN','Origem não permitida.',403);
   if(pathname==='/api/config'&&method==='GET')return json(res,200,{apiVersion:apiContract.version,authProvider:auth.provider,legal:{termsVersion:operations.policy.termsVersion,privacyVersion:operations.policy.privacyVersion},announcement:operations.settings().announcement});
   if(pathname==='/api/maxpass/preview'&&method==='GET')return json(res,200,maxpass.preview());
   if(pathname==='/api/health'&&method==='GET')return json(res,200,{ok:true});
   if(['/api/auth/register','/api/auth/login'].includes(pathname)&&method==='POST'){
-   limit('auth:'+req.socket.remoteAddress,12,15*60000);
+   limit('auth:'+address,12,15*60000);
    const data=await body(req);
    const identity=typeof data.username==='string'?data.username.trim().toLowerCase().slice(0,254):'';
    limit('username:'+require('./services/auth.cjs').hash(identity),8,15*60000);
@@ -208,7 +209,9 @@ function createApp({databasePath='var/maxball.sqlite',origin='http://127.0.0.1:5
   const expected=error instanceof AppError;
   if(!res.headersSent&&[413,415].includes(error.status))res.setHeader('Connection','close');
   if(!expected||[401,403,413,429].includes(error.status))securityEvents.record(expected?error.code:'INTERNAL');
-  if(!res.headersSent)json(res,expected?error.status:500,{error:{code:expected?error.code:'INTERNAL',message:expected?error.message:'Não foi possível concluir. Tente novamente.'}});else res.end();
+  const retryAfter=expected&&Number.isSafeInteger(error.retryAfter)&&error.retryAfter>0?error.retryAfter:null;
+  if(!res.headersSent&&retryAfter)res.setHeader('Retry-After',String(retryAfter));
+  if(!res.headersSent)json(res,expected?error.status:500,{error:{code:expected?error.code:'INTERNAL',message:expected?error.message:'Não foi possível concluir. Tente novamente.',...(retryAfter?{retryAfter}:{})}});else res.end();
  });});
  server.requestTimeout=15000;server.headersTimeout=10000;
  server.on('upgrade',(req,socket,head)=>rooms.upgrade(req,socket,head));

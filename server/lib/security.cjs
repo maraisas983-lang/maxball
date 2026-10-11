@@ -1,4 +1,16 @@
-const {fail}=require('./validation.cjs');
+const {fail,AppError}=require('./validation.cjs');
+const {isIP}=require('node:net');
+
+// Enable only behind the deployment's trusted ingress. Use the last address
+// appended by that ingress, never a client-supplied prefix of the header.
+function clientAddress(req,trustProxy=false){
+ const peer=req.socket.remoteAddress||'unknown';
+ if(!trustProxy)return peer;
+ const forwarded=req.headers['x-forwarded-for'];
+ if(typeof forwarded!=='string'||forwarded.length>2048)return peer;
+ const candidate=forwarded.split(',').at(-1).trim();
+ return isIP(candidate)?candidate:peer;
+}
 
 const defaults=Object.freeze({maxRooms:100,maxConnections:1000,wsAccountHandshakes:30,wsIpHandshakes:1200,wsMessages:90,apiPerAccount:300,roomOperations:30});
 const environment=Object.freeze({maxRooms:'MAX_ROOMS',maxConnections:'MAX_CONNECTIONS',wsAccountHandshakes:'WS_ACCOUNT_HANDSHAKES',wsIpHandshakes:'WS_IP_HANDSHAKES',wsMessages:'WS_MESSAGES_PER_SECOND',apiPerAccount:'API_ACCOUNT_PER_MINUTE',roomOperations:'ROOM_OPERATIONS_PER_MINUTE'});
@@ -20,7 +32,7 @@ function createLimiter({now=Date.now,capacity=10000}={}){
    if(!bucket&&buckets.size>=capacity)fail('BUSY','Servidor ocupado. Tente novamente.',503);
    bucket={until:time+windowMs,count:0};buckets.set(key,bucket);
   }
-  if(bucket.count>=max)fail('RATE_LIMIT','Muitas tentativas. Aguarde e tente novamente.',429);
+  if(bucket.count>=max){const seconds=Math.max(1,Math.ceil((bucket.until-time)/1000)),error=new AppError(429,'RATE_LIMIT',`Limite de tentativas atingido. Tente novamente em ${Math.ceil(seconds/60)} minuto(s).`);error.retryAfter=seconds;throw error;}
   bucket.count++;
  };
 }
@@ -39,4 +51,4 @@ function createSecurityReporter(logger){
  const timer=setInterval(flush,60000);timer.unref();
  return {record,flush,close(){clearInterval(timer);flush();}};
 }
-module.exports={securityConfig,securityFromEnv,createLimiter,createSecurityReporter};
+module.exports={securityConfig,securityFromEnv,createLimiter,createSecurityReporter,clientAddress};
