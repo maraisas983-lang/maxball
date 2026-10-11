@@ -5,10 +5,11 @@
  // Reuse scratch memory; the synchronous solver never allocates per iteration.
  const scratch=[];
  function resolveContacts(players,ball,radius,dt,touch=()=>{},field){
-  const distance=config.playerRadius+radius;let count=0,impulseX=0,impulseY=0,touched=null,best=Infinity;
+  const distance=config.playerRadius+radius,incomingSpeed=Math.hypot(ball.vx,ball.vy);let count=0,impulseX=0,impulseY=0,touched=null,best=Infinity,driveBudget=0;
   for(let i=0;i<players.length;i++){
    const p=players[i];if(p.inactive||(ball.x-p.x)**2+(ball.y-p.y)**2>=distance*distance)continue;const n=normal(ball,p,scratch[i]??={x:0,y:0,d:0});if(n.d>=distance-.001)continue;count++;
    if(n.d<best||n.d===best&&String(p.id??p.num)<String(touched?.id??touched?.num)){touched=p;best=n.d;}
+   driveBudget=Math.max(driveBudget,Math.min(config.contactMaxPushSpeed,Math.max(0,p.vx*n.x+p.vy*n.y)));
    const relative=(ball.vx-p.vx)*n.x+(ball.vy-p.vy)*n.y;
    if(relative<0){
     // Players follow control input as kinematic bodies: bounce once at contact,
@@ -47,7 +48,9 @@
     if(blockedX||blockedY)for(let i=0;i<players.length;i++)if(!players[i].inactive&&scratch[i].d<distance-.001){players[i].x-=blockedX;players[i].y-=blockedY;}
    }
   }
-  const speed=Math.hypot(ball.vx,ball.vy);if(speed>config.ballMaxSpeed){ball.vx*=config.ballMaxSpeed/speed;ball.vy*=config.ballMaxSpeed/speed;}
+  // Contacts may reflect an incoming shot or transfer player motion, but repeated
+  // normals in a tackle must not compound into energy beyond either source.
+  const speed=Math.hypot(ball.vx,ball.vy),limit=Math.min(config.ballMaxSpeed,Math.max(incomingSpeed,driveBudget));if(speed>limit){ball.vx*=limit/speed;ball.vy*=limit/speed;}
   touch(touched);
   return true;
  }
