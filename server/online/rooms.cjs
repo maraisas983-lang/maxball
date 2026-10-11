@@ -27,7 +27,7 @@ function createRooms({db,auth,economy,career,maxpass,origin,logger=console,syncR
  const member=p=>{const profile=db.one('SELECT display_name,kit,effect,celebration FROM profiles WHERE user_id=?',p.id),club=db.one("SELECT c.name FROM custom_clubs c JOIN club_members m ON m.club_id=c.id WHERE m.user_id=? AND m.status='APPROVED' ORDER BY c.created_at LIMIT 1",p.id);return {id:p.id,name:profile?.display_name||p.name,num:p.num,team:p.team,slot:p.slot,referee:!!p.referee,position:p.position||'PV',kit:p.kit??(profile?.kit>1?profile.kit:null),trail:profile?.effect||0,celebration:profile?.celebration||0,clubName:club?.name||'Sem clube',connected:connections.has(p.id)};};
  const visible=room=>({id:room.id,name:room.name,owner:room.owner,hostId:room.owner,kind:room.kind,hasPassword:!!room.passwordHash,cfg:room.cfg,settings:room.cfg.settings||settings(),homeTeam:room.cfg.teams?.[0],awayTeam:room.cfg.teams?.[1],status:room.match?.G.phase||'waiting',cards:room.match?.G.cards||{},roomStatus:room.match?.G.pauseState||(!room.match?'LOBBY':({starting:'STARTING',end:'FINISHED',penalties:'PENALTIES'})[room.match.G.phase]||(room.match.G.ot?'EXTRA_TIME':'PLAYING')),players:room.players.map(member),homePlayers:room.players.filter(p=>p.team===0).map(member),awayPlayers:room.players.filter(p=>p.team===1).map(member),spectators:(room.spectators||[]).map(member),coaches:(room.coaches||[]).map(member),referee:room.referee?member(room.referee):null,referees:referees(room).map(member),matchId:room.match?.id||null,intermissionEndsAt:room.match?.G.intermissionEndsAt||null,breakRemaining:room.match?.G.breakRemaining||0,score:room.match?.G.score||[0,0]});
  const processingSamples=[],metrics={packets:0,bytes:0,dropped:0,reconnects:0,ticks:0,processingMs:0,peakProcessingMs:0,packetsPerSecond:0,bytesPerSecond:0};
- const send=(ws,data)=>{if(ws?.readyState!==1)return;if(ws.bufferedAmount>8192)ws.maxballCongestedAt??=Date.now();else ws.maxballCongestedAt=null;if(ws.bufferedAmount>=65536||ws.maxballCongestedAt&&Date.now()-ws.maxballCongestedAt>750){metrics.dropped++;ws.close(1013,'Reconecte para atualizar o estado');return;}const payload=typeof data==='string'?data:JSON.stringify(data);ws.send(payload);metrics.packets++;metrics.bytes+=Buffer.byteLength(payload);};
+ const send=(ws,data)=>{if(ws?.readyState!==1)return;if(ws.bufferedAmount>=256000){metrics.dropped++;ws.close(1013,'Reconecte para atualizar o estado');return;}const payload=typeof data==='string'?data:JSON.stringify(data);ws.send(payload);metrics.packets++;metrics.bytes+=Buffer.byteLength(payload);};
  const broadcast=(room,data)=>{if(data.type==='snapshot')room.encoder=new protocol.Encoder(data.state);const payload=JSON.stringify(data);for(const p of all(room))if(membership.get(p.id)===room.id)send(connections.get(p.id)?.ws,payload);};
  const notify=room=>broadcast(room,{type:'room',room:visible(room)});
  const party=createParty({lookup:uid=>db.one('SELECT u.id,p.display_name name FROM users u JOIN profiles p ON p.user_id=u.id WHERE u.id=? OR u.username=?',uid,uid),connected:uid=>connections.has(uid),available:uid=>!membership.has(uid)&&!ranked.queue.has(uid)&&!friendlies?.has(uid),cancel:uid=>{ranked.cancel(uid);friendlies?.cancel(uid);},notify:(uid,data)=>send(connections.get(uid)?.ws,data)});
@@ -277,13 +277,13 @@ function createRooms({db,auth,economy,career,maxpass,origin,logger=console,syncR
     if(['shootSeq','passSeq'].some(k=>data[k]!==undefined&&(!Number.isSafeInteger(data[k])||data[k]<0)))fail('INPUT','Ação inválida.');
     connection.sequence=data.seq;connection.lastInput=Date.now();
     const player=room.match.P.find(p=>p.id===user.id);if(player)player.ctrl='remote';
-    room.match.setInput(user.id,{seq:data.seq,x:data.x,y:data.y,shoot:data.shoot,pass:data.pass,shootSeq:data.shootSeq,passSeq:data.passSeq,requestPass:data.requestPass,requestShot:data.requestShot});
+    room.match.setInput(user.id,{x:data.x,y:data.y,shoot:data.shoot,pass:data.pass,shootSeq:data.shootSeq,passSeq:data.passSeq,requestPass:data.requestPass,requestShot:data.requestShot});
    }catch{securityEvent('WS_INVALID_MESSAGE');ws.close(1008,'Mensagem inválida');}
   });
   ws.on('pong',()=>{connection.alive=true;connection.ping=Date.now()-(connection.pingAt||Date.now());});
   ws.on('error',()=>{});
   ws.on('close',()=>{if(connections.get(user.id)===connection){connections.delete(user.id);const r=rooms.get(membership.get(user.id));if(r){r.match?.inputs.delete(user.id);r.locker?.input(user.id,0,0);r.disconnected??={};r.disconnected[user.id]=Date.now();notify(r);}}});
-  const room=rooms.get(membership.get(user.id));if(room){if(room.disconnected)delete room.disconnected[user.id];const player=room.match?.P.find(p=>p.id===user.id);if(player){delete room.match.inputState[user.id];player.shootSeq=player.passSeq=0;player.shootHeld=player.passHeld=false;}notify(room);}
+  const room=rooms.get(membership.get(user.id));if(room){if(room.disconnected)delete room.disconnected[user.id];const player=room.match?.P.find(p=>p.id===user.id);if(player){player.shootSeq=player.passSeq=0;player.shootHeld=player.passHeld=false;}notify(room);}
   send(ws,{type:'connected',room:current(user.id)});
   // The simulation may tick before the client's subscribe reaches us. Give the
   // new socket a baseline now and restart the shared delta chain for all peers.
@@ -313,7 +313,7 @@ function createRooms({db,auth,economy,career,maxpass,origin,logger=console,syncR
     if(Date.now()-room.lastPresent>30000&&room.match.G.phase!=='end')room.match.finish('ABANDONED');
     room.match.update(1/60);handleIntermission(room);room.botPhase??=botPhase++%6;if((ticks+room.botPhase)%6===0)bots.submit(room.match);
     if(room.match.G.phase==='end'){bots.remove(room.match.id);persistResult(room);}
-    if(ticks>=(room.nextFrameTick||0)&&accumulator<1/60&&!room.finalSent){const acks=Object.fromEntries(room.players.map(p=>[p.id,room.match.inputState[p.id]?.seq??-1]));
+    if(ticks>=(room.nextFrameTick||0)&&accumulator<1/60&&!room.finalSent){const acks=Object.fromEntries(room.players.map(p=>[p.id,connections.get(p.id)?.sequence??-1]));
      if(!room.sentBaseline||room.match.G.phase==='end'){const state=protocol.snapshot(room.match,ticks);state.acks=acks;broadcast(room,{type:'snapshot',state});}
      else broadcast(room,room.encoder.encode(room.match,ticks,acks));
      room.nextFrameTick=ticks+3;room.sentBaseline=true;if(room.match.G.phase==='end')room.finalSent=true;}

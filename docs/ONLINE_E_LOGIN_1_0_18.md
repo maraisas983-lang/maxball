@@ -1,5 +1,7 @@
 # MAXBALL 1.0.18 — reconciliação online e login persistente
 
+**Registro histórico:** as alterações de rede descritas aqui foram revertidas na 1.0.19 após relato de piora em partida real. Os testes locais da 1.0.18 não comprovaram a qualidade em produção. Consulte [Reversão online](REVERSAO_ONLINE_1_0_19.md).
+
 ## Causas encontradas no código
 
 1. A previsão anterior reconstruía um intervalo estimado por metade do ping, sem reaplicar os comandos a partir de uma confirmação da simulação. Mudanças rápidas de direção podiam cair no intervalo errado.

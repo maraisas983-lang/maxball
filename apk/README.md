@@ -1,8 +1,8 @@
 # MAXBALL para Android
 
-[Baixar MAXBALL 1.0.18](MAXBALL-1.0.18.apk?raw=true)
+[Baixar MAXBALL 1.0.19](MAXBALL-1.0.19.apk?raw=true)
 
-A versão 1.0.18 implementa reconciliação por comandos confirmados pela simulação, reutiliza os contatos do motor existente na previsão, estabiliza o relógio de interpolação e renova o login ao reabrir. Veja [Online e login](../docs/ONLINE_E_LOGIN_1_0_18.md). A versão 1.0.17 ajusta a resposta e a reconciliação do movimento online, permite um árbitro dentro de cada time e remove quem sai sem criar um bot. Veja [Controle online](../docs/CONTROLE_ONLINE_1_0_17.md). A duração de cada tempo e as melhorias anteriores foram preservadas.
+A versão 1.0.19 retira as mudanças de rede da 1.0.18 após o relato de regressão e restaura o sistema online da 1.0.17. Mantém a renovação do login ao reabrir. Veja [Reversão online](../docs/REVERSAO_ONLINE_1_0_19.md).
 
 APK de teste, assinado com certificado de depuração, para Android 8.0 ou superior. Transfira para o celular, abra o arquivo e autorize a instalação pelo aplicativo usado. Quem instalou a versão anterior pode escolher **Atualizar**, preservando os dados.
 
