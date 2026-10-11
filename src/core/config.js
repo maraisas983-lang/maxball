@@ -6,10 +6,10 @@
    playerMaxSpeed:180,botMaxSpeeds:Object.freeze([158,170,180]),
    playerAcceleration:36,playerTurnResponse:48,inputEpsilon:.01,
    playerOutsideMargin:70,
-   // Velocities: player 4.5, full pass 8.5, shot 17 player diameters/second.
-   shotImpulse:680,passImpulse:340,passMinSpeed:170,passMaxSpeed:440,ballMaxSpeed:816,
-   ballFriction:.65,ballRollingResistance:12,
-   wallRestitution:.65,postRestitution:.48,postRadius:6,
+   // Measured in field units/second; calibrated against the smallest pitch.
+   shotImpulse:360,passImpulse:190,passMinSpeed:140,passMaxSpeed:240,ballMaxSpeed:440,
+   ballFriction:.55,ballRollingResistance:12,
+   wallRestitution:.45,postRestitution:.32,postRadius:6,
    contactRestitution:.22,contactMaxPushSpeed:170,contactResponse:24,contactIterations:8,
    kickCooldown:.18,kickReach:1,kickBuffer:.12,
    kickMomentum:.1,kickTangentRetention:.2,kickTangentLimit:.15
