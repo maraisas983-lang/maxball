@@ -75,7 +75,7 @@ function createRooms({db,auth,economy,career,maxpass,origin,logger=console,syncR
   if(ranked.queue.has(user.id))fail('QUEUE','Cancele a busca ranqueada primeiro.',409);
   if(membership.has(user.id))fail('ROOM','Saia da sala atual primeiro.',409);
   if(rooms.size>=security.maxRooms)fail('CAPACITY','Servidor cheio. Tente novamente.',503);
-  const room={id:id(),owner:user.id,name:text(body.name||'Sala MAXBALL','Nome da sala',3,40),kind:'ONLINE',players:[],createdAt:Date.now(),cfg:{n:integer(body.n??2,'Formato',1,5),time:integer(body.time??180,'Tempo',60,600),gold:integer(body.gold??0,'Gol de ouro',0,1),fs:0,diff:integer(body.diff??1,'Dificuldade',0,2),ball:1,goalLimit:integer(body.goalLimit??0,'Limite de gols',0,20),halftime:body.halftime===true,sk0:auth.profile(user.id).kit,sk1:1}};
+  const room={id:id(),owner:user.id,name:text(body.name||'Sala MAXBALL','Nome da sala',3,40),kind:'ONLINE',players:[],createdAt:Date.now(),cfg:{n:integer(body.n??2,'Formato',1,5),time:integer(body.time??180,'Tempo',60,1200),gold:integer(body.gold??0,'Gol de ouro',0,1),fs:0,diff:integer(body.diff??1,'Dificuldade',0,2),ball:1,goalLimit:integer(body.goalLimit??0,'Limite de gols',0,20),halftime:body.halftime===true,sk0:auth.profile(user.id).kit,sk1:1}};
   if(body.stadium!==undefined&&!require('../../src/data/stadiums.js').valid(body.stadium))fail('STADIUM','Estádio inválido.');room.cfg.stadium=body.stadium||'max-arena';room.spectators=[];try{room.cfg.settings=settings(body.settings,!!room.cfg.gold);}catch(error){fail('RULES',error.message);}
   if(body.final!==undefined&&typeof body.final!=='boolean')fail('FINAL','Modo de Final inválido.');if(body.final){room.cfg.final=true;room.cfg.settings=settings({penalties:true});}
   room.cfg.teams=[clubs.catalog(user.id).find(t=>t.legacyKit===room.cfg.sk0)||teamData.teams[1],teamData.teams[0]];room.awayBase=room.cfg.teams[1];room.cfg.teams[1]=teamData.contrast(room.cfg.teams[0],room.cfg.teams[1]);
@@ -170,7 +170,7 @@ function createRooms({db,auth,economy,career,maxpass,origin,logger=console,syncR
   if(room.match||room.ranked)fail('STARTED','A sala já iniciou.',409);
   object(body,['settings','homeTeamId','awayTeamId','playerId','destination','n','time','fs','ball','goalLimit','halftime','diff','stadium']);
   if(room.cfg.friendly&&Object.keys(body).some(k=>!['playerId','destination'].includes(k)))fail('FRIENDLY_RULES','As regras do amistoso foram confirmadas pelos dois clubes.',409);
-  const beforeCfg=structuredClone(room.cfg),nextCfg={...room.cfg};for(const [key,min,max] of [['n',1,5],['time',60,600],['fs',0,2],['ball',0,2],['goalLimit',0,20],['diff',0,2]])if(body[key]!==undefined)nextCfg[key]=integer(body[key],key,min,max);
+  const beforeCfg=structuredClone(room.cfg),nextCfg={...room.cfg};for(const [key,min,max] of [['n',1,5],['time',60,1200],['fs',0,2],['ball',0,2],['goalLimit',0,20],['diff',0,2]])if(body[key]!==undefined)nextCfg[key]=integer(body[key],key,min,max);
   nextCfg.fs=0;nextCfg.ball=1;if(body.stadium!==undefined){if(!require('../../src/data/stadiums.js').valid(body.stadium))fail('STADIUM','Estádio inválido.');nextCfg.stadium=body.stadium;}
   if(body.halftime!==undefined){if(typeof body.halftime!=='boolean')fail('RULES','Intervalo inválido.');nextCfg.halftime=body.halftime;}
   if(room.players.some(p=>p.slot>=nextCfg.n))fail('FULL','Mova os jogadores das vagas removidas antes de diminuir o formato.',409);

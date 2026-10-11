@@ -1,8 +1,8 @@
 # MAXBALL para Android
 
-[Baixar MAXBALL 1.0.15](MAXBALL-1.0.15.apk?raw=true)
+[Baixar MAXBALL 1.0.16](MAXBALL-1.0.16.apk?raw=true)
 
-A versão 1.0.15 reduz a escala dos menus mobile em 8%, inicia a qualidade automática mais leve e melhora o envio e a previsão dos comandos online. Veja [Desempenho mobile](../docs/DESEMPENHO_MOBILE_1_0_15.md). A física da bola foi preservada. A atualização não elimina a latência causada pela rede ou pela localização da hospedagem.
+A versão 1.0.16 adiciona nas salas a duração de cada tempo, incluindo 10 minutos. Com intervalo ligado, são dois tempos de 10 minutos; sem intervalo, é um tempo único. Veja [Duração das salas](../docs/DURACAO_SALAS_1_0_16.md). As melhorias de desempenho da versão anterior foram preservadas.
 
 APK de teste, assinado com certificado de depuração, para Android 8.0 ou superior. Transfira para o celular, abra o arquivo e autorize a instalação pelo aplicativo usado. Quem instalou a versão anterior pode escolher **Atualizar**, preservando os dados.
 
@@ -13,7 +13,7 @@ Online, contas e pagamentos exigem um servidor HTTPS publicado e outra compilaç
 Assinaturas APK v2/v3 verificadas. SHA-256:
 
 ```text
-e3b0a537bd15e4bce9cc9702b27477d2a488a6fd733a85600f3aaa0707149e9b
+4da1233cd77536a5b2200dfcbdf3ea70dcc10b7347471fbf7310de4177418e36
 ```
 
 Para recompilar: consulte [Entrada, áudio e APK](../docs/ENTRADA_AUDIO_APK.md). A compilação padrão também está disponível no workflow **Android APK** do GitHub Actions.
