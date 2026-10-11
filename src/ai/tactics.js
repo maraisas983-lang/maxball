@@ -88,8 +88,10 @@
       if(passing)aim=passPlan?.target||(passTarget?{x:passTarget.x,y:passTarget.y}:{x:clamp(ball.x+direction*220,80,W-80),y:clamp(H/2,80,H-80)});
       let ax=aim.x-ball.x,ay=aim.y-ball.y,ad=Math.hypot(ax,ay)||1;ax/=ad;ay/=ad;
       const reach=distance(p,ball),alignment=((ball.x-p.x)*ax+(ball.y-p.y)*ay)/(reach||1);
-      // Arm an action just before contact; physics still enforces the exact small ring.
-      if(reach<interaction.radius(s)+24&&alignment>.5&&p.cd<=0&&(passing||scores.shoot>Math.max(35,movementScore))){
+      // Aim is achieved by positioning the disc, as for humans. A target vector
+      // cannot redirect a kick whose actual contact normal points elsewhere.
+      const wantsAction=passing||scores.shoot>Math.max(35,movementScore);
+      if(reach<interaction.radius(s)+24&&alignment>.985&&p.cd<=0&&wantsAction){
        const error=[.12,.055,.018][difficulty]*(this.random()-.5),c=Math.cos(error),sn=Math.sin(error);
        command.aim={x:(ax*c-ay*sn)*ad,y:(ax*sn+ay*c)*ad};command.pass=!!passing;command.shoot=!passing;state=passing?'PASSING':'SHOOTING';
        if(passing&&passTarget&&!keeper&&!tactical.combination&&!tactical.pendingPass)tactical.pendingPass={from:p.id,to:passTarget.id,previousKick:ball.kickAt??-1,until:this.time+1,run:{x:clamp(p.x+direction*180,65,W-65),y:clamp(p.y+(passTarget.y>p.y?-65:65),55,H-55)}};
@@ -97,7 +99,7 @@
       const onWrongSide=((p.x-ball.x)*ax+(p.y-ball.y)*ay)>-12;
       const side=p.y<ball.y?-1:1;
       target={x:ball.x-ax*(PHYSICS.playerRadius+BR+3)+(onWrongSide?-ay*side*42:0),y:ball.y-ay*(PHYSICS.playerRadius+BR+3)+(onWrongSide?ax*side*42:0)};
-      if(alignment>.7&&reach<PHYSICS.playerRadius+BR+45)target={x:ball.x+ax*36,y:ball.y+ay*36};
+      if(alignment>(wantsAction?.985:.7)&&reach<PHYSICS.playerRadius+BR+45)target={x:ball.x+ax*36,y:ball.y+ay*36};
       if(!owned&&(opponentOwns||moving)){const speed=PHYSICS.botMaxSpeeds[difficulty]*clamp((p.attributes?.speed??70)/70,.8,1.2),intercept=forecast?.find((point,i)=>distance(p,point)<=speed*horizons[i]+interaction.radius(s))||predicted;target={x:intercept.x-(ball.last===team?ax*22:0),y:intercept.y-(ball.last===team?ay*22:0)};state='INTERCEPTING';}
      }
      if(combination?.from===p.id&&ball.last===team&&!interaction.contains(p,ball,s)){target={...combination.run};state='GIVE_AND_GO';command.shoot=command.pass=false;}

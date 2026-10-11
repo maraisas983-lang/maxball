@@ -12,6 +12,9 @@ class Penalties {
   shooter.x=m.ball.x-(interactionRadius(m)-.75);shooter.y=m.ball.y;shooter.fx=1;shooter.fy=0;
   keeper.x=m.W-24;keeper.y=m.H/2;keeper.fx=-1;keeper.fy=0;
   this.aimY=m.GY0+18+m.random()*(m.GY1-m.GY0-36);this.reaction=.35+m.random()*.3;this.shootAt=.7+m.random()*.7;
+  // Place an automatic taker behind its intended contact angle during setup.
+  // The kick itself obeys the same ball-player normal as every human action.
+  if(shooter.ctrl==='ai'){const dx=m.W-m.ball.x,dy=this.aimY-m.ball.y,n=Math.hypot(dx,dy),r=interactionRadius(m)-.75;shooter.x=m.ball.x-dx/n*r;shooter.y=m.ball.y-dy/n*r;}
   this.keeperGuess=m.H/2+(m.random()<.5?-1:1)*(m.GY1-m.GY0)*.25;
   m.record('PENALTY_READY',{turn:s.turn,shooter:s.shooter,keeper:s.keeper});
  }
