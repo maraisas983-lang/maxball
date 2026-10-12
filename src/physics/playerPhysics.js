@@ -46,9 +46,9 @@
    // normal kick hitbox. Rebounds, interception and elapsed time invalidate it.
    if(type==='p')combos.set(p,{ball,remaining:config.dbWindow,version:ball.impactVersion||0,nx:ux,ny:uy});else combos.delete(p);
    effects.kick?.(p,type);
-   const col=p.team?'#ff2d87':'#c8ff2e';effects.burst?.(ball.x,ball.y,type==='s'?10:6,[col,'#fff'],type==='s'?220:120,.3);
+   const col=p.team?'#ff2d87':'#c8ff2e';effects.burst?.(ball.x,ball.y,type==='s'?6:2,[col,'#fff'],type==='s'?150:60,type==='s'?.22:.12);
    effects.beep?.(type==='s'?180:420,.1,type==='s'?'sawtooth':'triangle',.06);
-   effects.particle?.({t:'r',x:ball.x,y:ball.y,s:8,l:.3,m:.3,c:col,vx:0,vy:0,g:0});
+   if(type==='s')effects.particle?.({t:'r',x:ball.x,y:ball.y,s:6,l:.2,m:.2,c:col,vx:0,vy:0,g:0});
    return true;
   }
   function separatePlayers(active){

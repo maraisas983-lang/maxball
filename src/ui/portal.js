@@ -52,7 +52,7 @@
    const result=await api('/auth/register','POST',payload(values));if(result.confirmationRequired){const message='Confirme seu e-mail pelo link recebido e depois entre na conta.';portal.status(message);if(root.MaxballEntry?.visible)root.MaxballEntry.notice(message);return;}await loggedIn();
   }),'secondary');
   const sync=()=>{login.querySelector('[type=submit]').disabled=register.disabled=authBusy||!check.checked;};check.onchange=sync;sync();
-  container.append(el('article',{class:'login-card'},[el('p',{class:'eyebrow',text:'ENTRE PARA O MAXBALL'}),el('h2',{text:page==='support'?'Entre para acessar seus chamados.':'Entre em campo.'}),note('Sua conta guarda carreira, troféus e cosméticos. Treino e Local estão disponíveis sem login.'),login,register,note('Cadastro: senha com pelo menos 12 caracteres.')]));
+  container.append(el('article',{class:'login-card'},[el('p',{class:'eyebrow',text:'ENTRE PARA O MAXBALL'}),el('h2',{text:page==='support'?'Entre para acessar seus chamados.':'Entre em campo.'}),note('Sua conta guarda carreira, troféus e cosméticos. Treino e Local estão disponíveis sem login.'),login,register,note('Primeira vez? Preencha os campos acima, use uma senha com pelo menos 12 caracteres, aceite os termos e toque em Criar conta com esses dados. Se já tem conta, use Entrar.'),note(authProvider==='supabase'?'Após o cadastro, confira seu e-mail (inclusive o spam) para confirmar a conta. Você pode trocar seu nick em Configurações → Alterar nick / perfil.':'Você pode trocar seu nick em Configurações → Alterar nick / perfil.')]));
   if(!statusNode.classList.contains('error'))portal.status('');
  }
  async function loggedIn(){

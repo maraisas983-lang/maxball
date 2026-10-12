@@ -70,3 +70,18 @@
 @media(max-width:760px){.lobby-cover{padding:24px 0;gap:14px}.lobby-cover h1{font-size:28px;letter-spacing:-.7px}.lobby-description{font-size:14px}.lobby-emblem{min-width:90px;width:90px;height:110px}.lobby-emblem span{font-size:40px}.lobby-emblem small{display:none}[data-lobby=local] .lobby-emblem{width:110px}[data-lobby=local] .lobby-emblem span{font-size:25px}[data-lobby=play] .mode-grid{grid-template-columns:repeat(2,minmax(0,1fr))}[data-lobby=support] .lobby-body,[data-lobby=ranked] .lobby-body{grid-template-columns:1fr}.mode-door{min-height:220px;padding:18px}.mode-door h3{font-size:16px}.ranked-rating{font-size:28px}}
 @media(max-width:480px){.lobby-emblem{display:none}[data-lobby=play] .mode-grid{grid-template-columns:1fr}[data-lobby=training] .sport-form,[data-lobby=local] .sport-form{grid-template-columns:1fr}.mode-door{min-height:0}.mode-door .mode-mark{margin-bottom:12px}}
 @media(prefers-reduced-motion:reduce){[data-lobby=ranked] .searching .ranked-rating::after{animation:none}}
+
+/* Compact destinations on phones, including landscape play. */
+.mode-lobby .lobby-body>.action{justify-self:start;min-height:44px;max-width:100%;white-space:normal}
+@media(max-width:760px),(max-height:520px){
+ .mode-lobby .lobby-cover{padding:14px 0 18px;gap:14px}
+ .mode-lobby .lobby-cover h1{font-size:26px;margin:6px 0 10px}
+ .mode-lobby .lobby-description{font-size:13px;line-height:1.45}
+ .mode-lobby .lobby-emblem{display:none}
+ .mode-lobby .sport-card{padding:16px}
+ .mode-lobby .sport-card h3{font-size:17px;margin-bottom:12px}
+ .mode-lobby .action{min-height:44px;padding:10px 14px;box-sizing:border-box}
+ .mode-lobby .career-hero{padding:16px}
+ .mode-lobby .career-hero h2{font-size:24px}
+ .mode-lobby .metrics{gap:14px;margin:12px 0}
+}

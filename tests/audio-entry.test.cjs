@@ -9,7 +9,7 @@ test('teams cross the touchline through the tunnel before spreading across the p
   }assert.ok(entered);
  }
 });
-test('audio shares a context, separates music/effects, and suspends for native background',()=>{
+test('audio shares a context, separates music/effects, and suspends for native background',async()=>{
  const listeners={},docListeners={},scheduled=new Map();let created=0,starts=0,id=0,ctx;
  const param=()=>({value:0,setValueAtTime(v){this.value=v;},linearRampToValueAtTime(v){this.value=v;},exponentialRampToValueAtTime(v){this.value=v;},setTargetAtTime(v){this.value=v;}});
  const node=()=>({gain:param(),frequency:param(),Q:param(),connect(){return this;},disconnect(){},start(){starts++;},stop(){}});
@@ -26,4 +26,8 @@ test('audio shares a context, separates music/effects, and suspends for native b
  listeners['maxball:native-pause']();assert.equal(ctx.state,'suspended');assert.equal(scheduled.size,0);
  listeners['maxball:native-resume']();assert.equal(ctx.state,'running');assert.equal(scheduled.size,1);
  document.hidden=true;docListeners.visibilitychange();assert.equal(ctx.state,'suspended');assert.equal(scheduled.size,0);
+ document.hidden=false;prefs.sound=true;listeners['maxball:native-resume']();ctx.state='suspended';ctx.currentTime+=1;
+ ctx.resume=()=>Promise.resolve().then(()=>{ctx.state='running';});
+ const beforeFirstClick=starts;docListeners.click({target:{closest:()=>({disabled:false})}});
+ await new Promise(resolve=>setImmediate(resolve));assert.ok(starts>beforeFirstClick,'first click sounds after asynchronous audio unlock');
 });

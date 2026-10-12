@@ -2,7 +2,7 @@
  const config=Object.freeze({
   physics:Object.freeze({
    // World units: the entire visible disc, including its rim, is 40 units wide.
-   playerRadius:20,ballRadius:20*.42*1.02*1.06,playerMass:3,ballMass:1.8*1.06,
+   playerRadius:20,ballRadius:20*.42*1.02*1.06,playerMass:3,ballMass:2.1,
    playerMaxSpeed:150,botMaxSpeeds:Object.freeze([132,142,150]),
    playerAcceleration:36,playerTurnResponse:48,inputEpsilon:.01,
    playerOutsideMargin:70,
@@ -20,7 +20,7 @@
   }),
   field:Object.freeze({areaDepth:200,areaPadding:100,centerRadius:105}),
   input:Object.freeze({deadzone:.08}),
-  match:Object.freeze({introSeconds:17.7,entrySeconds:5,goalCelebrationSeconds:1.6,goalPauseSeconds:6.2,extraTimeSeconds:60,penaltySeconds:8,penaltyFlightSeconds:3,penaltyPauseSeconds:1.2}),
+  match:Object.freeze({introSeconds:17.7,entrySeconds:5,goalCelebrationSeconds:2.6,goalPauseSeconds:7.2,extraTimeSeconds:60,penaltySeconds:8,penaltyFlightSeconds:3,penaltyPauseSeconds:1.2}),
   ai:Object.freeze({formationWidth:240,formationDepth:210,minTeammateDistance:90,attackSupportDistance:135,defensiveSupportDistance:100,decisionInterval:.1,switchChaserCooldown:.65,switchAdvantage:40,pressDistance:260,debug:false}),
   ranked:Object.freeze({initialRating:1000,kFactor:32,ranges:Object.freeze([{seconds:0,difference:100},{seconds:10,difference:200},{seconds:20,difference:400}]),reconnectSeconds:20})
  });

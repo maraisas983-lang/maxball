@@ -23,7 +23,7 @@
  function unlock(){
   if(background||document.hidden)return context;
   try{if(!context){context=new (root.AudioContext||root.webkitAudioContext)();musicBus=context.createGain();effectsBus=context.createGain();musicBus.connect(context.destination);effectsBus.connect(context.destination);noise=context.createBuffer(1,context.sampleRate*.4,context.sampleRate);const data=noise.getChannelData(0);for(let i=0;i<data.length;i++)data[i]=Math.random()*2-1;}
-   context.resume()?.catch(()=>{});update();
+   context.resume()?.then(schedule).catch(()=>{});update();
   }catch{}return context;
  }
  function schedule(){
@@ -46,7 +46,7 @@
  function pause(){background=true;update();}
  function resume(){background=false;unlock();}
  document.addEventListener('pointerdown',unlock,{passive:true});document.addEventListener('keydown',unlock);
- document.addEventListener('click',event=>{if(event.target.closest?.('button,[role="button"],a,input[type="checkbox"],input[type="radio"]')){unlock();effect('click');}});
+ document.addEventListener('click',event=>{const target=event.target.closest?.('button,[role="button"],a,input[type="checkbox"],input[type="radio"],summary,select');if(target&&!target.disabled){const audio=unlock();if(audio?.state==='suspended')audio.resume()?.then(()=>effect('click')).catch(()=>{});else effect('click');}});
  document.addEventListener('visibilitychange',()=>document.hidden?pause():resume());
  root.addEventListener('maxball:native-pause',pause);root.addEventListener('maxball:native-resume',resume);
  root.addEventListener('maxball-preferences',update);
